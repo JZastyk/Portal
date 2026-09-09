@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a4f78">
+<link rel="icon" href="data:,">
 <title>Учёт химии</title>
 <style>
 :root{
@@ -246,7 +247,26 @@ const defaultItems=[
   {id:crypto.randomUUID(),name:'Аминат',measures:[{unit:'кан',qty:1,min:1},{unit:'кг',qty:18.8,min:1}]}
 ];
 
-let data=JSON.parse(localStorage.getItem(KEY)||'null')||{items:defaultItems,history:[]};
+function toArray(v){
+ if(Array.isArray(v))return v;
+ if(v&&typeof v==='object')return Object.keys(v).sort((a,b)=>Number(a)-Number(b)).map(k=>v[k]);
+ return [];
+}
+function sanitizeData(d){
+ const items=toArray(d&&d.items).filter(Boolean).map(it=>({
+   id:(it&&it.id)||crypto.randomUUID(),
+   name:(it&&it.name)||'',
+   measures:toArray(it&&it.measures).filter(Boolean).map(m=>({
+     unit:(m&&m.unit)||'',
+     qty:Number(m&&m.qty)||0,
+     min:Number(m&&m.min)||0
+   }))
+ }));
+ const history=toArray(d&&d.history).filter(Boolean);
+ return {items,history};
+}
+
+let data=sanitizeData(JSON.parse(localStorage.getItem(KEY)||'null')||{items:defaultItems,history:[]});
 let editId=null;
 let syncTimer;
 let firebaseReady=false;
@@ -271,17 +291,22 @@ function persist(){
 }
 
 dbRef.on('value',snap=>{
- const remote=snap.val();
- if(remote&&remote.items){
-   data=remote;
-   persistLocal();
-   render();
-   setSyncStatus('online','Синхронизировано');
- }else{
-   dbRef.set(data);
-   setSyncStatus('online','Синхронизировано');
- }
  firebaseReady=true;
+ setSyncStatus('online','Синхронизировано');
+ const remote=snap.val();
+ try{
+   if(remote&&remote.items){
+     data=sanitizeData(remote);
+     persistLocal();
+   }else{
+     data=sanitizeData(data);
+     dbRef.set(data);
+   }
+   render();
+ }catch(e){
+   console.error('Ошибка обработки данных:',e);
+   toast('Ошибка синхронизации данных');
+ }
 },err=>{
  console.error(err);
  setSyncStatus('offline','Офлайн — работает локально');
