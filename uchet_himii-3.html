@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a4f78">
+<title>Учёт химии</title>
+<style>
+:root{
+  --bg:#eef2f5; --card:#ffffff; --text:#152632; --muted:#6b7a86;
+  --accent:#0d6fa5; --accent-dark:#0a4f78; --accent-soft:#e5f1f7;
+  --danger:#d64545; --danger-soft:#fbe8e8;
+  --warning:#c8860d; --warning-soft:#fdf1dd;
+  --success:#1f9254; --success-soft:#e7f6ee;
+  --border:#e0e6ea;
+  --r-lg:18px; --r-md:12px; --r-sm:8px;
+  --shadow:0 6px 20px rgba(13,58,84,.07);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{overflow-x:hidden;max-width:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible,select:focus-visible,.search:focus-visible{outline:2px solid var(--accent-dark);outline-offset:2px}
+.app{max-width:1180px;margin:auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom))}
+
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+h1{font-size:23px;margin:0 0 3px;letter-spacing:-.01em}
+.subtitle{color:var(--muted);font-size:13.5px}
+.sync-status{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);margin-top:4px}
+.sync-status .dot{width:7px;height:7px;border-radius:50%;background:#b7c0c7;flex:none}
+.sync-status.online .dot{background:var(--success)}
+.sync-status.offline .dot{background:var(--danger)}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:var(--r-md);padding:11px 15px;font-weight:700;background:var(--accent);color:#fff;display:inline-flex;align-items:center;gap:6px;font-size:14px;transition:transform .1s,filter .15s}
+.btn:active{transform:scale(.97)}
+.btn.secondary{background:#e8eef2;color:var(--accent-dark)}
+.btn.danger{background:var(--danger-soft);color:#b63838}
+.btn svg{width:16px;height:16px;flex:none}
+
+.report-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-dark);color:#fff;border-radius:var(--r-lg);padding:14px 16px;margin-bottom:16px;box-shadow:var(--shadow);flex-wrap:wrap}
+.report-bar .report-text{font-size:14.5px;line-height:1.4}
+.report-bar .report-text b{font-weight:800}
+.report-bar .btn.copy-btn{background:rgba(255,255,255,.16);color:#fff}
+.report-bar .btn.copy-btn:hover{background:rgba(255,255,255,.26)}
+.report-bar .btn.copy-btn.copied{background:var(--success)}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:23px;line-height:1.1}
+.stat span{font-size:12.5px;color:var(--muted)}
+.stat.low b{color:var(--warning)}
+
+.toolbar{display:flex;gap:10px;margin-bottom:16px}
+.search-wrap{position:relative;flex:1}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search{width:100%;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px 12px 36px;outline:none}
+.search:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,111,165,.12)}
+.clear-search{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:50%;display:none;align-items:center;justify-content:center}
+.clear-search.show{display:flex}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);position:relative;transition:border-color .15s}
+.card-low{border-color:var(--warning);border-width:1.5px}
+.card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.name-wrap{min-width:0}
+.name{font-weight:800;font-size:16.5px;line-height:1.25;word-break:break-word}
+.unit-line{font-size:12px;color:var(--muted);margin-top:3px}
+.low-badge{display:inline-flex;align-items:center;gap:4px;background:var(--warning-soft);color:var(--warning);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-top:6px}
+.low-badge svg{width:11px;height:11px}
+.card-actions{display:flex;gap:5px;flex:none}
+.icon-btn{border:0;background:#eef3f6;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--accent-dark)}
+.icon-btn svg{width:16px;height:16px}
+.icon-btn.menu-btn{font-size:18px;font-weight:800;color:var(--text)}
+
+.quantities{display:grid;gap:9px;padding-top:14px}
+.measure{border:1px solid var(--border);border-radius:var(--r-md);padding:11px 12px;background:#fbfcfd}
+.measure-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.measure-main{text-align:center}
+.measure-main .unit-label{font-size:12px;color:var(--muted);font-weight:600}
+.measure-main strong{display:block;font-size:28px;line-height:1.15;font-weight:800}
+.measure.is-low .measure-main strong{color:var(--warning)}
+.measure-actions{display:flex;gap:5px}
+.measure-actions button{border:0;width:36px;height:36px;border-radius:9px;font-size:19px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.measure-actions .mminus{background:var(--danger-soft);color:#b63838}
+.measure-actions .mplus{background:var(--accent-soft);color:var(--accent)}
+.quick{display:flex;gap:6px;margin-top:8px}
+.quick button{flex:1;border:1px solid var(--border);background:#f8fafb;border-radius:var(--r-sm);padding:7px 4px;font-size:12px;color:#53636e;font-weight:600}
+.quick button:active{background:var(--accent-soft);color:var(--accent-dark)}
+
+.empty{grid-column:1/-1;text-align:center;padding:44px 20px;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:var(--r-lg)}
+.empty svg{width:36px;height:36px;margin-bottom:10px;opacity:.5}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(5,20,30,.5);display:none;align-items:flex-end;justify-content:center;padding:0;z-index:20}
+.modal-backdrop.show{display:flex}
+.modal{background:#fff;width:min(520px,100%);max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+@media(min-width:601px){.modal-backdrop{align-items:center;padding:16px}.modal{border-radius:22px}}
+.modal h2{margin:0 0 16px;font-size:19px}
+.form-row{margin-bottom:12px}
+.measure-config{border:1px solid var(--border);border-radius:var(--r-md);padding:12px;margin-bottom:12px;background:#fafcfd}
+.measure-config-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:800;font-size:13.5px;color:var(--accent-dark)}
+.measure-config-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.add-measure{border:1px dashed #aebbc4;background:#f7fafb;color:var(--accent-dark);width:100%;padding:11px;border-radius:var(--r-sm);font-weight:700;margin-bottom:14px}
+.remove-measure{border:0;background:var(--danger-soft);color:#b63838;border-radius:var(--r-sm);padding:5px 9px;font-size:12.5px;font-weight:700}
+label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
+input,select{width:100%;padding:12px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff}
+.modal-actions{display:flex;gap:8px;margin-top:6px}
+.modal-actions button{flex:1;justify-content:center}
+
+.history{margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.history-head{padding:14px 17px;font-weight:800;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:14.5px}
+.history-head .btn{padding:6px 10px;font-size:12.5px}
+.history-item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 17px;border-bottom:1px solid #edf1f3;font-size:13px;align-items:center}
+.history-item:last-child{border-bottom:0}
+.history-item .h-time{color:var(--muted);font-size:12px;margin-top:2px}
+.in{color:var(--success);font-weight:800;background:var(--success-soft);padding:4px 9px;border-radius:7px;white-space:nowrap}
+.out{color:#c44242;font-weight:800;background:var(--danger-soft);padding:4px 9px;border-radius:7px;white-space:nowrap}
+
+.copy-modal .modal{max-width:460px}
+.copy-modal textarea{width:100%;min-height:160px;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;font-family:inherit;font-size:14px;resize:vertical;background:#fbfcfd;color:var(--text)}
+.copy-hint{font-size:12.5px;color:var(--muted);margin:8px 0 14px}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:#152632;color:#fff;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:40;font-size:14px;max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .app{padding:14px 12px calc(35px + env(safe-area-inset-bottom))}
+  h1{font-size:20px}
+  .header-actions .label-text{display:none}
+  .header-actions .btn{padding:11px;width:44px;height:44px;justify-content:center}
+  .header-actions .btn svg{width:18px;height:18px}
+  .report-bar{padding:12px 14px;border-radius:16px}
+  .report-bar .report-text{font-size:13.5px}
+  .stats{gap:7px}.stat{padding:11px 9px}.stat b{font-size:19px}.stat span{font-size:10.5px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .card{padding:13px;border-radius:15px}
+  .name{font-size:14.5px}
+  .measure-main strong{font-size:25px}
+  .quick button{font-size:10.5px;padding:6px 3px}
+}
+@media(max-width:390px){.grid{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:last-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div><h1>Учёт химии</h1><div class="subtitle">Приход, расход и остатки</div>
+    <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">Подключение...</span></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn secondary" onclick="clearHistory()" aria-label="Очистить историю">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      <span class="label-text">Очистить историю</span>
+    </button>
+    <button class="btn" onclick="openAdd()" aria-label="Добавить химию">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span class="label-text">Химия</span>
+    </button>
+  </div>
+</header>
+
+<section class="report-bar">
+  <div class="report-text">Остаток химии на <b id="reportDate"></b></div>
+  <button class="btn copy-btn" id="copyBtn" onclick="copyReport()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <span>Копировать</span>
+  </button>
+</section>
+
+<section class="stats">
+  <div class="stat"><b id="itemsCount">0</b><span>позиций</span></div>
+  <div class="stat low"><b id="lowCount">0</b><span>заканчиваются</span></div>
+  <div class="stat"><b id="opsCount">0</b><span>операций</span></div>
+</section>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="search" class="search" placeholder="Поиск химии..." oninput="onSearch()">
+    <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="Очистить поиск">✕</button>
+  </div>
+</div>
+
+<main id="cards" class="grid"></main>
+
+<section class="history">
+  <div class="history-head"><span>Последние операции</span></div>
+  <div id="historyList"></div>
+</section>
+</div>
+
+<div id="modal" class="modal-backdrop" onclick="backdropClick(event)">
+  <div class="modal">
+    <h2 id="modalTitle">Добавить химию</h2>
+    <form onsubmit="saveItem(event)">
+      <div class="form-row"><label>Название</label><input id="fName" required placeholder="Например, Пена жёлтая"></div>
+      <div id="measureConfig"></div>
+      <button type="button" class="add-measure" onclick="addMeasureRow()">＋ Добавить единицу измерения</button>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" onclick="closeModal()">Отмена</button>
+        <button type="submit" class="btn">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="copyModal" class="modal-backdrop copy-modal" onclick="if(event.target===this)closeCopyModal()">
+  <div class="modal">
+    <h2>Скопируйте текст</h2>
+    <div class="copy-hint">Автоматически скопировать не получилось. Текст уже выделен — нажмите и удерживайте, выберите «Копировать», либо Ctrl+C.</div>
+    <textarea id="copyTextarea" readonly></textarea>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="closeCopyModal()">Закрыть</button>
+      <button type="button" class="btn" onclick="retryCopyFromModal()">Попробовать снова</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB645W3HUH1e5wmFvN50DFHzAHDUaysgpY",
+  authDomain: "himiya-uchet.firebaseapp.com",
+  databaseURL: "https://himiya-uchet-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "himiya-uchet",
+  storageBucket: "himiya-uchet.firebasestorage.app",
+  messagingSenderId: "591207429538",
+  appId: "1:591207429538:web:510528c6a80fcd413b6efb"
+};
+firebase.initializeApp(firebaseConfig);
+const dbRef = firebase.database().ref('inventory');
+</script>
+<script>
+const KEY='chemical_inventory_v2';
+
+const defaultItems=[
+  {id:crypto.randomUUID(),name:'Эмульсия',measures:[{unit:'кан',qty:22,min:2}]},
+  {id:crypto.randomUUID(),name:'Пена жёлтая',measures:[{unit:'кан',qty:5,min:2}]},
+  {id:crypto.randomUUID(),name:'Пена розовая',measures:[{unit:'кан',qty:5,min:2},{unit:'кг',qty:9.2,min:1}]},
+  {id:crypto.randomUUID(),name:'Пена голубая',measures:[{unit:'кан',qty:5,min:2},{unit:'кг',qty:19.5,min:1}]},
+  {id:crypto.randomUUID(),name:'Гидрофоб',measures:[{unit:'кан',qty:2,min:1},{unit:'кг',qty:14.46,min:1}]},
+  {id:crypto.randomUUID(),name:'Аминат',measures:[{unit:'кан',qty:1,min:1},{unit:'кг',qty:18.8,min:1}]}
+];
+
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||{items:defaultItems,history:[]};
+let editId=null;
+let syncTimer;
+let firebaseReady=false;
+
+function setSyncStatus(state,text){
+ const el=document.getElementById('syncStatus');
+ el.className='sync-status '+state;
+ document.getElementById('syncText').textContent=text;
+}
+
+function persistLocal(){localStorage.setItem(KEY,JSON.stringify(data))}
+function persist(){
+ persistLocal();
+ clearTimeout(syncTimer);
+ syncTimer=setTimeout(()=>{
+   dbRef.set(data).then(()=>{
+     firebaseReady=true;setSyncStatus('online','Синхронизировано');
+   }).catch(()=>{
+     setSyncStatus('offline','Офлайн — сохранено локально');
+   });
+ },350);
+}
+
+dbRef.on('value',snap=>{
+ const remote=snap.val();
+ if(remote&&remote.items){
+   data=remote;
+   persistLocal();
+   render();
+   setSyncStatus('online','Синхронизировано');
+ }else{
+   dbRef.set(data);
+   setSyncStatus('online','Синхронизировано');
+ }
+ firebaseReady=true;
+},err=>{
+ console.error(err);
+ setSyncStatus('offline','Офлайн — работает локально');
+});
+function fmt(n){return Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})}
+function todayStr(){return new Date().toLocaleDateString('ru-RU')}
+
+function render(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  document.getElementById('clearSearch').classList.toggle('show',q.length>0);
+  const list=data.items.filter(x=>x.name.toLowerCase().includes(q));
+  document.getElementById('itemsCount').textContent=data.items.length;
+  document.getElementById('lowCount').textContent=data.items.filter(x=>x.measures.some(m=>Number(m.qty)<=Number(m.min))).length;
+  document.getElementById('opsCount').textContent=data.history.length;
+  document.getElementById('reportDate').textContent=todayStr();
+  document.getElementById('cards').innerHTML=list.length?list.map(card).join(''):
+    `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>Ничего не найдено.<br>Добавьте новую позицию.</div></div>`;
+  renderHistory();
+}
+function onSearch(){render()}
+function clearSearch(){document.getElementById('search').value='';render();document.getElementById('search').focus()}
+
+function card(x){
+ const isLow=x.measures.some(m=>m.qty<=m.min);
+ return `<article class="card ${isLow?'card-low':''}">
+   <div class="card-top">
+     <div class="name-wrap">
+       <div class="name">${esc(x.name)}</div>
+       <div class="unit-line">${x.measures.length} ${x.measures.length===1?'единица':'единицы'} измерения</div>
+       ${isLow?`<div class="low-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>Заканчивается</div>`:''}
+     </div>
+     <div class="card-actions">
+       <button class="icon-btn" onclick="copyItem('${x.id}')" aria-label="Копировать позицию" title="Копировать">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+       </button>
+       <button class="icon-btn menu-btn" onclick="openEdit('${x.id}')" aria-label="Изменить">⋮</button>
+     </div>
+   </div>
+   <div class="quantities">${x.measures.map((m,i)=>measureHtml(x,i)).join('')}</div>
+ </article>`;
+}
+function measureHtml(x,i){
+ const m=x.measures[i];
+ const low=Number(m.qty)<=Number(m.min);
+ return `<div class="measure ${low?'is-low':''}" title="Минимальный остаток: ${fmt(m.min)} ${esc(m.unit)}">
+   <div class="measure-row">
+     <div class="measure-main"><div class="unit-label">${esc(m.unit)}</div><strong>${fmt(m.qty)}</strong></div>
+     <div class="measure-actions">
+       <button class="mminus" onclick="change('${x.id}',${i},-1)" aria-label="Уменьшить на 1">−</button>
+       <button class="mplus" onclick="change('${x.id}',${i},1)" aria-label="Увеличить на 1">+</button>
+     </div>
+   </div>
+   <div class="quick">
+     <button onclick="change('${x.id}',${i},-5)">−5</button>
+     <button onclick="change('${x.id}',${i},-0.5)">−0,5</button>
+     <button onclick="change('${x.id}',${i},0.5)">+0,5</button>
+     <button onclick="change('${x.id}',${i},5)">+5</button>
+   </div>
+ </div>`;
+}
+function change(id,mi,delta){
+ const x=data.items.find(i=>i.id===id); if(!x)return;
+ const m=x.measures[mi]; if(!m)return;
+ const old=Number(m.qty), next=Math.max(0,Math.round((old+delta)*100)/100);
+ const actual=next-old; if(actual===0)return;
+ m.qty=next;
+ data.history.unshift({id:crypto.randomUUID(),item:x.name,measure:mi,delta:actual,unit:m.unit,time:new Date().toISOString()});
+ data.history=data.history.slice(0,200);
+ persist();render();
+ toast(`${x.name}: ${actual>0?'+':''}${fmt(actual)} ${m.unit}`);
+}
+function renderHistory(){
+ const el=document.getElementById('historyList');
+ if(!data.history.length){el.innerHTML='<div class="empty">Операций пока нет</div>';return}
+ el.innerHTML=data.history.slice(0,15).map(h=>`<div class="history-item"><div><b>${esc(h.item)}</b><div class="h-time">${new Date(h.time).toLocaleString('ru-RU')}</div></div><div class="${h.delta>0?'in':'out'}">${h.delta>0?'+':''}${fmt(h.delta)} ${esc(h.unit)}</div></div>`).join('');
+}
+
+function openAdd(){
+ editId=null;modalTitle.textContent='Добавить химию';fName.value='';
+ measureConfig.innerHTML='';addMeasureRow();
+ modal.classList.add('show');setTimeout(()=>fName.focus(),50);
+}
+function openEdit(id){
+ const x=data.items.find(i=>i.id===id);if(!x)return;
+ editId=id;modalTitle.textContent='Изменить химию';fName.value=x.name;
+ measureConfig.innerHTML='';
+ x.measures.forEach(m=>addMeasureRow(m));
+ modal.classList.add('show');
+}
+function addMeasureRow(m={unit:'',qty:0,min:1}){
+ const wrap=document.createElement('div');
+ wrap.className='measure-config';
+ wrap.innerHTML=`<div class="measure-config-head"><span>Единица измерения</span><button type="button" class="remove-measure" onclick="this.closest('.measure-config').remove()">Удалить</button></div>
+ <div class="measure-config-grid">
+   <div><label>Единица</label><input class="m-unit" required placeholder="кан, кг, л, шт..." value="${esc(m.unit)}"></div>
+   <div><label>Количество</label><input class="m-qty" type="number" step="0.01" min="0" required value="${m.qty}"></div>
+   <div><label>Минимальный остаток</label><input class="m-min" type="number" step="0.01" min="0" required value="${m.min}"></div>
+ </div>`;
+ measureConfig.appendChild(wrap);
+}
+function saveItem(e){
+ e.preventDefault();
+ const name=fName.value.trim();
+ const rows=[...document.querySelectorAll('.measure-config')];
+ if(!rows.length){toast('Добавьте хотя бы одну единицу');return}
+ const measures=rows.map(r=>({
+   unit:r.querySelector('.m-unit').value.trim(),
+   qty:Number(r.querySelector('.m-qty').value),
+   min:Number(r.querySelector('.m-min').value)
+ }));
+ if(measures.some(m=>!m.unit)){toast('Укажите единицу измерения');return}
+
+ if(editId){
+   const x=data.items.find(i=>i.id===editId);
+   const oldMeasures=x.measures;
+   x.name=name;x.measures=measures;
+   const max=Math.max(oldMeasures.length,measures.length);
+   for(let i=0;i<max;i++){
+     const old=oldMeasures[i], neu=measures[i];
+     if(old&&neu&&old.qty!==neu.qty)
+       data.history.unshift({id:crypto.randomUUID(),item:name,measure:i,delta:neu.qty-old.qty,unit:neu.unit,time:new Date().toISOString()});
+   }
+ }else{
+   data.items.push({id:crypto.randomUUID(),name,measures});
+ }
+ persist();closeModal();render();toast(editId?'Позиция изменена':'Позиция добавлена');
+}
+function closeModal(){modal.classList.remove('show')}
+function backdropClick(e){if(e.target===modal)closeModal()}
+function clearHistory(){if(!data.history.length)return toast('История уже пустая');if(confirm('Очистить историю операций?')){data.history=[];persist();render();}}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+function execCommandCopy(text){
+ return new Promise((resolve,reject)=>{
+   try{
+     const ta=document.createElement('textarea');
+     ta.value=text;
+     ta.style.position='fixed';ta.style.top='0';ta.style.left='0';
+     ta.style.width='1px';ta.style.height='1px';ta.style.opacity='0';
+     document.body.appendChild(ta);
+     ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,text.length);
+     const ok=document.execCommand('copy');
+     document.body.removeChild(ta);
+     ok?resolve():reject(new Error('execCommand failed'));
+   }catch(e){reject(e)}
+ });
+}
+function copyToClipboard(text){
+ const tryModern=()=>{
+   if(window.isSecureContext&&navigator.clipboard&&navigator.clipboard.writeText){
+     return navigator.clipboard.writeText(text);
+   }
+   return Promise.reject(new Error('clipboard API unavailable'));
+ };
+ return tryModern().catch(()=>execCommandCopy(text));
+}
+function buildReportText(items){
+ const lines=items.map(x=>`${x.name} — ${x.measures.map(m=>`${fmt(m.qty)} ${m.unit}`).join(', ')}`);
+ return `Остаток химии на ${todayStr()}\n\n${lines.join('\n')}`;
+}
+let lastCopyText='';
+function copyReport(){
+ const text=buildReportText(data.items);
+ lastCopyText=text;
+ copyToClipboard(text).then(()=>{
+   toast('Остаток скопирован в буфер обмена');
+   const btn=document.getElementById('copyBtn');
+   btn.classList.add('copied');setTimeout(()=>btn.classList.remove('copied'),1200);
+ }).catch(()=>showCopyFallback(text));
+}
+function copyItem(id){
+ const x=data.items.find(i=>i.id===id);if(!x)return;
+ const text=buildReportText([x]);
+ lastCopyText=text;
+ copyToClipboard(text).then(()=>toast(`«${x.name}» скопировано`)).catch(()=>showCopyFallback(text));
+}
+function showCopyFallback(text){
+ const ta=document.getElementById('copyTextarea');
+ ta.value=text;
+ document.getElementById('copyModal').classList.add('show');
+ setTimeout(()=>{ta.focus();ta.select();ta.setSelectionRange(0,text.length);},80);
+}
+function closeCopyModal(){document.getElementById('copyModal').classList.remove('show')}
+function retryCopyFromModal(){
+ copyToClipboard(lastCopyText).then(()=>{toast('Скопировано');closeCopyModal();}).catch(()=>{
+   const ta=document.getElementById('copyTextarea');ta.focus();ta.select();
+   toast('Выделите текст вручную и скопируйте');
+ });
+}
+
+let toastTimer;
+function toast(s){clearTimeout(toastTimer);toastEl.textContent=s;toastEl.classList.add('show');toastTimer=setTimeout(()=>toastEl.classList.remove('show'),1800)}
+const modal=document.getElementById('modal'),modalTitle=document.getElementById('modalTitle'),fName=document.getElementById('fName'),measureConfig=document.getElementById('measureConfig'),toastEl=document.getElementById('toast');
+window.addEventListener('online',()=>setSyncStatus('online','Синхронизировано'));
+window.addEventListener('offline',()=>setSyncStatus('offline','Офлайн — работает локально'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal()});
+render();
+</script>
+</body>
+</html>
