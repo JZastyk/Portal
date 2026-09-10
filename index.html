@@ -111,8 +111,14 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .history{margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
 .history-head{padding:14px 17px;font-weight:800;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:14.5px}
 .history-head .btn{padding:6px 10px;font-size:12.5px}
-.history-item{display:grid;grid-template-columns:1fr auto;gap:10px;padding:12px 17px;border-bottom:1px solid #edf1f3;font-size:13px;align-items:center}
+.history-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 17px;border-bottom:1px solid #edf1f3;font-size:13px}
 .history-item:last-child{border-bottom:0}
+.hi-info{min-width:0}
+.hi-right{display:flex;align-items:center;gap:8px;flex:none}
+.hi-actions{display:flex;gap:4px}
+.hi-btn{border:0;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eef3f6;color:var(--accent-dark);flex:none}
+.hi-btn svg{width:14px;height:14px}
+.hi-btn.del{background:var(--danger-soft);color:#b63838}
 .history-item .h-time{color:var(--muted);font-size:12px;margin-top:2px}
 .in{color:var(--success);font-weight:800;background:var(--success-soft);padding:4px 9px;border-radius:7px;white-space:nowrap}
 .out{color:#c44242;font-weight:800;background:var(--danger-soft);padding:4px 9px;border-radius:7px;white-space:nowrap}
@@ -167,6 +173,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .report-history-item{padding:12px 17px;border-bottom:1px solid #edf1f3;font-size:13px}
 .report-history-item:last-child{border-bottom:0}
 .report-history-item .rh-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.report-history-item .rh-actions{display:flex;align-items:center;gap:5px;flex:none}
 .report-history-item .rh-date{font-weight:800}
 .report-history-item .rh-time{color:var(--muted);font-size:11.5px}
 .report-history-item .rh-copy{border:0;background:var(--accent-soft);color:var(--accent-dark);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;flex:none}
@@ -512,15 +519,45 @@ function change(id,mi,delta){
  const old=Number(m.qty), next=Math.max(0,Math.round((old+delta)*100)/100);
  const actual=next-old; if(actual===0)return;
  m.qty=next;
- data.history.unshift({id:crypto.randomUUID(),item:x.name,measure:mi,delta:actual,unit:m.unit,time:new Date().toISOString()});
+ data.history.unshift({id:crypto.randomUUID(),itemId:x.id,item:x.name,measure:mi,delta:actual,unit:m.unit,time:new Date().toISOString()});
  data.history=data.history.slice(0,200);
  persist();render();
  toast(`${x.name}: ${actual>0?'+':''}${fmt(actual)} ${m.unit}`);
 }
+function undoHistoryEntry(entryId){
+ const h=data.history.find(e=>e.id===entryId);
+ if(!h)return;
+ const x=h.itemId?data.items.find(i=>i.id===h.itemId):data.items.find(i=>i.name===h.item);
+ if(!x){toast('Позиция не найдена — уже удалена со склада');return}
+ const m=x.measures[h.measure];
+ if(!m||m.unit!==h.unit){toast('Единица измерения изменилась — отменить нельзя');return}
+ m.qty=Math.max(0,Math.round((Number(m.qty)-h.delta)*100)/100);
+ data.history=data.history.filter(e=>e.id!==entryId);
+ persist();render();
+ toast(`Отменено: ${x.name}`);
+}
+function deleteHistoryEntry(entryId){
+ data.history=data.history.filter(e=>e.id!==entryId);
+ persist();render();
+ toast('Запись удалена из истории');
+}
 function renderHistory(){
  const el=document.getElementById('historyList');
  if(!data.history.length){el.innerHTML='<div class="empty">Операций пока нет</div>';return}
- el.innerHTML=data.history.slice(0,15).map(h=>`<div class="history-item"><div><b>${esc(h.item)}</b><div class="h-time">${new Date(h.time).toLocaleString('ru-RU')}</div></div><div class="${h.delta>0?'in':'out'}">${h.delta>0?'+':''}${fmt(h.delta)} ${esc(h.unit)}</div></div>`).join('');
+ el.innerHTML=data.history.slice(0,15).map(h=>`<div class="history-item">
+   <div class="hi-info"><b>${esc(h.item)}</b><div class="h-time">${new Date(h.time).toLocaleString('ru-RU')}</div></div>
+   <div class="hi-right">
+     <div class="${h.delta>0?'in':'out'}">${h.delta>0?'+':''}${fmt(h.delta)} ${esc(h.unit)}</div>
+     <div class="hi-actions">
+       <button class="hi-btn" onclick="undoHistoryEntry('${h.id}')" title="Отменить операцию" aria-label="Отменить операцию">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+       </button>
+       <button class="hi-btn del" onclick="deleteHistoryEntry('${h.id}')" title="Удалить запись" aria-label="Удалить запись">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+       </button>
+     </div>
+   </div>
+ </div>`).join('');
 }
 
 function openAdd(){
@@ -935,13 +972,31 @@ function copyDailyReport(){
 }
 function saveReportToHistory(){
  const text=buildDailyReportText(report);
- const entry={id:crypto.randomUUID(),date:todayISO(),author:report.author,text,time:new Date().toISOString()};
+ const entry={id:crypto.randomUUID(),date:todayISO(),author:report.author,text,report:JSON.parse(JSON.stringify(report)),time:new Date().toISOString()};
  let hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
  hist.unshift(entry);hist=hist.slice(0,60);
  localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
  renderReportsHistory(hist);
- reportsHistoryRef.push(entry).catch(()=>{});
+ reportsHistoryRef.child(entry.id).set(entry).catch(()=>{});
  toast('Отчёт сохранён в историю');
+}
+function restoreReportHistory(id){
+ const hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+ const entry=hist.find(h=>h.id===id);
+ if(!entry)return;
+ if(!confirm('Загрузить этот отчёт в текущую форму? Незаполненные данные будут заменены.'))return;
+ report=entry.report?sanitizeReport(entry.report):sanitizeReport(null);
+ fillReportForm();
+ persistReport();
+ toast('Отчёт восстановлен в форму');
+}
+function deleteReportHistoryEntry(id){
+ let hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+ hist=hist.filter(h=>h.id!==id);
+ localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
+ renderReportsHistory(hist);
+ reportsHistoryRef.child(id).remove().catch(()=>{});
+ toast('Отчёт удалён из истории');
 }
 function renderReportsHistory(list){
  const el=document.getElementById('reportsHistoryList');
@@ -949,7 +1004,15 @@ function renderReportsHistory(list){
  el.innerHTML=list.slice(0,30).map(h=>`<div class="report-history-item">
    <div class="rh-top">
      <div><span class="rh-date">${esc(h.date?new Date(h.date+'T00:00:00').toLocaleDateString('ru-RU'):'')}</span> ${esc(h.author||'')}</div>
-     <button class="rh-copy" onclick="copyHistoryReport('${h.id}')">Копировать</button>
+     <div class="rh-actions">
+       <button class="rh-copy" onclick="copyHistoryReport('${h.id}')">Копировать</button>
+       <button class="hi-btn" onclick="restoreReportHistory('${h.id}')" title="Восстановить в форму" aria-label="Восстановить в форму">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+       </button>
+       <button class="hi-btn del" onclick="deleteReportHistoryEntry('${h.id}')" title="Удалить" aria-label="Удалить">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+       </button>
+     </div>
    </div>
    <div class="rh-time">${h.time?new Date(h.time).toLocaleString('ru-RU'):''}</div>
  </div>`).join('');
