@@ -762,17 +762,17 @@ function buildBoxSectionHtml(b){
 }
 function buildHoseText(b){
  const h=report.hoses[b]||{};
- const lines=[`Проход рукава ${b} бокс`];
- if(h.left)lines.push(`Слева ${h.left}`);
- if(h.back)lines.push(`Сзади ${h.back}`);
- if(h.right)lines.push(`Справа ${h.right}`);
+ const lines=[`Проход рукава ${b} бокс:`];
+ if(h.left)lines.push(`Слева - ${h.left}`);
+ if(h.back)lines.push(`Сзади - ${h.back}`);
+ if(h.right)lines.push(`Справа - ${h.right}`);
  return lines.join('\n');
 }
 function buildConsumptionText(b){
  const c=report.consumption[b]||{};
  const rows=CONSUMPTION_ITEMS.filter(name=>c[name]);
- const lines=[`Расход химии ${b} бокс`];
- rows.forEach(name=>lines.push(`${name} -${c[name]}г`));
+ const lines=[`Расход химии ${b} бокс:`];
+ rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
  return lines.join('\n');
 }
 function flashMiniCopy(btn){
@@ -843,43 +843,38 @@ function buildDailyReportText(r){
 
  const normalBoxes=[1,2,3].filter(b=>r.boxState[b]!=='bad');
  const badBoxes=[1,2,3].filter(b=>r.boxState[b]==='bad');
- if(badBoxes.length===0){
-   lines.push(`Боксы ${normalBoxes.join(',')}- работают в штатном режиме`);
- }else{
-   if(normalBoxes.length)lines.push(`Боксы ${normalBoxes.join(',')} - работают в штатном режиме.`);
-   badBoxes.forEach(b=>lines.push(`Бокс ${b} - не работает.`));
- }
+ if(normalBoxes.length)lines.push(`Боксы ${normalBoxes.join(', ')} - работают в штатном режиме.`);
+ badBoxes.forEach(b=>lines.push(`Бокс ${b} - не работает.`));
  lines.push('');
+
  lines.push(`Помыто машин за ${yestStr}:`);
- for(let b=1;b<=BOX_COUNT;b++)lines.push(`${b} бокс ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`);
+ for(let b=1;b<=BOX_COUNT;b++)lines.push(`${b} бокс - ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`);
  lines.push('');
+
  lines.push('Остаток химии:');
  REPORT_STOCK_ITEMS.forEach(name=>{
    const x=data.items.find(it=>it.name.trim().toLowerCase()===name.toLowerCase());
-   if(x)lines.push(`${x.name} - ${x.measures.map(m=>`${fmt(m.qty)} ${m.unit}`).join(' и ')}`);
+   if(x)lines.push(`${x.name} - ${x.measures.map(m=>`${fmt(m.qty)} ${m.unit}.`).join(' и ')}`);
  });
- lines.push(`PH- ${r.ph||''}`);
+ lines.push(`PH - ${r.ph||''}`);
  lines.push('');
 
- const compOk=[1,2].filter(i=>r.compressorState[i]!=='bad');
- const compBad=[1,2].filter(i=>r.compressorState[i]==='bad');
+ for(let i=1;i<=2;i++){
+   lines.push(`Масло компрессор ${i} - ${r.compressorState[i]==='bad'?'не в норме':'норма'}.`);
+ }
  const pumpOk=[1,2,3].filter(i=>r.pumpState[i]!=='bad');
  const pumpBad=[1,2,3].filter(i=>r.pumpState[i]==='bad');
- const oilLines=[];
- if(compOk.length)oilLines.push(`Масло компрессор ${joinNums(compOk)} в норме.`);
- if(compBad.length)oilLines.push(`Масло компрессор ${joinNums(compBad)} не в норме!`);
- if(pumpOk.length)oilLines.push(`Помпы ${pumpOk.join(',')} масло в норме.`);
- if(pumpBad.length)oilLines.push(`Помпы ${pumpBad.join(',')} масло не в норме!`);
- lines.push(oilLines.join(' '));
+ if(pumpOk.length)lines.push(`Помпы ${pumpOk.join(', ')} масло в норме.`);
+ if(pumpBad.length)lines.push(`Помпы ${pumpBad.join(', ')} масло не в норме.`);
  lines.push('');
 
  for(let b=1;b<=BOX_COUNT;b++){
    const h=r.hoses[b]||{};
    if(h.left||h.back||h.right){
-     lines.push(`Проход рукава ${b} бокс`);
-     if(h.left)lines.push(`Слева ${h.left}`);
-     if(h.back)lines.push(`Сзади ${h.back}`);
-     if(h.right)lines.push(`Справа ${h.right}`);
+     lines.push(`Проход рукава ${b} бокс:`);
+     if(h.left)lines.push(`Слева - ${h.left}`);
+     if(h.back)lines.push(`Сзади - ${h.back}`);
+     if(h.right)lines.push(`Справа - ${h.right}`);
      lines.push('');
    }
  }
@@ -887,8 +882,8 @@ function buildDailyReportText(r){
    const c=r.consumption[b]||{};
    const rows=CONSUMPTION_ITEMS.filter(name=>c[name]);
    if(rows.length){
-     lines.push(`Расход химии ${b} бокс`);
-     rows.forEach(name=>lines.push(`${name} -${c[name]}г`));
+     lines.push(`Расход химии ${b} бокс:`);
+     rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
      lines.push('');
    }
  }
