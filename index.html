@@ -769,7 +769,7 @@ function onAuthorChange(){
  updateReport();
 }
 function buildBoxSectionHtml(b){
- return `<details class="box-section" open>
+ return `<details class="box-section">
    <summary>Бокс ${b}</summary>
    <div class="box-section-body">
      <div class="sub-label-row">
@@ -891,7 +891,10 @@ function buildDailyReportText(r){
  lines.push('Остаток химии:');
  REPORT_STOCK_ITEMS.forEach(name=>{
    const x=data.items.find(it=>it.name.trim().toLowerCase()===name.toLowerCase());
-   if(x)lines.push(`${x.name} - ${x.measures.map(m=>`${fmt(m.qty)} ${m.unit}.`).join(' и ')}`);
+   if(!x)return;
+   let shown=x.measures.filter(m=>Number(m.qty)!==0);
+   if(!shown.length)shown=x.measures;
+   lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)} ${m.unit}.`).join(' и ')}`);
  });
  lines.push(`PH - ${r.ph||''}`);
  lines.push('');
@@ -970,19 +973,22 @@ function copyDailyReport(){
  lastCopyText=text;
  copyToClipboard(text).then(()=>toast('Отчёт скопирован в буфер обмена')).catch(()=>showCopyFallback(text));
 }
+let reportsHistoryCache=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+function setReportsHistoryCache(list){
+ reportsHistoryCache=list||[];
+ localStorage.setItem(HISTORY_KEY,JSON.stringify(reportsHistoryCache));
+ renderReportsHistory(reportsHistoryCache);
+}
 function saveReportToHistory(){
  const text=buildDailyReportText(report);
  const entry={id:crypto.randomUUID(),date:todayISO(),author:report.author,text,report:JSON.parse(JSON.stringify(report)),time:new Date().toISOString()};
- let hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
- hist.unshift(entry);hist=hist.slice(0,60);
- localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
- renderReportsHistory(hist);
+ let hist=[entry,...reportsHistoryCache].slice(0,60);
+ setReportsHistoryCache(hist);
  reportsHistoryRef.child(entry.id).set(entry).catch(()=>{});
  toast('Отчёт сохранён в историю');
 }
 function restoreReportHistory(id){
- const hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
- const entry=hist.find(h=>h.id===id);
+ const entry=reportsHistoryCache.find(h=>h.id===id);
  if(!entry)return;
  if(!confirm('Загрузить этот отчёт в текущую форму? Незаполненные данные будут заменены.'))return;
  report=entry.report?sanitizeReport(entry.report):sanitizeReport(null);
@@ -991,10 +997,8 @@ function restoreReportHistory(id){
  toast('Отчёт восстановлен в форму');
 }
 function deleteReportHistoryEntry(id){
- let hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
- hist=hist.filter(h=>h.id!==id);
- localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
- renderReportsHistory(hist);
+ const hist=reportsHistoryCache.filter(h=>h.id!==id);
+ setReportsHistoryCache(hist);
  reportsHistoryRef.child(id).remove().catch(()=>{});
  toast('Отчёт удалён из истории');
 }
@@ -1018,16 +1022,16 @@ function renderReportsHistory(list){
  </div>`).join('');
 }
 function copyHistoryReport(id){
- const hist=JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
- const entry=hist.find(h=>h.id===id);
+ const entry=reportsHistoryCache.find(h=>h.id===id);
  if(!entry)return;
  lastCopyText=entry.text;
  copyToClipboard(entry.text).then(()=>toast('Отчёт скопирован')).catch(()=>showCopyFallback(entry.text));
 }
 
+
 buildBoxSectionsOnce();
 fillReportForm();
-renderReportsHistory(JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'));
+renderReportsHistory(reportsHistoryCache);
 
 reportDbRef.on('value',snap=>{
  const remote=snap.val();
@@ -1041,8 +1045,7 @@ reportsHistoryRef.limitToLast(30).on('value',snap=>{
  const remote=snap.val();
  if(remote){
    const list=Object.values(remote).sort((a,b)=>new Date(b.time)-new Date(a.time));
-   localStorage.setItem(HISTORY_KEY,JSON.stringify(list));
-   renderReportsHistory(list);
+   setReportsHistoryCache(list);
  }
 });
 
