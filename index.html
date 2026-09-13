@@ -382,6 +382,7 @@ const reportDbRef = firebase.database().ref('dailyReport');
 const reportsHistoryRef = firebase.database().ref('reportsHistory');
 </script>
 <script>
+var reportPreviewReady=false;
 const KEY='chemical_inventory_v2';
 
 const defaultItems=[
@@ -471,6 +472,7 @@ function render(){
   document.getElementById('cards').innerHTML=list.length?list.map(card).join(''):
     `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>Ничего не найдено.<br>Добавьте новую позицию.</div></div>`;
   renderHistory();
+  if(typeof reportPreviewReady!=='undefined'&&reportPreviewReady)renderReportPreview();
 }
 function onSearch(){render()}
 function clearSearch(){document.getElementById('search').value='';render();document.getElementById('search').focus()}
@@ -687,6 +689,7 @@ function switchTab(tab){
  document.getElementById('viewReport').classList.toggle('active',tab==='report');
  document.getElementById('tabBtnInventory').classList.toggle('active',tab==='inventory');
  document.getElementById('tabBtnReport').classList.toggle('active',tab==='report');
+ if(tab==='report')renderReportPreview();
 }
 
 /* ===== Ежедневный отчёт ===== */
@@ -1031,6 +1034,7 @@ function copyHistoryReport(id){
 
 buildBoxSectionsOnce();
 fillReportForm();
+reportPreviewReady=true;
 renderReportsHistory(reportsHistoryCache);
 
 reportDbRef.on('value',snap=>{
