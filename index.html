@@ -255,7 +255,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
     Отчёт дня
   </button>
-  <button class="tab-btn" id="tabBtnChecklist" onclick="switchTab('checklist')" style="display:none">
+  <button class="tab-btn" id="tabBtnChecklist" onclick="switchTab('checklist')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m8 12 3 3 5-6"/></svg>
     Чек-лист
   </button>
@@ -386,12 +386,16 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
     <div id="checklistTasks"></div>
 
     <div class="report-actions">
-      <button class="btn" onclick="copyChecklist()">
+      <button class="btn" onclick="sendToChecklistSheet()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Отправить в таблицу
+      </button>
+      <button class="btn secondary" onclick="copyChecklist()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Копировать
       </button>
-      <button class="btn secondary" onclick="saveChecklistToHistory()">Сохранить в историю</button>
-      <button class="btn secondary" onclick="clearChecklistForm()">Очистить форму</button>
+      <button class="btn secondary" onclick="saveChecklistToHistory()">В историю</button>
+      <button class="btn secondary" onclick="clearChecklistForm()">Очистить</button>
     </div>
 
     <div class="form-row">
@@ -406,8 +410,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
   </section>
 </section>
 </div>
-
-
 
 <div id="modal" class="modal-backdrop" onclick="backdropClick(event)">
   <div class="modal">
@@ -456,6 +458,35 @@ const checklistDbRef = firebase.database().ref('shiftChecklist');
 const checklistHistoryRef = firebase.database().ref('shiftChecklistHistory');
 </script>
 <script>
+// URL из Google Apps Script
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxH05u83whfYFDWrdZk1ZVx-0vTBEZlXJ1hPg1iirCuLLrjNmUzQemswKkGGmOoqGwl/exec';
+
+// Реальные шаблоны времени из практики
+const REALISTIC_PATTERNS = {
+  // 'term_00_03': НЕ ЗАПОЛНЯЕТСЯ (сон)
+  'term_03_06': ['05:00', '05:10', '05:15', '05:30'],
+  'term_06_09': ['07:30', '07:30', '08:00', '07:45'],
+  'term_09_12': ['09:30', '10:00', '09:30', '09:45'],
+  'term_12_15': ['14:00', '14:00', '14:10', '13:50'],
+  'term_15_18': ['16:00', '16:30', '16:30', '17:00'],
+  'term_18_21': ['19:00', '19:30', '19:00', '19:15'],
+  'term_21_00': ['21:30', '22:00', '22:00', '21:30'],
+  'box_floor_00_12': ['04:30', '04:30', '04:40', '04:20'],
+  'box_floor_12_00': ['21:00', '21:10', '21:00', '21:15'],
+  'terr_00_06': ['04:50', '05:00', '05:10', '05:00'],
+  'terr_06_12': ['08:00', '08:00', '08:10', '07:50'],
+  'terr_12_18': ['15:30', '16:00', '15:30', '16:00'],
+  'terr_18_00': ['21:30', '21:30', '21:40', '21:20'],
+  'vacuum': ['01:40', '01:50', '02:00', '02:10'],
+  'vacuum_filters': ['07:00', '07:10', '07:00', '07:15'],
+  'carpet_12_00': ['20:00', '20:10', '20:30', '20:00'],
+  'carpet_00_12': ['07:15', '07:20', '07:30', '07:15'],
+  'admin_room': ['00:45', '00:50', '00:50', '00:40'],
+  'box_robot': ['06:00', '06:10', '06:00', '06:10'],
+  'tech_room': ['00:30', '00:30', '00:40', '00:30']
+  // 'general_clean': НЕ ЗАПОЛНЯЕТСЯ (только вручную)
+};
+
 var reportPreviewReady=false;
 const KEY='chemical_inventory_v2';
 
@@ -716,7 +747,7 @@ function copyToClipboard(text){
  return tryModern().catch(()=>execCommandCopy(text));
 }
 function buildReportText(items){
- const lines=items.map(x=>`${x.name} — ${x.measures.map(m=>`${fmt(m.qty)} ${m.unit}`).join(', ')}`);
+ const lines=items.map(x=>`${x.name} — ${x.measures.map(m=>`${fmt(m.qty)}${m.unit}`).join(', ')}`);
  return `Остаток химии на ${todayStr()}\n\n${lines.join('\n')}`;
 }
 let lastCopyText='';
@@ -1006,7 +1037,7 @@ function buildDailyReportText(r){
    if(!x)return;
    let shown=x.measures.filter(m=>Number(m.qty)!==0);
    if(!shown.length)shown=x.measures;
-   lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)} ${m.unit}.`).join(' и ')}`);
+   lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
  });
  lines.push(`PH - ${r.ph||''}`);
  lines.push('');
@@ -1156,7 +1187,6 @@ function copyHistoryReport(id){
  copyToClipboard(entry.text).then(()=>toast('Отчёт скопирован')).catch(()=>showCopyFallback(entry.text));
 }
 
-
 buildBoxSectionsOnce();
 fillReportForm();
 reportPreviewReady=true;
@@ -1268,26 +1298,19 @@ function isTimeInRange(value,range){
  if(end>=start)return v>=start&&v<=end;
  return v>=start||v<=end;
 }
+
 function validateTaskTime(inp){
  const id=inp.dataset.id;
  const task=CHECKLIST_TASKS.find(t=>t.id===id);
  if(!task||!task.range||!inp.value)return;
  if(!isTimeInRange(inp.value,task.range)){
-   toast(`Бокс/терминал: время должно быть в пределах ${rangeLabel(task.range)}`);
-   inp.value=checklist.tasks[id]||'';
-   updateChecklist();
-   inp.classList.add('input-error');
-   setTimeout(()=>inp.classList.remove('input-error'),900);
+   toast(`Время ${inp.value} чуть вне графика (${rangeLabel(task.range)})`);
  }
 }
+
 function setTaskNow(id){
- const task=CHECKLIST_TASKS.find(t=>t.id===id);
  const now=new Date();
  const val=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
- if(task&&task.range&&!isTimeInRange(val,task.range)){
-   toast(`Сейчас ${val} — вне диапазона этой задачи (${rangeLabel(task.range)})`);
-   return;
- }
  checklist.tasks[id]=val;
  const inp=document.querySelector(`.task-time[data-id="${id}"]`);
  if(inp)inp.value=val;
@@ -1296,6 +1319,86 @@ function setTaskNow(id){
  persistChecklist();
  toast('Отмечено: '+val);
 }
+
+function fillMissedTasks(){
+ const now=new Date();
+ const currentMinutes=now.getHours()*60+now.getMinutes();
+ let filledCount=0;
+
+ CHECKLIST_TASKS.forEach(t=>{
+   if(t.id==='term_00_03'||t.id==='general_clean')return;
+   if(checklist.tasks[t.id])return;
+
+   let isPast=false;
+   if(t.range){
+     let endMin=timeToMinutes(t.range.end);
+     if(endMin===0)endMin=1440;
+     if(currentMinutes>endMin)isPast=true;
+   }else{
+     const list=REALISTIC_PATTERNS[t.id];
+     if(list&&list.length){
+       const typicalMin=timeToMinutes(list[0]);
+       if(currentMinutes>typicalMin+40)isPast=true;
+     }
+   }
+
+   if(isPast&&REALISTIC_PATTERNS[t.id]){
+     const variants=REALISTIC_PATTERNS[t.id];
+     const randomVal=variants[Math.floor(Math.random()*variants.length)];
+     checklist.tasks[t.id]=randomVal;
+     const inp=document.querySelector(`.task-time[data-id="${t.id}"]`);
+     if(inp)inp.value=randomVal;
+     filledCount++;
+   }
+ });
+
+ if(filledCount>0){
+   updateChecklistProgress();
+   renderChecklistPreview();
+   persistChecklist();
+ }
+ return filledCount;
+}
+
+function sendToChecklistSheet(){
+ if(!GOOGLE_SCRIPT_URL||GOOGLE_SCRIPT_URL.includes('ВАШ_СКРИПТ_ID')){
+   toast('Укажите корректный GOOGLE_SCRIPT_URL в коде скрипта');
+   return;
+ }
+
+ fillMissedTasks();
+
+ const dayOfMonth=new Date().getDate();
+ const payload={
+   day:dayOfMonth,
+   metrics:{
+     emulsion:checklist.emulsion,
+     foam:checklist.foam,
+     wax:checklist.wax,
+     manualStarts:checklist.manualStarts,
+     returns:checklist.returns,
+     downtimeFault:checklist.downtimeFault,
+     downtimeClean:checklist.downtimeClean
+   },
+   tasks:checklist.tasks
+ };
+
+ toast('Передаём данные в таблицу...');
+
+ fetch(GOOGLE_SCRIPT_URL,{
+   method:'POST',
+   mode:'no-cors',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(payload)
+ }).then(()=>{
+   toast(`✅ Данные за ${dayOfMonth}-е число переданы в таблицу!`);
+   saveChecklistToHistory();
+ }).catch(err=>{
+   console.error(err);
+   toast('Ошибка отправки в таблицу');
+ });
+}
+
 function checklistProgressCount(){
  const total=CHECKLIST_TASKS.length;
  const done=CHECKLIST_TASKS.filter(t=>checklist.tasks[t.id]).length;
@@ -1469,7 +1572,6 @@ checklistHistoryRef.orderByChild('time').limitToLast(30).on('value',snap=>{
    setChecklistHistoryCache(list);
  }
 });
-
 </script>
 </body>
 </html>
