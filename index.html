@@ -215,18 +215,15 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .report-actions .btn{flex:1;min-width:140px;justify-content:center}
 .report-preview{width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;background:#fbfcfd;color:var(--text);resize:vertical}
 
-/* Модальные окна истории */
+/* Модальные списки истории */
 .history-modal-list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;padding-right:4px}
 .h-card{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:13px}
 .h-card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
 .h-card-title{font-weight:800;color:var(--accent-dark)}
 .h-card-time{font-size:11.5px;color:var(--muted)}
 .h-card-body{color:#37474f;font-size:12.5px;line-height:1.4}
-.h-badge-delta{display:inline-block;padding:2px 6px;border-radius:5px;font-weight:700;font-size:11px}
-.h-badge-delta.pos{background:var(--success-soft);color:var(--success)}
-.h-badge-delta.neg{background:var(--danger-soft);color:var(--danger)}
 
-/* Стили Аналитики и Инфографики */
+/* Аналитика и Инфографика */
 .analytics-hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .hero-card{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
 .hero-card span{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}
@@ -237,7 +234,6 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .chart-card h3{margin:0 0 12px;font-size:15px;display:flex;align-items:center;justify-content:space-between}
 .chart-card h3 small{font-size:12px;color:var(--muted);font-weight:normal}
 
-/* Столбчатая диаграмма дней недели */
 .weekday-chart{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:150px;padding-top:20px;border-bottom:1px solid var(--border)}
 .weekday-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:5px}
 .weekday-val{font-size:10.5px;font-weight:800;color:var(--accent-dark)}
@@ -245,14 +241,37 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .weekday-bar.peak{background:linear-gradient(180deg,#10b981,#059669)}
 .weekday-label{font-size:11px;font-weight:700;color:var(--muted);margin-top:6px}
 
-/* Прогресс-бары для боксов */
 .box-metric-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .box-metric-name{width:65px;font-size:12.5px;font-weight:700}
 .box-metric-bar-wrap{flex:1;height:12px;background:#eef2f5;border-radius:999px;overflow:hidden}
 .box-metric-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .3s}
 .box-metric-val{width:70px;text-align:right;font-size:12px;font-weight:800;color:var(--text)}
 
-/* Обзор сети: шапка наблюдателя */
+/* Большая интерактивная карточка среза по дате */
+.detail-date-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.date-picker-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.date-picker-row label{margin:0;font-size:14px;font-weight:800;color:var(--accent-dark)}
+.date-picker-row input[type="date"]{width:auto;min-width:160px;padding:8px 12px;border:1px solid var(--border);border-radius:9px;font-weight:700;color:var(--text)}
+
+.day-summary-strip{background:var(--accent-soft);border-radius:var(--r-md);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.day-summary-info{font-size:13px;color:var(--accent-dark)}
+.day-summary-info b{font-size:14px}
+.day-summary-stat{font-size:12px;color:var(--muted);text-align:right}
+.day-summary-stat strong{display:block;font-size:22px;color:var(--accent-dark);line-height:1}
+
+.day-boxes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.box-detail-card{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:13px}
+.bd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #eef2f5;padding-bottom:6px}
+.bd-title{font-size:14px;font-weight:800;color:var(--accent-dark)}
+.bd-cars{font-size:13px;font-weight:800;color:var(--success);background:var(--success-soft);padding:3px 8px;border-radius:6px}
+.bd-section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:8px 0 4px}
+.bd-hoses-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:11.5px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:7px;padding:5px}
+.bd-hoses-row div span{display:block;font-size:10px;color:var(--muted)}
+.bd-cons-list{font-size:12px;background:#fff;border:1px solid var(--border);border-radius:7px;padding:6px 9px;display:flex;flex-direction:column;gap:3px}
+.bd-cons-item{display:flex;justify-content:space-between;border-bottom:1px dashed #f0f3f5;padding:2px 0}
+.bd-cons-item:last-child{border-bottom:0}
+
+/* Обзор сети: шапка */
 .network-bar{background:linear-gradient(90deg,#0a4f78,#152632);color:#fff;border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
 .network-bar-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .network-badge{background:rgba(255,255,255,.2);padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
@@ -287,6 +306,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   .tab-btn{font-size:12px;padding:8px 8px;gap:4px}
   .tab-btn svg{width:14px;height:14px}
   .analytics-hero{grid-template-columns:1fr}
+  .day-boxes-grid{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -354,10 +374,12 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
     Отчёт дня
   </button>
-  <button class="tab-btn" id="tabBtnAnalytics" onclick="switchTab('analytics')">
+  <!-- Доступно ТОЛЬКО для Таганрогская 134Б -->
+  <button class="tab-btn" id="tabBtnAnalytics" style="display:none" onclick="switchTab('analytics')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
     Аналитика
   </button>
+  <!-- Доступно ТОЛЬКО для Таганрогская 134Б -->
   <button class="tab-btn" id="tabBtnNetwork" style="display:none" onclick="switchTab('network')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
     Обзор сети
@@ -490,7 +512,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </section>
 
-<!-- ВКЛАДКА 3: АНАЛИТИКА -->
+<!-- ВКЛАДКА 3: АНАЛИТИКА (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
 <section id="viewAnalytics" class="view">
   <div class="analytics-hero">
     <div class="hero-card">
@@ -507,6 +529,15 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
     </div>
   </div>
 
+  <!-- БОЛЬШАЯ ИНТЕРАКТИВНАЯ КАРТОЧКА: ДЕТАЛЬНЫЙ СРЕЗ ПО ВЫБРАННОЙ ДАТЕ -->
+  <div class="detail-date-card">
+    <div class="date-picker-row">
+      <label for="anDateSelect">📅 Детальный срез по дате:</label>
+      <input type="date" id="anDateSelect" onchange="renderDateDetailCard()">
+    </div>
+    <div id="anDateDetailContainer"></div>
+  </div>
+
   <div class="chart-card">
     <h3>
       <span>Загрузка по дням недели</span>
@@ -517,8 +548,8 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 
   <div class="chart-card">
     <h3>
-      <span>Распределение по боксам</span>
-      <small>доля потока</small>
+      <span>Общая загрузка по боксам</span>
+      <small>распределение машин</small>
     </h3>
     <div id="boxesMetricList"></div>
   </div>
@@ -692,6 +723,10 @@ function invKey(){return 'chemical_inventory_v2_'+locId}
 function reportKey(){return 'daily_report_draft_v1_'+locId}
 function reportHistKey(){return 'daily_report_history_v1_'+locId}
 function lastAuthorKey(){return 'report_last_author_'+locId}
+
+function isCurrentSuperAdmin(){
+  return localStorage.getItem('is_super_admin') === '1';
+}
 
 function toArray(v){
  if(Array.isArray(v))return v;
@@ -958,6 +993,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.con
 
 /* ===== Вкладки приложения ===== */
 function switchTab(tab){
+ if((tab==='analytics' || tab==='network') && !isCurrentSuperAdmin()){
+   tab='inventory';
+ }
  document.getElementById('viewInventory').classList.toggle('active',tab==='inventory');
  document.getElementById('viewReport').classList.toggle('active',tab==='report');
  document.getElementById('viewAnalytics').classList.toggle('active',tab==='analytics');
@@ -1296,81 +1334,95 @@ function fillReportForm(){
  renderReportPreview();
 }
 
-function buildDailyReportText(r){
- if(!isReportConfigured())return '';
- const dateStr=todayStr();
- const yestStr=yesterdayDMY();
- const lines=[];
- lines.push(`${dateStr}${r.author?(' '+r.author):''}`.trim());
+/* Универсальная функция сборки отчёта (исключает смешивание данных чужих автомоек) */
+function buildDailyReportTextCustom(r, setObj, chemItems){
+ const bCount = Number(setObj.boxCount) || 0;
+ const cCount = Number(setObj.compressorCount) || 0;
+ const pCount = Number(setObj.pumpCount) || 0;
 
- if(settings.boxCount>0){
-   const boxIds=range(settings.boxCount);
-   const normalBoxes=boxIds.filter(b=>r.boxState[b]!=='bad');
-   const badBoxes=boxIds.filter(b=>r.boxState[b]==='bad');
-   if(normalBoxes.length)lines.push(`Боксы ${normalBoxes.join(', ')} - работают в штатном режиме.`);
-   badBoxes.forEach(b=>lines.push(`Бокс ${b} - не работает.`));
+ if(!bCount && !cCount && !pCount && (!chemItems || !chemItems.length)) return '';
+
+ const dateStr = todayStr();
+ const yestStr = yesterdayDMY();
+ const lines = [];
+ lines.push(`${dateStr}${r.author ? (' ' + r.author) : ''}`.trim());
+
+ if(bCount > 0){
+   const boxIds = range(bCount);
+   const normalBoxes = boxIds.filter(b => r.boxState && r.boxState[b] !== 'bad');
+   const badBoxes = boxIds.filter(b => r.boxState && r.boxState[b] === 'bad');
+   if(normalBoxes.length) lines.push(`Боксы ${normalBoxes.join(', ')} - работают в штатном режиме.`);
+   badBoxes.forEach(b => lines.push(`Бокс ${b} - не работает.`));
    lines.push('');
 
    lines.push(`Помыто машин за ${yestStr}:`);
-   range(settings.boxCount).forEach(b=>lines.push(`${b} бокс - ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`));
+   boxIds.forEach(b => lines.push(`${b} бокс - ${(r.washed && r.washed[b] !== '' && r.washed[b] != null) ? r.washed[b] : 0}`));
    lines.push('');
  }
 
- const reportStockItems=data.items.filter(it=>it.inReport);
- if(reportStockItems.length>0){
+ const reportStockItems = (chemItems || []).filter(it => it.inReport);
+ if(reportStockItems.length > 0){
    lines.push('Остаток химии:');
-   reportStockItems.forEach(x=>{
-     let shown=x.measures.filter(m=>Number(m.qty)!==0);
-     if(!shown.length)shown=x.measures;
-     lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
+   reportStockItems.forEach(x => {
+     let shown = (x.measures || []).filter(m => Number(m.qty) !== 0);
+     if(!shown.length) shown = x.measures || [];
+     lines.push(`${x.name} - ${shown.map(m => `${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
    });
    lines.push('');
  }
 
- if(r.tds)lines.push(`TDS - ${r.tds}`);
+ if(r.tds) lines.push(`TDS - ${r.tds}`);
  lines.push('');
 
- if(settings.compressorCount>0){
-   range(settings.compressorCount).forEach(i=>{
-     lines.push(`Масло компрессор ${i} - ${r.compressorState[i]==='bad'?'не в норме':'норма'}.`);
+ if(cCount > 0){
+   range(cCount).forEach(i => {
+     lines.push(`Масло компрессор ${i} - ${(r.compressorState && r.compressorState[i] === 'bad') ? 'не в норме' : 'норма'}.`);
    });
  }
 
- if(settings.pumpCount>0){
-   const pumpIds=range(settings.pumpCount);
-   const pumpOk=pumpIds.filter(i=>r.pumpState[i]!=='bad');
-   const pumpBad=pumpIds.filter(i=>r.pumpState[i]==='bad');
-   if(pumpOk.length)lines.push(`Помпы ${pumpOk.join(', ')} масло в норме.`);
-   if(pumpBad.length)lines.push(`Помпы ${pumpBad.join(', ')} масло не в норме.`);
-   pumpIds.forEach(i=>{
-     if(r.pumpPressure[i]!==''&&r.pumpPressure[i]!=null)lines.push(`Давление помпы ${i} - ${r.pumpPressure[i]}`);
+ if(pCount > 0){
+   const pumpIds = range(pCount);
+   const pumpOk = pumpIds.filter(i => r.pumpState && r.pumpState[i] !== 'bad');
+   const pumpBad = pumpIds.filter(i => r.pumpState && r.pumpState[i] === 'bad');
+   if(pumpOk.length) lines.push(`Помпы ${pumpOk.join(', ')} масло в норме.`);
+   if(pumpBad.length) lines.push(`Помпы ${pumpBad.join(', ')} масло не в норме.`);
+   pumpIds.forEach(i => {
+     if(r.pumpPressure && r.pumpPressure[i] !== '' && r.pumpPressure[i] != null) {
+       lines.push(`Давление помпы ${i} - ${r.pumpPressure[i]}`);
+     }
    });
    lines.push('');
  }
 
- if(settings.boxCount>0){
-   range(settings.boxCount).forEach(b=>{
-     const h=r.hoses[b]||{};
-     if(h.left||h.back||h.right){
+ if(bCount > 0){
+   range(bCount).forEach(b => {
+     const h = (r.hoses && r.hoses[b]) || {};
+     if(h.left || h.back || h.right){
        lines.push(`Проход рукава ${b} бокс:`);
-       if(h.left)lines.push(`Слева - ${h.left}`);
-       if(h.back)lines.push(`Сзади - ${h.back}`);
-       if(h.right)lines.push(`Справа - ${h.right}`);
+       if(h.left) lines.push(`Слева - ${h.left}`);
+       if(h.back) lines.push(`Сзади - ${h.back}`);
+       if(h.right) lines.push(`Справа - ${h.right}`);
        lines.push('');
      }
    });
-   range(settings.boxCount).forEach(b=>{
-     const c=r.consumption[b]||{};
-     const rows=settings.consumptionItems.filter(name=>c[name]);
+   range(bCount).forEach(b => {
+     const c = (r.consumption && r.consumption[b]) || {};
+     const consList = setObj.consumptionItems || [];
+     const rows = consList.filter(name => c[name]);
      if(rows.length){
        lines.push(`Расход химии ${b} бокс:`);
-       rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
+       rows.forEach(name => lines.push(`${name} - ${c[name]} г.`));
        lines.push('');
      }
    });
  }
- return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+ return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
+
+function buildDailyReportText(r){
+ return buildDailyReportTextCustom(r, settings, data.items);
+}
+
 function renderReportPreview(){
  document.getElementById('reportPreview').value=buildDailyReportText(report);
 }
@@ -1411,20 +1463,22 @@ function clearReportForm(){
  toast('Форма очищена');
 }
 
+/* Сохранение отчёта с предотвращением дублей и суммирования за день */
 function saveReportToHistoryManual(){
  const text=buildDailyReportText(report);
  if(!text){toast('Отчёт пуст — заполните параметры');return}
+ const today = todayISO();
  const entry={
-   id:crypto.randomUUID(),
-   date:todayISO(),
-   author:report.author,
+   id: today,
+   date: today,
+   author: report.author,
    text,
-   report:JSON.parse(JSON.stringify(report)),
-   time:new Date().toISOString()
+   report: JSON.parse(JSON.stringify(report)),
+   time: new Date().toISOString()
  };
- reportsHistoryCache=[entry,...reportsHistoryCache.filter(e=>e.date!==entry.date)].slice(0,60);
- localStorage.setItem(reportHistKey(),JSON.stringify(reportsHistoryCache));
- reportsHistoryRef.child(entry.id).set(entry).catch(()=>{});
+ reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e.date !== today)].slice(0, 100);
+ localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
+ reportsHistoryRef.child(today).set(entry).catch(()=>{});
  toast('Отчёт сохранён в историю');
  renderAnalytics();
 }
@@ -1439,7 +1493,7 @@ function copyDailyReport(){
  }).catch(()=>showCopyFallback(text));
 }
 
-/* ===== Модальные окна: История склада и отчётов ===== */
+/* ===== Модальные окна истории ===== */
 function openInvHistory(){
   const el=document.getElementById('invHistoryList');
   if(!data.history||!data.history.length){
@@ -1480,56 +1534,74 @@ function toggleReportHistDetail(id){
   if(el)el.style.display=el.style.display==='none'?'block':'none';
 }
 
-/* ===== Аналитика и Инфографика ===== */
-function renderAnalytics(){
-  const all=reportsHistoryCache;
-  let totalCars=0;
-  const weekdayCounts=[0,0,0,0,0,0,0]; // 0=Вс, 1=Пн...
-  const boxCounts={};
-  range(settings.boxCount||4).forEach(b=>boxCounts[b]=0);
+/* ===== Аналитика: дедупликация дней, исключение «Бокса 0» и срез по дате ===== */
+function getUniqueDailyReports(){
+  const map = {};
+  reportsHistoryCache.forEach(h => {
+    if (!h || !h.date) return;
+    if (!map[h.date] || new Date(h.time) > new Date(map[h.date].time)) {
+      map[h.date] = h;
+    }
+  });
+  return Object.values(map).sort((a,b) => b.date.localeCompare(a.date));
+}
 
-  all.forEach(h=>{
-    const rep=h.report||{};
-    const washed=rep.washed||{};
-    let dayTotal=0;
-    Object.entries(washed).forEach(([b,c])=>{
-      const n=Number(c)||0;
-      totalCars+=n;
-      dayTotal+=n;
-      boxCounts[b]=(boxCounts[b]||0)+n;
-    });
-    const d=new Date(h.date+'T00:00:00');
-    if(!isNaN(d.getTime())){
-      weekdayCounts[d.getDay()]+=dayTotal;
+function renderAnalytics(){
+  if(!isCurrentSuperAdmin()) return;
+  const uniqueReports = getUniqueDailyReports();
+  let totalCars = 0;
+  const weekdayCounts = [0,0,0,0,0,0,0];
+  const boxCountNum = Number(settings.boxCount) || 0;
+  const boxCounts = {};
+
+  for (let i = 1; i <= boxCountNum; i++) {
+    boxCounts[i] = 0;
+  }
+
+  uniqueReports.forEach(h => {
+    const rep = h.report || {};
+    const washed = rep.washed || {};
+    let dayTotal = 0;
+
+    for (let b = 1; b <= boxCountNum; b++) {
+      const n = Number(washed[b]) || 0;
+      totalCars += n;
+      dayTotal += n;
+      boxCounts[b] = (boxCounts[b] || 0) + n;
+    }
+
+    const d = new Date(h.date + 'T00:00:00');
+    if (!isNaN(d.getTime())) {
+      weekdayCounts[d.getDay()] += dayTotal;
     }
   });
 
-  document.getElementById('anTotalCars').textContent=fmt(totalCars);
-  const daysCount=Math.max(1,all.length);
-  document.getElementById('anAvgCars').textContent=fmt(Math.round(totalCars/daysCount));
+  document.getElementById('anTotalCars').textContent = fmt(totalCars);
+  const daysCount = Math.max(1, uniqueReports.length);
+  document.getElementById('anAvgCars').textContent = fmt(Math.round(totalCars / daysCount));
 
-  // Отрисовка графика дней недели (Пн-Вс)
-  const daysOrder=[1,2,3,4,5,6,0];
-  const dayNames=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  const maxDay=Math.max(1,...weekdayCounts);
+  // График дней недели (Пн-Вс)
+  const daysOrder = [1,2,3,4,5,6,0];
+  const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const maxDay = Math.max(1, ...weekdayCounts);
 
-  document.getElementById('weekdayChart').innerHTML=daysOrder.map((dayIdx,i)=>{
-    const val=weekdayCounts[dayIdx];
-    const pct=Math.round((val/maxDay)*100);
-    const isPeak=val>0&&val===maxDay;
+  document.getElementById('weekdayChart').innerHTML = daysOrder.map((dayIdx, i) => {
+    const val = weekdayCounts[dayIdx];
+    const pct = Math.round((val / maxDay) * 100);
+    const isPeak = val > 0 && val === maxDay;
     return `
       <div class="weekday-bar-col">
-        <span class="weekday-val">${val?val:''}</span>
-        <div class="weekday-bar ${isPeak?'peak':''}" style="height:${Math.max(6,pct)}%"></div>
+        <span class="weekday-val">${val ? val : ''}</span>
+        <div class="weekday-bar ${isPeak ? 'peak' : ''}" style="height:${Math.max(6, pct)}%"></div>
         <span class="weekday-label">${dayNames[i]}</span>
       </div>`;
   }).join('');
 
-  // Распределение по боксам
-  const maxBox=Math.max(1,...Object.values(boxCounts));
-  const boxHtml=Object.entries(boxCounts).map(([b,cnt])=>{
-    const pct=Math.round((cnt/maxBox)*100);
-    const share=totalCars>0?Math.round((cnt/totalCars)*100):0;
+  // Загрузка по боксам (строго с 1 по N, без «Бокса 0»)
+  const maxBox = Math.max(1, ...Object.values(boxCounts));
+  const boxHtml = Object.entries(boxCounts).map(([b, cnt]) => {
+    const pct = Math.round((cnt / maxBox) * 100);
+    const share = totalCars > 0 ? Math.round((cnt / totalCars) * 100) : 0;
     return `
       <div class="box-metric-row">
         <span class="box-metric-name">Бокс ${b}</span>
@@ -1537,17 +1609,118 @@ function renderAnalytics(){
         <span class="box-metric-val">${cnt} шт (${share}%)</span>
       </div>`;
   }).join('');
-  document.getElementById('boxesMetricList').innerHTML=boxHtml||'<div class="empty">Нет данных о помытых машинах</div>';
+  document.getElementById('boxesMetricList').innerHTML = boxHtml || '<div class="empty">Нет данных о помытых машинах</div>';
+
+  // Инициализация календаря для детального среза по дате
+  const dateInput = document.getElementById('anDateSelect');
+  if(!dateInput.value){
+    dateInput.value = uniqueReports.length ? uniqueReports[0].date : todayISO();
+  }
+  renderDateDetailCard();
+}
+
+/* Отрисовка большой интерактивной карточки для выбранной даты */
+function renderDateDetailCard(){
+  const dateVal = document.getElementById('anDateSelect').value;
+  const container = document.getElementById('anDateDetailContainer');
+  if(!dateVal){
+    container.innerHTML = '<div class="empty">Выберите дату в поле выше</div>';
+    return;
+  }
+
+  const uniqueReports = getUniqueDailyReports();
+  const entry = uniqueReports.find(e => e.date === dateVal);
+
+  if(!entry){
+    const dStr = new Date(dateVal + 'T00:00:00').toLocaleDateString('ru-RU');
+    container.innerHTML = `<div class="empty">За ${dStr} сохранённый отчёт не найден</div>`;
+    return;
+  }
+
+  const rep = entry.report || {};
+  const washed = rep.washed || {};
+  const hoses = rep.hoses || {};
+  const consumption = rep.consumption || {};
+  const boxCountNum = Number(settings.boxCount) || 0;
+
+  let dayCarsTotal = 0;
+  for (let b = 1; b <= boxCountNum; b++) {
+    dayCarsTotal += Number(washed[b]) || 0;
+  }
+
+  const formattedDate = new Date(entry.date + 'T00:00:00').toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+
+  let boxesHtml = '';
+  for(let b = 1; b <= boxCountNum; b++){
+    const bCars = Number(washed[b]) || 0;
+    const bPct = dayCarsTotal > 0 ? Math.round((bCars / dayCarsTotal) * 100) : 0;
+    const h = hoses[b] || {};
+    const c = consumption[b] || {};
+
+    const consEntries = (settings.consumptionItems || []).filter(name => c[name]);
+
+    boxesHtml += `
+      <div class="box-detail-card">
+        <div class="bd-head">
+          <span class="bd-title">Бокс ${b}</span>
+          <span class="bd-cars">${bCars} машин (${bPct}%)</span>
+        </div>
+        
+        <div class="bd-section-label">Проход рукава</div>
+        <div class="bd-hoses-row">
+          <div><span>Слева</span><b>${h.left || '—'}</b></div>
+          <div><span>Сзади</span><b>${h.back || '—'}</b></div>
+          <div><span>Справа</span><b>${h.right || '—'}</b></div>
+        </div>
+
+        <div class="bd-section-label">Расход химии</div>
+        ${consEntries.length ? `
+          <div class="bd-cons-list">
+            ${consEntries.map(name => `
+              <div class="bd-cons-item">
+                <span>${esc(name)}</span>
+                <b>${c[name]} г.</b>
+              </div>`).join('')}
+          </div>
+        ` : '<div style="font-size:11.5px;color:var(--muted)">Расход не заполнен</div>'}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="day-summary-strip">
+      <div class="day-summary-info">
+        <b>${formattedDate}</b><br>
+        Ответственный: <span>${esc(entry.author || 'Не указан')}</span> • TDS: <span>${esc(rep.tds || '—')}</span>
+      </div>
+      <div class="day-summary-stat">
+        Помыто за день
+        <strong>${dayCarsTotal} машин</strong>
+      </div>
+    </div>
+    <div class="day-boxes-grid">
+      ${boxesHtml || '<div class="empty">Боксы не настроены</div>'}
+    </div>
+  `;
 }
 
 /* ===== Обзор сети (Суперадминистратор) ===== */
 function initSuperAdminView(){
-  const isSuper = (localStorage.getItem('is_super_admin')==='1');
-  document.getElementById('tabBtnNetwork').style.display=isSuper?'flex':'none';
+  const isSuper = isCurrentSuperAdmin();
+  document.getElementById('tabBtnAnalytics').style.display = isSuper ? 'flex' : 'none';
+  document.getElementById('tabBtnNetwork').style.display = isSuper ? 'flex' : 'none';
+
+  if(!isSuper){
+    const activeTab = document.querySelector('.tab-btn.active');
+    if(activeTab && (activeTab.id === 'tabBtnAnalytics' || activeTab.id === 'tabBtnNetwork')){
+      switchTab('inventory');
+    }
+  }
+
   if(isSuper){
-    const sel=document.getElementById('networkLocSelect');
-    sel.innerHTML='<option value="">Выберите автомойку сети...</option>'+
-      Object.entries(locationsCache).filter(([id])=>id!==locId).map(([id,l])=>`<option value="${id}">${esc(l.name)}</option>`).join('');
+    const sel = document.getElementById('networkLocSelect');
+    sel.innerHTML = '<option value="">Выберите автомойку сети...</option>' +
+      Object.entries(locationsCache).filter(([id]) => id !== locId).map(([id,l]) => `<option value="${id}">${esc(l.name)}</option>`).join('');
   }
 }
 
@@ -1560,13 +1733,11 @@ function onNetworkLocChange(){
   Promise.all([
     firebase.database().ref('locations/'+otherId+'/inventory').once('value'),
     firebase.database().ref('locations/'+otherId+'/dailyReport').once('value'),
-    firebase.database().ref('locations/'+otherId+'/reportsHistory').once('value'),
     firebase.database().ref('locations/'+otherId+'/settings').once('value')
-  ]).then(([invS, repS, histS, setS])=>{
+  ]).then(([invS, repS, setS])=>{
     const otherData=sanitizeData(invS.val());
     const otherSettings=sanitizeSettings(setS.val());
     const otherReport=sanitizeReport(repS.val());
-    const otherHist=Object.values(histS.val()||{}).sort((a,b)=>new Date(b.time)-new Date(a.time));
 
     let html=`<div style="display:flex;flex-direction:column;gap:14px">
       <div class="card">
@@ -1590,7 +1761,7 @@ function onNetworkLocChange(){
           ${range(otherSettings.boxCount).map(b=>`<div><span>Бокс ${b}</span><input disabled value="${otherReport.washed[b]||0}"></div>`).join('')}
         </div>
         <label>Предпросмотр сводки</label>
-        <textarea class="report-preview" disabled rows="9">${buildDailyReportText(otherReport)}</textarea>
+        <textarea class="report-preview" disabled rows="9">${buildDailyReportTextCustom(otherReport, otherSettings, otherData.items)}</textarea>
       </div>
     </div>`;
     cont.innerHTML=html;
@@ -1798,7 +1969,7 @@ function prevGuideSlide(){
  }
 }
 
-/* ===== Запуск приложения после выбора автомойки ===== */
+/* ===== Запуск приложения после авторизации ===== */
 function startApp(id,name){
  locId=id;
  dbRef=firebase.database().ref('locations/'+locId+'/inventory');
@@ -1866,7 +2037,7 @@ function startApp(id,name){
   }
  });
 
- reportsHistoryRef.orderByChild('date').limitToLast(60).on('value',snap=>{
+ reportsHistoryRef.limitToLast(100).on('value',snap=>{
   const remote=snap.val();
   if(remote){
     reportsHistoryCache=Object.values(remote).sort((a,b)=>new Date(b.time)-new Date(a.time));
@@ -1956,7 +2127,7 @@ async function submitPin(){
 }
 
 function verifyAndCompleteLogin(id, name){
- const isSuper = name.trim().toLowerCase().includes('таганрогская 134б');
+ const isSuper = (name || '').trim().toLowerCase().includes('таганрогская 134б');
  localStorage.setItem('is_super_admin', isSuper ? '1' : '0');
  localStorage.setItem(LOC_AUTHED_KEY, id);
  completeLogin(id, name);
@@ -1999,7 +2170,7 @@ locationsRef.on('value',snap=>{
      locationsCache=snap.val()||{};
      const loc=locationsCache[savedId];
      if(loc){
-       const isSuper = loc.name.trim().toLowerCase().includes('таганрогская 134б');
+       const isSuper = (loc.name || '').trim().toLowerCase().includes('таганрогская 134б');
        localStorage.setItem('is_super_admin', isSuper ? '1' : '0');
        completeLogin(savedId, loc.name);
      }else{
@@ -2035,4 +2206,3 @@ locationsRef.on('value',snap=>{
 </script>
 </body>
 </html>
-
