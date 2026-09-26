@@ -13,6 +13,7 @@
   --danger:#d64545; --danger-soft:#fbe8e8;
   --warning:#c8860d; --warning-soft:#fdf1dd;
   --success:#1f9254; --success-soft:#e7f6ee;
+  --purple:#6366f1; --purple-soft:#eef2ff;
   --border:#e0e6ea;
   --r-lg:18px; --r-md:12px; --r-sm:8px;
   --shadow:0 4px 16px rgba(13,58,84,.06);
@@ -37,13 +38,14 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
 .btn:active{transform:scale(.97)}
 .btn.secondary{background:#e8eef2;color:var(--accent-dark)}
 .btn.danger{background:var(--danger-soft);color:#b63838}
+.btn.purple{background:var(--purple);color:#fff}
 .btn svg{width:16px;height:16px;flex:none}
 
 .report-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent-dark);color:#fff;border-radius:var(--r-lg);padding:12px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
 .report-bar .report-text{font-size:14px;line-height:1.4}
 .report-bar .report-text b{font-weight:800}
 .report-bar .btn.copy-btn{background:rgba(255,255,255,.16);color:#fff;padding:8px 12px;font-size:13px}
-.report-bar .btn.copy-btn:hover{background:rgba(255,255,26);color:#fff}
+.report-bar .btn.copy-btn:hover{background:rgba(255,255,255,.26)}
 .report-bar .btn.copy-btn.copied{background:var(--success)}
 
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
@@ -52,7 +54,7 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
 .stat span{font-size:12px;color:var(--muted)}
 .stat.low b{color:var(--warning)}
 
-.toolbar{display:flex;gap:10px;margin-bottom:14px}
+.toolbar{display:flex;gap:8px;margin-bottom:14px}
 .search-wrap{position:relative;flex:1}
 .search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
 .search{width:100%;background:#fff;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 14px 11px 36px;outline:none;font-size:14px}
@@ -60,9 +62,7 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
 .clear-search{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);width:28px;height:28px;border-radius:50%;display:none;align-items:center;justify-content:center}
 .clear-search.show{display:flex}
 
-/* Сетка: Десктоп - 3, Планшет - 2, Мобильный - 1 */
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px;box-shadow:var(--shadow);position:relative;transition:border-color .15s,box-shadow .15s}
 .card.card-in-report{border-color:var(--success);box-shadow:0 0 0 1.5px var(--success),var(--shadow)}
 .card-low{border-color:var(--warning);border-width:1.5px}
@@ -108,7 +108,7 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
 
 .modal-backdrop{position:fixed;inset:0;background:rgba(5,20,30,.5);display:none;align-items:flex-end;justify-content:center;padding:0;z-index:20}
 .modal-backdrop.show{display:flex}
-.modal{background:#fff;width:min(520px,100%);max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+.modal{background:#fff;width:min(540px,100%);max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.2)}
 @media(min-width:601px){.modal-backdrop{align-items:center;padding:16px}.modal{border-radius:22px}}
 .modal h2{margin:0 0 16px;font-size:19px}
 .form-row{margin-bottom:12px}
@@ -121,10 +121,6 @@ label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-w
 input,select{width:100%;padding:11px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff;font-size:15px}
 .modal-actions{display:flex;gap:8px;margin-top:8px}
 .modal-actions button{flex:1;justify-content:center}
-
-.copy-modal .modal{max-width:460px}
-.copy-modal textarea{width:100%;min-height:160px;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;font-family:inherit;font-size:14px;resize:vertical;background:#fbfcfd;color:var(--text)}
-.copy-hint{font-size:12.5px;color:var(--muted);margin:8px 0 14px}
 
 .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 .auth-screen.hide{display:none}
@@ -139,7 +135,6 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .pin-input{width:100%;text-align:center;font-size:28px;letter-spacing:14px;padding:14px;border:1px solid var(--border);border-radius:12px;margin:8px 0}
 .pin-error{color:#b63838;font-size:12.5px;font-weight:700;min-height:16px;margin-bottom:4px}
 
-/* Блоки подсказок и кнопка презентации */
 .empty-hint{position:relative;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r-md);padding:14px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--accent-dark)}
 .empty-hint b{display:block;margin-bottom:6px;font-size:14.5px}
 .empty-hint p{margin:4px 0}
@@ -149,7 +144,6 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .btn-guide-open:hover{background:var(--accent-soft);transform:translateY(-1px)}
 .btn-guide-open svg{width:16px;height:16px;color:var(--accent)}
 
-/* Интерактивная презентация (слайдер) */
 .guide-modal .modal{max-width:500px;padding:22px 20px}
 .guide-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .guide-tag{background:var(--accent-soft);color:var(--accent-dark);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.02em}
@@ -174,8 +168,9 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .stepper{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px 6px}
 .stepper button{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center}
 .stepper span{min-width:18px;text-align:center;font-weight:700}
-.tabs{display:flex;gap:6px;margin-bottom:14px;background:#e3e9ed;padding:4px;border-radius:var(--r-md)}
-.tab-btn{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 12px;border-radius:9px;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:6px}
+
+.tabs{display:flex;gap:6px;margin-bottom:14px;background:#e3e9ed;padding:4px;border-radius:var(--r-md);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-btn{flex:1 0 auto;border:0;background:transparent;color:var(--muted);padding:9px 12px;border-radius:9px;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
 .tab-btn svg{width:16px;height:16px;flex:none}
 .tab-btn.active{background:#fff;color:var(--accent-dark);box-shadow:0 2px 6px rgba(13,58,84,.1)}
 .view{display:none}
@@ -220,42 +215,78 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .report-actions .btn{flex:1;min-width:140px;justify-content:center}
 .report-preview{width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;background:#fbfcfd;color:var(--text);resize:vertical}
 
+/* Модальные окна истории */
+.history-modal-list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;padding-right:4px}
+.h-card{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:13px}
+.h-card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.h-card-title{font-weight:800;color:var(--accent-dark)}
+.h-card-time{font-size:11.5px;color:var(--muted)}
+.h-card-body{color:#37474f;font-size:12.5px;line-height:1.4}
+.h-badge-delta{display:inline-block;padding:2px 6px;border-radius:5px;font-weight:700;font-size:11px}
+.h-badge-delta.pos{background:var(--success-soft);color:var(--success)}
+.h-badge-delta.neg{background:var(--danger-soft);color:var(--danger)}
+
+/* Стили Аналитики и Инфографики */
+.analytics-hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.hero-card{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.hero-card span{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.hero-card b{font-size:24px;line-height:1;color:var(--accent-dark)}
+.hero-card.success b{color:var(--success)}
+
+.chart-card{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.chart-card h3{margin:0 0 12px;font-size:15px;display:flex;align-items:center;justify-content:space-between}
+.chart-card h3 small{font-size:12px;color:var(--muted);font-weight:normal}
+
+/* Столбчатая диаграмма дней недели */
+.weekday-chart{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:150px;padding-top:20px;border-bottom:1px solid var(--border)}
+.weekday-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:5px}
+.weekday-val{font-size:10.5px;font-weight:800;color:var(--accent-dark)}
+.weekday-bar{width:100%;max-width:28px;background:linear-gradient(180deg,var(--accent),var(--accent-dark));border-radius:6px 6px 0 0;min-height:4px;transition:height .3s ease}
+.weekday-bar.peak{background:linear-gradient(180deg,#10b981,#059669)}
+.weekday-label{font-size:11px;font-weight:700;color:var(--muted);margin-top:6px}
+
+/* Прогресс-бары для боксов */
+.box-metric-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.box-metric-name{width:65px;font-size:12.5px;font-weight:700}
+.box-metric-bar-wrap{flex:1;height:12px;background:#eef2f5;border-radius:999px;overflow:hidden}
+.box-metric-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .3s}
+.box-metric-val{width:70px;text-align:right;font-size:12px;font-weight:800;color:var(--text)}
+
+/* Обзор сети: шапка наблюдателя */
+.network-bar{background:linear-gradient(90deg,#0a4f78,#152632);color:#fff;border-radius:var(--r-lg);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.network-bar-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.network-badge{background:rgba(255,255,255,.2);padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.read-only-banner{background:var(--warning-soft);border:1px solid var(--warning);color:#825304;border-radius:var(--r-md);padding:9px 12px;font-size:12px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:#152632;color:#fff;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:40;font-size:14px;max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* Планшетная адаптация */
 @media(max-width:1024px) and (min-width:641px){
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 }
-
-/* Мобильная адаптация: смартфоны */
 @media(max-width:640px){
   .app{padding:12px 12px calc(50px + env(safe-area-inset-bottom))}
   h1{font-size:19px}
   .header-actions .label-text{display:none}
   .header-actions .btn{padding:9px;width:40px;height:40px;justify-content:center}
   .header-actions .btn svg{width:17px;height:17px}
-  
   .report-bar{padding:10px 12px;border-radius:14px}
   .report-bar .report-text{font-size:13px}
   .stats{gap:8px}
   .stat{padding:10px 12px}
   .stat b{font-size:20px}
-
-  /* Строго 1 колонка на смартфонах — карточки просторные и без разрывов */
   .grid{grid-template-columns:1fr;gap:11px}
-  
   .card{padding:13px 14px;border-radius:15px}
   .name{font-size:16px}
   .measure{padding:9px 11px}
   .measure-main strong{font-size:24px}
   .measure-actions button{width:36px;height:36px;font-size:18px}
   .quick button{font-size:12px;padding:7px 2px}
-
   .form-row-inline{grid-template-columns:1fr}
   .report-actions .btn{min-width:100%}
-  .tab-btn{font-size:12.5px;padding:9px 6px;gap:5px}
-  .tab-btn svg{width:15px;height:15px}
+  .tab-btn{font-size:12px;padding:8px 8px;gap:4px}
+  .tab-btn svg{width:14px;height:14px}
+  .analytics-hero{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -307,7 +338,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/><path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7"/></svg>
       <span class="label-text">Сменить автомойку</span>
     </button>
-    <button class="btn" onclick="openAdd()" aria-label="Добавить химию" title="Добавить химию">
+    <button class="btn" id="headerAddChemBtn" onclick="openAdd()" aria-label="Добавить химию" title="Добавить химию">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       <span class="label-text">Химия</span>
     </button>
@@ -323,59 +354,74 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
     Отчёт дня
   </button>
+  <button class="tab-btn" id="tabBtnAnalytics" onclick="switchTab('analytics')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Аналитика
+  </button>
+  <button class="tab-btn" id="tabBtnNetwork" style="display:none" onclick="switchTab('network')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    Обзор сети
+  </button>
 </nav>
 
+<!-- ВКЛАДКА 1: СКЛАД -->
 <section id="viewInventory" class="view active">
+  <section class="report-bar">
+    <div class="report-text">Остаток химии на <b id="reportDate"></b></div>
+    <button class="btn copy-btn" id="copyBtn" onclick="copyReport()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span>Копировать</span>
+    </button>
+  </section>
 
-<section class="report-bar">
-  <div class="report-text">Остаток химии на <b id="reportDate"></b></div>
-  <button class="btn copy-btn" id="copyBtn" onclick="copyReport()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    <span>Копировать</span>
-  </button>
-</section>
+  <section class="stats">
+    <div class="stat"><b id="itemsCount">0</b><span>позиций</span></div>
+    <div class="stat low"><b id="lowCount">0</b><span>заканчиваются</span></div>
+  </section>
 
-<section class="stats">
-  <div class="stat"><b id="itemsCount">0</b><span>позиций</span></div>
-  <div class="stat low"><b id="lowCount">0</b><span>заканчиваются</span></div>
-</section>
-
-<div class="toolbar">
-  <div class="search-wrap">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-    <input id="search" class="search" placeholder="Поиск химии..." oninput="onSearch()">
-    <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="Очистить поиск">✕</button>
-  </div>
-</div>
-
-<div id="emptyInvHint" class="empty-hint" style="display:none">
-  <button type="button" class="hint-close" onclick="dismissInvHint()" aria-label="Скрыть подсказку">✕</button>
-  <b>Как добавить свою химию</b>
-  <p>Нажмите кнопку «Химия» вверху экрана — укажите название (например, «Пена жёлтая») и текущий остаток.</p>
-  <p>Для одной позиции можно завести сразу несколько единиц измерения (например, канистры и килограммы).</p>
-  <p>Чтобы позиция попадала в ежедневный отчёт во вкладке «Отчёт дня», нажмите на значок отчёта (📄) в её карточке — она подсветится зелёным.</p>
-  
-  <div class="hint-action-bar">
-    <button type="button" class="btn-guide-open" onclick="openGuide('inventory')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      🎬 Интерактивное обучение (в слайдах)
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="search" class="search" placeholder="Поиск химии..." oninput="onSearch()">
+      <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="Очистить поиск">✕</button>
+    </div>
+    <button type="button" class="btn secondary" onclick="openInvHistory()" title="История склада" style="padding:11px 13px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="label-text">История</span>
     </button>
   </div>
-</div>
 
-<main id="cards" class="grid"></main>
+  <div id="emptyInvHint" class="empty-hint" style="display:none">
+    <button type="button" class="hint-close" onclick="dismissInvHint()" aria-label="Скрыть подсказку">✕</button>
+    <b>Как добавить свою химию</b>
+    <p>Нажмите кнопку «Химия» вверху экрана — укажите название (например, «Пена жёлтая») и текущий остаток.</p>
+    <p>Для одной позиции можно завести сразу несколько единиц измерения (например, канистры и килограммы).</p>
+    <p>Чтобы позиция попадала в ежедневный отчёт во вкладке «Отчёт дня», нажмите на значок отчёта (📄) в её карточке — она подсветится зелёным.</p>
+    
+    <div class="hint-action-bar">
+      <button type="button" class="btn-guide-open" onclick="openGuide('inventory')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        🎬 Интерактивное обучение (в слайдах)
+      </button>
+    </div>
+  </div>
 
+  <main id="cards" class="grid"></main>
 </section>
 
+<!-- ВКЛАДКА 2: ОТЧЁТ ДНЯ -->
 <section id="viewReport" class="view">
   <div class="card report-form">
     <div class="date-display">Дата отчёта: <b id="rDateDisplay"></b></div>
 
     <div class="report-actions" style="margin:0 0 14px">
       <button type="button" class="btn secondary" onclick="openSettings()">
-        <!-- Четкая, симметричная шестеренка без искажений -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         Настройки отчёта
+      </button>
+      <button type="button" class="btn secondary" onclick="openReportHistory()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        История отчётов
       </button>
     </div>
 
@@ -433,6 +479,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Копировать отчёт
       </button>
+      <button class="btn secondary" onclick="saveReportToHistoryManual()">Сохранить в историю</button>
       <button class="btn secondary" onclick="clearReportForm()">Очистить форму</button>
     </div>
 
@@ -443,9 +490,66 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </section>
 
+<!-- ВКЛАДКА 3: АНАЛИТИКА -->
+<section id="viewAnalytics" class="view">
+  <div class="analytics-hero">
+    <div class="hero-card">
+      <span>Помыто машин (всего)</span>
+      <b id="anTotalCars">0</b>
+    </div>
+    <div class="hero-card">
+      <span>Среднесуточный поток</span>
+      <b id="anAvgCars">0</b>
+    </div>
+    <div class="hero-card success">
+      <span>Исправность (Uptime)</span>
+      <b id="anUptime">100%</b>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h3>
+      <span>Загрузка по дням недели</span>
+      <small>машин за смену</small>
+    </h3>
+    <div class="weekday-chart" id="weekdayChart"></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>
+      <span>Распределение по боксам</span>
+      <small>доля потока</small>
+    </h3>
+    <div id="boxesMetricList"></div>
+  </div>
+</section>
+
+<!-- ВКЛАДКА 4: ОБЗОР СЕТИ (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
+<section id="viewNetwork" class="view">
+  <div class="network-bar">
+    <div class="network-bar-top">
+      <div>
+        <span class="network-badge">Суперадминистратор</span>
+        <h2 style="margin:4px 0 0;font-size:18px">Обзор автомоек сети</h2>
+      </div>
+      <div style="min-width:200px">
+        <select id="networkLocSelect" onchange="onNetworkLocChange()"></select>
+      </div>
+    </div>
+    <div class="read-only-banner">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Режим наблюдения: данные загружены только для просмотра. Редактирование и копирование отключены.
+    </div>
+  </div>
+
+  <div id="networkContent">
+    <div class="empty">Выберите автомойку из списка выше для просмотра её данных</div>
+  </div>
+</section>
+
 </div>
 
-<!-- Модальное окно: Добавление химии -->
+<!-- МОДАЛЬНОЕ ОКНО: ДОБАВЛЕНИЕ ХИМИИ -->
 <div id="modal" class="modal-backdrop" onclick="backdropClick(event)">
   <div class="modal">
     <h2 id="modalTitle">Добавить химию</h2>
@@ -461,7 +565,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </div>
 
-<!-- Модальное окно: Настройки отчета -->
+<!-- МОДАЛЬНОЕ ОКНО: НАСТРОЙКИ ОТЧЁТА -->
 <div id="settingsModal" class="modal-backdrop" onclick="settingsBackdropClick(event)">
   <div class="modal">
     <h2>Настройки отчёта</h2>
@@ -504,16 +608,36 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </div>
 
-<!-- Модальное окно: Интерактивная презентация в слайдах -->
+<!-- МОДАЛЬНОЕ ОКНО: ИСТОРИЯ СКЛАДА -->
+<div id="invHistoryModal" class="modal-backdrop" onclick="if(event.target===this)closeInvHistory()">
+  <div class="modal">
+    <h2>История склада</h2>
+    <div id="invHistoryList" class="history-modal-list"></div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button type="button" class="btn secondary" onclick="closeInvHistory()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО: ИСТОРИЯ ОТЧЁТОВ -->
+<div id="reportHistoryModal" class="modal-backdrop" onclick="if(event.target===this)closeReportHistory()">
+  <div class="modal">
+    <h2>История отчётов дня</h2>
+    <div id="reportHistoryList" class="history-modal-list"></div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button type="button" class="btn secondary" onclick="closeReportHistory()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО: ОБУЧЕНИЕ В СЛАЙДАХ -->
 <div id="guideModal" class="modal-backdrop guide-modal" onclick="if(event.target===this)closeGuide()">
   <div class="modal">
     <div class="guide-top">
       <span class="guide-tag" id="guideTag">Обучение</span>
       <span class="guide-counter" id="guideCounter">Слайд 1 из 3</span>
     </div>
-
     <div class="guide-slides-wrap" id="guideSlidesContainer"></div>
-
     <div class="guide-controls">
       <div class="guide-dots" id="guideDots"></div>
       <div style="display:flex;gap:8px">
@@ -524,10 +648,11 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО: КОПИРОВАНИЕ ТЕКСТА -->
 <div id="copyModal" class="modal-backdrop copy-modal" onclick="if(event.target===this)closeCopyModal()">
   <div class="modal">
     <h2>Скопируйте текст</h2>
-    <div class="copy-hint">Автоматически скопировать не получилось. Текст уже выделен — нажмите и удерживайте, выберите «Копировать», либо Ctrl+C.</div>
+    <div class="copy-hint">Автоматически скопировать не получилось. Текст уже выделен — нажмите «Копировать» или Ctrl+C.</div>
     <textarea id="copyTextarea" readonly></textarea>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="closeCopyModal()">Закрыть</button>
@@ -535,6 +660,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
     </div>
   </div>
 </div>
+
 <div id="toast" class="toast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -551,14 +677,20 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const locationsRef = firebase.database().ref('carwashes');
-let dbRef, reportDbRef, settingsRef;
+let dbRef, reportDbRef, settingsRef, reportsHistoryRef;
 </script>
 <script>
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 var reportPreviewReady=false;
 let locId=null;
 function invKey(){return 'chemical_inventory_v2_'+locId}
 function reportKey(){return 'daily_report_draft_v1_'+locId}
+function reportHistKey(){return 'daily_report_history_v1_'+locId}
 function lastAuthorKey(){return 'report_last_author_'+locId}
 
 function toArray(v){
@@ -577,10 +709,11 @@ function sanitizeData(d){
      min:Number(m&&m.min)||0
    }))
  }));
- return {items};
+ const history=toArray(d&&d.history).filter(Boolean);
+ return {items, history};
 }
 
-let data={items:[]};
+let data={items:[], history:[]};
 let editId=null;
 let syncTimer;
 let firebaseReady=false;
@@ -615,6 +748,16 @@ function dismissInvHint(){
  document.getElementById('emptyInvHint').style.display='none';
 }
 
+function logInvHistory(action, desc){
+ data.history.unshift({
+   id: crypto.randomUUID(),
+   time: new Date().toISOString(),
+   action,
+   desc
+ });
+ data.history = data.history.slice(0, 100);
+}
+
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   document.getElementById('clearSearch').classList.toggle('show',q.length>0);
@@ -637,13 +780,10 @@ function toggleInReport(id){
  const x=data.items.find(i=>i.id===id);
  if(!x)return;
  x.inReport=!x.inReport;
+ logInvHistory(x.inReport ? 'Включение в отчёт' : 'Исключение из отчёта', x.name);
  persist();
  render();
- if(x.inReport){
-   toast(`«${x.name}» добавлена в отчёт дня`);
- }else{
-   toast(`«${x.name}» убрана из отчёта дня`);
- }
+ toast(x.inReport ? `«${x.name}» добавлена в отчёт дня` : `«${x.name}» убрана из отчёта дня`);
 }
 
 function card(x){
@@ -697,6 +837,7 @@ function change(id,mi,delta){
  const old=Number(m.qty), next=Math.max(0,Math.round((old+delta)*100)/100);
  const actual=next-old; if(actual===0)return;
  m.qty=next;
+ logInvHistory('Изменение остатка', `${x.name}: ${actual>0?'+':''}${fmt(actual)} ${m.unit}`);
  persist();render();
  toast(`${x.name}: ${actual>0?'+':''}${fmt(actual)} ${m.unit}`);
 }
@@ -739,8 +880,10 @@ function saveItem(e){
  if(editId){
    const x=data.items.find(i=>i.id===editId);
    x.name=name;x.measures=measures;
+   logInvHistory('Редактирование', `${name}`);
  }else{
    data.items.push({id:crypto.randomUUID(),name,measures,inReport:false});
+   logInvHistory('Добавлена позиция', `${name} (${measures.map(m=>m.qty+' '+m.unit).join(', ')})`);
  }
  persist();closeModal();render();toast(editId?'Позиция изменена':'Позиция добавлена');
 }
@@ -813,21 +956,28 @@ window.addEventListener('online',()=>setSyncStatus('online','Синхрониз�
 window.addEventListener('offline',()=>setSyncStatus('offline','Офлайн — работает локально'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal()});
 
-/* ===== Вкладки ===== */
+/* ===== Вкладки приложения ===== */
 function switchTab(tab){
  document.getElementById('viewInventory').classList.toggle('active',tab==='inventory');
  document.getElementById('viewReport').classList.toggle('active',tab==='report');
+ document.getElementById('viewAnalytics').classList.toggle('active',tab==='analytics');
+ document.getElementById('viewNetwork').classList.toggle('active',tab==='network');
+
  document.getElementById('tabBtnInventory').classList.toggle('active',tab==='inventory');
  document.getElementById('tabBtnReport').classList.toggle('active',tab==='report');
+ document.getElementById('tabBtnAnalytics').classList.toggle('active',tab==='analytics');
+ document.getElementById('tabBtnNetwork').classList.toggle('active',tab==='network');
+
  if(tab==='report'){
    renderReportHintsAndVisibility();
    renderReportPreview();
+ }else if(tab==='analytics'){
+   renderAnalytics();
  }
 }
 
 /* ===== Ежедневный отчёт ===== */
 function range(n){const a=[];for(let i=1;i<=n;i++)a.push(i);return a}
-
 function settingsKey(){return 'report_settings_v1_'+locId}
 function reportHintKey(){return 'report_hint_dismissed_'+locId}
 let reportHintDismissed=false;
@@ -917,6 +1067,7 @@ function sanitizeReport(r){
  return out;
 }
 let report={};
+let reportsHistoryCache=[];
 
 function yesterdayDMY(){
  const d=new Date();d.setDate(d.getDate()-1);
@@ -1259,14 +1410,196 @@ function clearReportForm(){
  persistReport();
  toast('Форма очищена');
 }
+
+function saveReportToHistoryManual(){
+ const text=buildDailyReportText(report);
+ if(!text){toast('Отчёт пуст — заполните параметры');return}
+ const entry={
+   id:crypto.randomUUID(),
+   date:todayISO(),
+   author:report.author,
+   text,
+   report:JSON.parse(JSON.stringify(report)),
+   time:new Date().toISOString()
+ };
+ reportsHistoryCache=[entry,...reportsHistoryCache.filter(e=>e.date!==entry.date)].slice(0,60);
+ localStorage.setItem(reportHistKey(),JSON.stringify(reportsHistoryCache));
+ reportsHistoryRef.child(entry.id).set(entry).catch(()=>{});
+ toast('Отчёт сохранён в историю');
+ renderAnalytics();
+}
+
 function copyDailyReport(){
  const text=buildDailyReportText(report);
  if(!text){toast('Отчёт пуст — сначала настройте автомойку');return;}
  lastCopyText=text;
- copyToClipboard(text).then(()=>toast('Отчёт скопирован в буфер обмена')).catch(()=>showCopyFallback(text));
+ copyToClipboard(text).then(()=>{
+   toast('Отчёт скопирован в буфер обмена');
+   saveReportToHistoryManual();
+ }).catch(()=>showCopyFallback(text));
 }
 
-/* ===== Настройки отчёта для автомойки ===== */
+/* ===== Модальные окна: История склада и отчётов ===== */
+function openInvHistory(){
+  const el=document.getElementById('invHistoryList');
+  if(!data.history||!data.history.length){
+    el.innerHTML='<div class="empty">История склада пока пуста</div>';
+  }else{
+    el.innerHTML=data.history.map(h=>`
+      <div class="h-card">
+        <div class="h-card-head">
+          <span class="h-card-title">${esc(h.action)}</span>
+          <span class="h-card-time">${new Date(h.time).toLocaleString('ru-RU')}</span>
+        </div>
+        <div class="h-card-body">${esc(h.desc)}</div>
+      </div>`).join('');
+  }
+  document.getElementById('invHistoryModal').classList.add('show');
+}
+function closeInvHistory(){document.getElementById('invHistoryModal').classList.remove('show')}
+
+function openReportHistory(){
+  const el=document.getElementById('reportHistoryList');
+  if(!reportsHistoryCache||!reportsHistoryCache.length){
+    el.innerHTML='<div class="empty">История отчётов пока пуста</div>';
+  }else{
+    el.innerHTML=reportsHistoryCache.map(h=>`
+      <div class="h-card" style="cursor:pointer" onclick="toggleReportHistDetail('${h.id}')">
+        <div class="h-card-head">
+          <span class="h-card-title">${new Date(h.date+'T00:00:00').toLocaleDateString('ru-RU')} ${esc(h.author?('• '+h.author):'')}</span>
+          <span class="h-card-time">${new Date(h.time).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div id="rhDetail_${h.id}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #d0d7de;white-space:pre-wrap;font-family:monospace;font-size:11.5px">${esc(h.text)}</div>
+      </div>`).join('');
+  }
+  document.getElementById('reportHistoryModal').classList.add('show');
+}
+function closeReportHistory(){document.getElementById('reportHistoryModal').classList.remove('show')}
+function toggleReportHistDetail(id){
+  const el=document.getElementById('rhDetail_'+id);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+/* ===== Аналитика и Инфографика ===== */
+function renderAnalytics(){
+  const all=reportsHistoryCache;
+  let totalCars=0;
+  const weekdayCounts=[0,0,0,0,0,0,0]; // 0=Вс, 1=Пн...
+  const boxCounts={};
+  range(settings.boxCount||4).forEach(b=>boxCounts[b]=0);
+
+  all.forEach(h=>{
+    const rep=h.report||{};
+    const washed=rep.washed||{};
+    let dayTotal=0;
+    Object.entries(washed).forEach(([b,c])=>{
+      const n=Number(c)||0;
+      totalCars+=n;
+      dayTotal+=n;
+      boxCounts[b]=(boxCounts[b]||0)+n;
+    });
+    const d=new Date(h.date+'T00:00:00');
+    if(!isNaN(d.getTime())){
+      weekdayCounts[d.getDay()]+=dayTotal;
+    }
+  });
+
+  document.getElementById('anTotalCars').textContent=fmt(totalCars);
+  const daysCount=Math.max(1,all.length);
+  document.getElementById('anAvgCars').textContent=fmt(Math.round(totalCars/daysCount));
+
+  // Отрисовка графика дней недели (Пн-Вс)
+  const daysOrder=[1,2,3,4,5,6,0];
+  const dayNames=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const maxDay=Math.max(1,...weekdayCounts);
+
+  document.getElementById('weekdayChart').innerHTML=daysOrder.map((dayIdx,i)=>{
+    const val=weekdayCounts[dayIdx];
+    const pct=Math.round((val/maxDay)*100);
+    const isPeak=val>0&&val===maxDay;
+    return `
+      <div class="weekday-bar-col">
+        <span class="weekday-val">${val?val:''}</span>
+        <div class="weekday-bar ${isPeak?'peak':''}" style="height:${Math.max(6,pct)}%"></div>
+        <span class="weekday-label">${dayNames[i]}</span>
+      </div>`;
+  }).join('');
+
+  // Распределение по боксам
+  const maxBox=Math.max(1,...Object.values(boxCounts));
+  const boxHtml=Object.entries(boxCounts).map(([b,cnt])=>{
+    const pct=Math.round((cnt/maxBox)*100);
+    const share=totalCars>0?Math.round((cnt/totalCars)*100):0;
+    return `
+      <div class="box-metric-row">
+        <span class="box-metric-name">Бокс ${b}</span>
+        <div class="box-metric-bar-wrap"><div class="box-metric-fill" style="width:${pct}%"></div></div>
+        <span class="box-metric-val">${cnt} шт (${share}%)</span>
+      </div>`;
+  }).join('');
+  document.getElementById('boxesMetricList').innerHTML=boxHtml||'<div class="empty">Нет данных о помытых машинах</div>';
+}
+
+/* ===== Обзор сети (Суперадминистратор) ===== */
+function initSuperAdminView(){
+  const isSuper = (localStorage.getItem('is_super_admin')==='1');
+  document.getElementById('tabBtnNetwork').style.display=isSuper?'flex':'none';
+  if(isSuper){
+    const sel=document.getElementById('networkLocSelect');
+    sel.innerHTML='<option value="">Выберите автомойку сети...</option>'+
+      Object.entries(locationsCache).filter(([id])=>id!==locId).map(([id,l])=>`<option value="${id}">${esc(l.name)}</option>`).join('');
+  }
+}
+
+function onNetworkLocChange(){
+  const otherId=document.getElementById('networkLocSelect').value;
+  const cont=document.getElementById('networkContent');
+  if(!otherId){cont.innerHTML='<div class="empty">Выберите автомойку из списка выше</div>';return}
+
+  cont.innerHTML='<div class="empty">Загрузка данных автомойки...</div>';
+  Promise.all([
+    firebase.database().ref('locations/'+otherId+'/inventory').once('value'),
+    firebase.database().ref('locations/'+otherId+'/dailyReport').once('value'),
+    firebase.database().ref('locations/'+otherId+'/reportsHistory').once('value'),
+    firebase.database().ref('locations/'+otherId+'/settings').once('value')
+  ]).then(([invS, repS, histS, setS])=>{
+    const otherData=sanitizeData(invS.val());
+    const otherSettings=sanitizeSettings(setS.val());
+    const otherReport=sanitizeReport(repS.val());
+    const otherHist=Object.values(histS.val()||{}).sort((a,b)=>new Date(b.time)-new Date(a.time));
+
+    let html=`<div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:16px">Остатки химии на складе</h3>
+        <div class="grid">${otherData.items.length?otherData.items.map(x=>`
+          <div class="card">
+            <b>${esc(x.name)}</b>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${x.inReport?'✓ В отчёте дня':''}</div>
+            ${x.measures.map(m=>`<div style="font-size:13px;display:flex;justify-content:space-between"><span>${esc(m.unit)}:</span><b>${fmt(m.qty)}</b></div>`).join('')}
+          </div>`).join(''):'<div class="empty">Химия не добавлена</div>'}
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px;font-size:16px">Текущий отчёт дня</h3>
+        <div class="form-row-inline">
+          <div><label>Ответственный</label><input disabled value="${esc(otherReport.author||'Не указан')}"></div>
+          <div><label>TDS</label><input disabled value="${esc(otherReport.tds||'—')}"></div>
+        </div>
+        <label>Помыто машин</label>
+        <div class="washed-grid" style="margin-bottom:12px">
+          ${range(otherSettings.boxCount).map(b=>`<div><span>Бокс ${b}</span><input disabled value="${otherReport.washed[b]||0}"></div>`).join('')}
+        </div>
+        <label>Предпросмотр сводки</label>
+        <textarea class="report-preview" disabled rows="9">${buildDailyReportText(otherReport)}</textarea>
+      </div>
+    </div>`;
+    cont.innerHTML=html;
+  }).catch(()=>{
+    cont.innerHTML='<div class="empty">Не удалось загрузить данные выбранной автомойки</div>';
+  });
+}
+
+/* ===== Настройки отчёта ===== */
 const settingsModal=document.getElementById('settingsModal');
 function openSettings(){
  renderSettingsAuthors();
@@ -1364,7 +1697,7 @@ function changePumpCount(delta){
  persistReport();
 }
 
-/* ===== Интерактивная презентация в слайдах (Visual Guide) ===== */
+/* ===== Обучающие слайды ===== */
 const guideData = {
   inventory: {
     tag: 'Склад химии',
@@ -1407,7 +1740,7 @@ const guideData = {
       {
         icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
         title: 'Копирование в 1 клик',
-        desc: 'Сводный отчёт формируется автоматически. Нажмите «Копировать отчёт» и сразу отправляйте структурированный отчёт руководству в Telegram или WhatsApp.',
+        desc: 'Сводный отчёт формируется автоматически. Нажмите «Копировать отчёт» и сразу отправляйте структурированный отчёт руководству в мессенджер.',
         preview: `<div style="background:#f1f5f9;border-radius:8px;padding:8px 10px;font-family:monospace;font-size:11px;color:#152632">26.09.2026 Иванов<br>Боксы 1, 2, 3 - работают штатно...<br>Остаток химии: Пена - 4кан...</div>`
       }
     ]
@@ -1423,9 +1756,7 @@ function openGuide(key){
  renderGuideSlide();
  document.getElementById('guideModal').classList.add('show');
 }
-function closeGuide(){
- document.getElementById('guideModal').classList.remove('show');
-}
+function closeGuide(){document.getElementById('guideModal').classList.remove('show')}
 function renderGuideSlide(){
  const g = guideData[currentGuideKey];
  const total = g.slides.length;
@@ -1450,10 +1781,7 @@ function renderGuideSlide(){
  document.getElementById('guidePrevBtn').style.visibility = currentGuideIndex === 0 ? 'hidden' : 'visible';
  document.getElementById('guideNextBtn').textContent = (currentGuideIndex === total - 1) ? 'Понятно!' : 'Далее';
 }
-function goToGuideSlide(i){
- currentGuideIndex = i;
- renderGuideSlide();
-}
+function goToGuideSlide(i){currentGuideIndex = i;renderGuideSlide()}
 function nextGuideSlide(){
  const g = guideData[currentGuideKey];
  if (currentGuideIndex < g.slides.length - 1) {
@@ -1475,6 +1803,7 @@ function startApp(id,name){
  locId=id;
  dbRef=firebase.database().ref('locations/'+locId+'/inventory');
  reportDbRef=firebase.database().ref('locations/'+locId+'/dailyReport');
+ reportsHistoryRef=firebase.database().ref('locations/'+locId+'/reportsHistory');
  settingsRef=firebase.database().ref('locations/'+locId+'/settings');
 
  document.getElementById('currentLocLabel').textContent=name;
@@ -1482,13 +1811,16 @@ function startApp(id,name){
  invHintDismissed=localStorage.getItem(invHintKey())==='1';
  reportHintDismissed=localStorage.getItem(reportHintKey())==='1';
  settings=sanitizeSettings(JSON.parse(localStorage.getItem(settingsKey())||'null'));
- data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[]});
+ data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[],history:[]});
  report=sanitizeReport(JSON.parse(localStorage.getItem(reportKey())||'null'));
+ reportsHistoryCache=JSON.parse(localStorage.getItem(reportHistKey())||'[]');
 
  render();
  rebuildReportDynamicUI();
  fillReportForm();
  reportPreviewReady=true;
+ initSuperAdminView();
+ renderAnalytics();
 
  settingsRef.on('value',snap=>{
   const remote=snap.val();
@@ -1518,8 +1850,7 @@ function startApp(id,name){
     }
     render();
   }catch(e){
-    console.error('Ошибка обработки данных:',e);
-    toast('Ошибка синхронизации данных');
+    console.error('Ошибка синхронизации данных:',e);
   }
  },err=>{
   console.error(err);
@@ -1534,12 +1865,21 @@ function startApp(id,name){
     fillReportForm();
   }
  });
+
+ reportsHistoryRef.orderByChild('date').limitToLast(60).on('value',snap=>{
+  const remote=snap.val();
+  if(remote){
+    reportsHistoryCache=Object.values(remote).sort((a,b)=>new Date(b.time)-new Date(a.time));
+    localStorage.setItem(reportHistKey(),JSON.stringify(reportsHistoryCache));
+    renderAnalytics();
+  }
+ });
 }
 
-/* ===== Выбор автомойки и сохранение сессии без повторного ввода PIN ===== */
+/* ===== Выбор автомойки и сохранение сессии без пароля ===== */
 const LOC_ID_KEY='carwash_loc_id';
 const LOC_NAME_KEY='carwash_loc_name';
-const LOC_AUTHED_KEY='carwash_authed_loc'; // сохраняет id авторизованной автомойки
+const LOC_AUTHED_KEY='carwash_authed_loc';
 
 let locationsCache={};
 let pendingLocId=null;
@@ -1562,7 +1902,7 @@ function addNewLocation(){
  const dup=Object.entries(locationsCache).find(([id,l])=>l&&l.name&&l.name.toLowerCase()===name.toLowerCase());
  if(dup){input.value='';selectLocation(dup[0]);return}
  const ref=locationsRef.push();
- ref.set({name,password:null,createdAt:new Date().toISOString()}).then(()=>{
+ ref.set({name,passwordHash:null,createdAt:new Date().toISOString()}).then(()=>{
    input.value='';
    selectLocation(ref.key);
  }).catch(()=>toast('Не удалось добавить автомойку — проверьте подключение'));
@@ -1572,7 +1912,7 @@ function selectLocation(id){
  const loc=locationsCache[id];
  if(!loc)return;
  pendingLocId=id;
- isNewLocation=!loc.password;
+ isNewLocation=!(loc.passwordHash||loc.password);
  document.getElementById('authSelectStep').style.display='none';
  document.getElementById('authPinStep').style.display='block';
  document.getElementById('authLocName').textContent=loc.name;
@@ -1590,25 +1930,36 @@ function backToLocationList(){
  document.getElementById('authSelectStep').style.display='block';
 }
 
-function submitPin(){
+async function submitPin(){
  const pin=document.getElementById('pinInput').value.trim();
  const errEl=document.getElementById('pinError');
  if(!/^\d{4}$/.test(pin)){errEl.textContent='Пароль должен состоять из 4 цифр';return}
  const loc=locationsCache[pendingLocId];
  if(!loc)return;
 
+ const enteredHash = await sha256(pin);
+
  if(isNewLocation){
    const confirmPin=document.getElementById('pinConfirmInput').value.trim();
    if(confirmPin!==pin){errEl.textContent='Пароли не совпадают';return}
-   locationsRef.child(pendingLocId).update({password:pin}).then(()=>{
-     localStorage.setItem(LOC_AUTHED_KEY, pendingLocId);
-     completeLogin(pendingLocId,loc.name);
+   locationsRef.child(pendingLocId).update({passwordHash:enteredHash, password:null}).then(()=>{
+     verifyAndCompleteLogin(pendingLocId, loc.name);
    }).catch(()=>{errEl.textContent='Не удалось сохранить пароль, попробуйте снова';});
  }else{
-   if(pin!==String(loc.password)){errEl.textContent='Неверный пароль';return}
-   localStorage.setItem(LOC_AUTHED_KEY, pendingLocId);
-   completeLogin(pendingLocId,loc.name);
+   const valid = (loc.passwordHash && loc.passwordHash === enteredHash) || (loc.password && String(loc.password) === pin);
+   if(!valid){errEl.textContent='Неверный пароль';return}
+   if(!loc.passwordHash){
+     locationsRef.child(pendingLocId).update({passwordHash:enteredHash, password:null}).catch(()=>{});
+   }
+   verifyAndCompleteLogin(pendingLocId, loc.name);
  }
+}
+
+function verifyAndCompleteLogin(id, name){
+ const isSuper = name.trim().toLowerCase().includes('таганрогская 134б');
+ localStorage.setItem('is_super_admin', isSuper ? '1' : '0');
+ localStorage.setItem(LOC_AUTHED_KEY, id);
+ completeLogin(id, name);
 }
 
 function completeLogin(id,name){
@@ -1624,6 +1975,7 @@ function logoutLocation(){
  localStorage.removeItem(LOC_ID_KEY);
  localStorage.removeItem(LOC_NAME_KEY);
  localStorage.removeItem(LOC_AUTHED_KEY);
+ localStorage.removeItem('is_super_admin');
  location.reload();
 }
 
@@ -1633,6 +1985,7 @@ document.getElementById('pinConfirmInput').addEventListener('keydown',e=>{if(e.k
 locationsRef.on('value',snap=>{
  locationsCache=snap.val()||{};
  if(document.getElementById('authSelectStep').style.display!=='none')renderLocationList();
+ initSuperAdminView();
 });
 
 (function initAuth(){
@@ -1640,13 +1993,14 @@ locationsRef.on('value',snap=>{
  const authedId=localStorage.getItem(LOC_AUTHED_KEY);
  if(!savedId)return;
 
- // Если устройство уже авторизовано для этой мойки — входим сразу без запроса пароля
  if(authedId && authedId === savedId){
    document.getElementById('authSelectStep').style.display='none';
    locationsRef.once('value').then(snap=>{
      locationsCache=snap.val()||{};
      const loc=locationsCache[savedId];
      if(loc){
+       const isSuper = loc.name.trim().toLowerCase().includes('таганрогская 134б');
+       localStorage.setItem('is_super_admin', isSuper ? '1' : '0');
        completeLogin(savedId, loc.name);
      }else{
        localStorage.removeItem(LOC_ID_KEY);
@@ -1662,7 +2016,6 @@ locationsRef.on('value',snap=>{
    return;
  }
 
- // Если требуется ввести пароль
  document.getElementById('authSelectStep').style.display='none';
  locationsRef.once('value').then(snap=>{
    locationsCache=snap.val()||{};
@@ -1682,3 +2035,4 @@ locationsRef.on('value',snap=>{
 </script>
 </body>
 </html>
+
