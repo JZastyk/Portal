@@ -43,7 +43,7 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
 .report-bar .report-text{font-size:14px;line-height:1.4}
 .report-bar .report-text b{font-weight:800}
 .report-bar .btn.copy-btn{background:rgba(255,255,255,.16);color:#fff;padding:8px 12px;font-size:13px}
-.report-bar .btn.copy-btn:hover{background:rgba(255,255,255,.26)}
+.report-bar .btn.copy-btn:hover{background:rgba(255,255,26);color:#fff}
 .report-bar .btn.copy-btn.copied{background:var(--success)}
 
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
@@ -138,10 +138,36 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .auth-loc-name{font-weight:800;font-size:16px;color:var(--accent-dark)}
 .pin-input{width:100%;text-align:center;font-size:28px;letter-spacing:14px;padding:14px;border:1px solid var(--border);border-radius:12px;margin:8px 0}
 .pin-error{color:#b63838;font-size:12.5px;font-weight:700;min-height:16px;margin-bottom:4px}
-.empty-hint{position:relative;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r-md);padding:14px 34px 14px 14px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--accent-dark)}
+
+/* Блоки подсказок и кнопка презентации */
+.empty-hint{position:relative;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r-md);padding:14px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--accent-dark)}
 .empty-hint b{display:block;margin-bottom:6px;font-size:14.5px}
 .empty-hint p{margin:4px 0}
 .hint-close{position:absolute;top:8px;right:8px;background:none;border:none;font-size:16px;line-height:1;cursor:pointer;color:var(--accent-dark);padding:4px}
+.hint-action-bar{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(13,111,165,.3)}
+.btn-guide-open{border:1px solid var(--accent);background:#fff;color:var(--accent-dark);font-weight:800;font-size:12.5px;padding:8px 13px;border-radius:9px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 2px 6px rgba(13,111,165,.08);transition:all .15s}
+.btn-guide-open:hover{background:var(--accent-soft);transform:translateY(-1px)}
+.btn-guide-open svg{width:16px;height:16px;color:var(--accent)}
+
+/* Интерактивная презентация (слайдер) */
+.guide-modal .modal{max-width:500px;padding:22px 20px}
+.guide-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.guide-tag{background:var(--accent-soft);color:var(--accent-dark);padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:800;letter-spacing:.02em}
+.guide-counter{font-size:12.5px;font-weight:700;color:var(--muted)}
+.guide-slides-wrap{min-height:270px;display:flex;flex-direction:column;justify-content:center}
+.guide-slide{display:none;text-align:center;animation:fadeInSlide .25s ease-out}
+.guide-slide.active{display:block}
+@keyframes fadeInSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.slide-icon{width:56px;height:56px;border-radius:16px;background:var(--accent-soft);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.slide-icon svg{width:28px;height:28px}
+.slide-title{font-size:17.5px;font-weight:800;margin-bottom:8px;color:var(--text)}
+.slide-desc{font-size:13.5px;line-height:1.5;color:var(--muted);margin-bottom:14px}
+.slide-preview-box{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;margin:0 auto 6px;text-align:left;font-size:12.5px}
+.guide-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:20px;padding-top:14px;border-top:1px solid var(--border)}
+.guide-dots{display:flex;gap:6px;align-items:center}
+.guide-dot{width:8px;height:8px;border-radius:50%;background:#d0d7de;transition:all .2s;cursor:pointer}
+.guide-dot.active{width:22px;border-radius:8px;background:var(--accent)}
+
 .setting-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .setting-chip{display:flex;align-items:center;gap:6px;background:var(--accent-soft);border:1px solid var(--border);border-radius:999px;padding:5px 6px 5px 12px;font-size:13px;font-weight:600}
 .setting-chip button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1;padding:2px 4px}
@@ -216,7 +242,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   .stat{padding:10px 12px}
   .stat b{font-size:20px}
 
-  /* Строго 1 колонка на смартфонах — карточки становятся просторными */
+  /* Строго 1 колонка на смартфонах — карточки просторные и без разрывов */
   .grid{grid-template-columns:1fr;gap:11px}
   
   .card{padding:13px 14px;border-radius:15px}
@@ -326,10 +352,15 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   <button type="button" class="hint-close" onclick="dismissInvHint()" aria-label="Скрыть подсказку">✕</button>
   <b>Как добавить свою химию</b>
   <p>Нажмите кнопку «Химия» вверху экрана — укажите название (например, «Пена жёлтая») и текущий остаток.</p>
-  <p>Для одной позиции можно завести сразу несколько единиц измерения (например, канистры и килограммы) — в окне добавления нажимайте «＋ Добавить единицу измерения» столько раз, сколько нужно.</p>
+  <p>Для одной позиции можно завести сразу несколько единиц измерения (например, канистры и килограммы).</p>
   <p>Чтобы позиция попадала в ежедневный отчёт во вкладке «Отчёт дня», нажмите на значок отчёта (📄) в её карточке — она подсветится зелёным.</p>
-  <p>Чтобы изменить уже добавленную позицию, откройте её карточку кнопкой «⋮».</p>
-  <p>Эта подсказка спрячется сама, как только вы добавите первую химию.</p>
+  
+  <div class="hint-action-bar">
+    <button type="button" class="btn-guide-open" onclick="openGuide('inventory')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      🎬 Интерактивное обучение (в слайдах)
+    </button>
+  </div>
 </div>
 
 <main id="cards" class="grid"></main>
@@ -342,7 +373,8 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 
     <div class="report-actions" style="margin:0 0 14px">
       <button type="button" class="btn secondary" onclick="openSettings()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <!-- Четкая, симметричная шестеренка без искажений -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         Настройки отчёта
       </button>
     </div>
@@ -351,8 +383,14 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
       <button type="button" class="hint-close" onclick="dismissReportHint()" aria-label="Скрыть подсказку">✕</button>
       <b>Как настроить отчёт дня</b>
       <p>Нажмите кнопку «Настройки отчёта» выше — укажите ответственных сотрудников, количество боксов, компрессоров, помп и нужные позиции расхода химии.</p>
-      <p>А во вкладке «Склад» нажмите на карточках значок отчёта (📄), чтобы выбрать, какая химия будет автоматически попадать в блок «Остаток химии».</p>
-      <p>Эта подсказка спрячется сама, как только вы настроите параметры автомойки.</p>
+      <p>А во вкладке «Склад» нажмите на карточках значок отчёта (📄), чтобы выбрать, какая химия будет попадать в блок «Остаток химии».</p>
+      
+      <div class="hint-action-bar">
+        <button type="button" class="btn-guide-open" onclick="openGuide('report')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          🎬 Интерактивное обучение (в слайдах)
+        </button>
+      </div>
     </div>
 
     <div class="form-row" id="rowAuthor" style="display:none">
@@ -407,6 +445,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 
 </div>
 
+<!-- Модальное окно: Добавление химии -->
 <div id="modal" class="modal-backdrop" onclick="backdropClick(event)">
   <div class="modal">
     <h2 id="modalTitle">Добавить химию</h2>
@@ -422,6 +461,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </div>
 
+<!-- Модальное окно: Настройки отчета -->
 <div id="settingsModal" class="modal-backdrop" onclick="settingsBackdropClick(event)">
   <div class="modal">
     <h2>Настройки отчёта</h2>
@@ -460,6 +500,26 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 
     <div class="modal-actions">
       <button type="button" class="btn" onclick="closeSettings()">Готово</button>
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно: Интерактивная презентация в слайдах -->
+<div id="guideModal" class="modal-backdrop guide-modal" onclick="if(event.target===this)closeGuide()">
+  <div class="modal">
+    <div class="guide-top">
+      <span class="guide-tag" id="guideTag">Обучение</span>
+      <span class="guide-counter" id="guideCounter">Слайд 1 из 3</span>
+    </div>
+
+    <div class="guide-slides-wrap" id="guideSlidesContainer"></div>
+
+    <div class="guide-controls">
+      <div class="guide-dots" id="guideDots"></div>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn secondary" id="guidePrevBtn" onclick="prevGuideSlide()">Назад</button>
+        <button type="button" class="btn" id="guideNextBtn" onclick="nextGuideSlide()">Далее</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1304,6 +1364,112 @@ function changePumpCount(delta){
  persistReport();
 }
 
+/* ===== Интерактивная презентация в слайдах (Visual Guide) ===== */
+const guideData = {
+  inventory: {
+    tag: 'Склад химии',
+    slides: [
+      {
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+        title: 'Добавление химии',
+        desc: 'Нажмите кнопку «Химия» вверху. Для каждой позиции можно завести сразу несколько единиц: канистры, килограммы, штуки или литры.',
+        preview: `<div style="background:#fff;border:1px solid #e0e6ea;border-radius:10px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center"><b>Пена жёлтая</b><span style="font-size:12px;color:#6b7a86">2 единицы (кан, кг)</span></div>`
+      },
+      {
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`,
+        title: 'Управление остатками',
+        desc: 'Списывайте химию за секунду. Используйте быстрые кнопки −5, −0.5, +0.5, +5 или нажимайте крупные кнопки + / − прямо с экрана телефона.',
+        preview: `<div style="display:flex;gap:5px;justify-content:center"><span style="background:#fff;border:1px solid #e0e6ea;padding:5px 8px;border-radius:6px;font-weight:700">−5</span><span style="background:#fff;border:1px solid #e0e6ea;padding:5px 8px;border-radius:6px;font-weight:700">−0.5</span><span style="background:#e5f1f7;color:#0d6fa5;border:1px solid #b7d6e8;padding:5px 8px;border-radius:6px;font-weight:700">+0.5</span><span style="background:#e5f1f7;color:#0d6fa5;border:1px solid #b7d6e8;padding:5px 8px;border-radius:6px;font-weight:700">+5</span></div>`
+      },
+      {
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>`,
+        title: 'Включение в отчёт дня',
+        desc: 'Нажмите на карточке значок документа (📄). Карточка выделится зелёной рамкой «В отчёте дня» и её текущий остаток автоматически добавится в ежедневную сводку!',
+        preview: `<div style="border:1.5px solid #1f9254;background:#f6fbf8;border-radius:10px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center"><b>Эмульсия</b><span style="background:#e7f6ee;color:#1f9254;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px">✓ В отчёте дня</span></div>`
+      }
+    ]
+  },
+  report: {
+    tag: 'Отчёт дня',
+    slides: [
+      {
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+        title: 'Настройки параметров',
+        desc: 'Нажмите «Настройки отчёта». Добавьте имена сотрудников, количество боксов, компрессоров, помп и нужные пункты расхода химии.',
+        preview: `<div style="background:#fff;border:1px solid #e0e6ea;border-radius:10px;padding:9px 12px;display:flex;justify-content:space-around;font-size:12.5px"><span>Боксов: <b>4</b></span><span>Помп: <b>4</b></span><span>Компрессоров: <b>2</b></span></div>`
+      },
+      {
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`,
+        title: 'Заполнение за смену',
+        desc: 'Укажите статус боксов, помытые машины, давление помп и расход химии. Форма динамически подстраивается под настройки автомойки.',
+        preview: `<div style="display:flex;gap:6px;justify-content:center"><span style="background:#e7f6ee;color:#1f9254;padding:4px 9px;border-radius:7px;font-weight:700;font-size:12px">Бокс 1: Норма</span><span style="background:#fbe8e8;color:#b63838;padding:4px 9px;border-radius:7px;font-weight:700;font-size:12px">Бокс 2: Не работает</span></div>`
+      },
+      {
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+        title: 'Копирование в 1 клик',
+        desc: 'Сводный отчёт формируется автоматически. Нажмите «Копировать отчёт» и сразу отправляйте структурированный отчёт руководству в Telegram или WhatsApp.',
+        preview: `<div style="background:#f1f5f9;border-radius:8px;padding:8px 10px;font-family:monospace;font-size:11px;color:#152632">26.09.2026 Иванов<br>Боксы 1, 2, 3 - работают штатно...<br>Остаток химии: Пена - 4кан...</div>`
+      }
+    ]
+  }
+};
+
+let currentGuideKey = 'inventory';
+let currentGuideIndex = 0;
+
+function openGuide(key){
+ currentGuideKey = key || 'inventory';
+ currentGuideIndex = 0;
+ renderGuideSlide();
+ document.getElementById('guideModal').classList.add('show');
+}
+function closeGuide(){
+ document.getElementById('guideModal').classList.remove('show');
+}
+function renderGuideSlide(){
+ const g = guideData[currentGuideKey];
+ const total = g.slides.length;
+ const s = g.slides[currentGuideIndex];
+
+ document.getElementById('guideTag').textContent = g.tag;
+ document.getElementById('guideCounter').textContent = `Слайд ${currentGuideIndex + 1} из ${total}`;
+
+ document.getElementById('guideSlidesContainer').innerHTML = `
+   <div class="guide-slide active">
+     <div class="slide-icon">${s.icon}</div>
+     <div class="slide-title">${s.title}</div>
+     <div class="slide-desc">${s.desc}</div>
+     <div class="slide-preview-box">${s.preview}</div>
+   </div>
+ `;
+
+ document.getElementById('guideDots').innerHTML = g.slides.map((_, i) =>
+   `<span class="guide-dot ${i === currentGuideIndex ? 'active' : ''}" onclick="goToGuideSlide(${i})"></span>`
+ ).join('');
+
+ document.getElementById('guidePrevBtn').style.visibility = currentGuideIndex === 0 ? 'hidden' : 'visible';
+ document.getElementById('guideNextBtn').textContent = (currentGuideIndex === total - 1) ? 'Понятно!' : 'Далее';
+}
+function goToGuideSlide(i){
+ currentGuideIndex = i;
+ renderGuideSlide();
+}
+function nextGuideSlide(){
+ const g = guideData[currentGuideKey];
+ if (currentGuideIndex < g.slides.length - 1) {
+   currentGuideIndex++;
+   renderGuideSlide();
+ } else {
+   closeGuide();
+ }
+}
+function prevGuideSlide(){
+ if (currentGuideIndex > 0) {
+   currentGuideIndex--;
+   renderGuideSlide();
+ }
+}
+
 /* ===== Запуск приложения после выбора автомойки ===== */
 function startApp(id,name){
  locId=id;
@@ -1370,9 +1536,11 @@ function startApp(id,name){
  });
 }
 
-/* ===== Выбор автомойки и вход по паролю ===== */
+/* ===== Выбор автомойки и сохранение сессии без повторного ввода PIN ===== */
 const LOC_ID_KEY='carwash_loc_id';
 const LOC_NAME_KEY='carwash_loc_name';
+const LOC_AUTHED_KEY='carwash_authed_loc'; // сохраняет id авторизованной автомойки
+
 let locationsCache={};
 let pendingLocId=null;
 let isNewLocation=false;
@@ -1433,10 +1601,12 @@ function submitPin(){
    const confirmPin=document.getElementById('pinConfirmInput').value.trim();
    if(confirmPin!==pin){errEl.textContent='Пароли не совпадают';return}
    locationsRef.child(pendingLocId).update({password:pin}).then(()=>{
+     localStorage.setItem(LOC_AUTHED_KEY, pendingLocId);
      completeLogin(pendingLocId,loc.name);
    }).catch(()=>{errEl.textContent='Не удалось сохранить пароль, попробуйте снова';});
  }else{
    if(pin!==String(loc.password)){errEl.textContent='Неверный пароль';return}
+   localStorage.setItem(LOC_AUTHED_KEY, pendingLocId);
    completeLogin(pendingLocId,loc.name);
  }
 }
@@ -1453,6 +1623,7 @@ function logoutLocation(){
  if(!confirm('Сменить автомойку? При следующем входе понадобится пароль.'))return;
  localStorage.removeItem(LOC_ID_KEY);
  localStorage.removeItem(LOC_NAME_KEY);
+ localStorage.removeItem(LOC_AUTHED_KEY);
  location.reload();
 }
 
@@ -1466,7 +1637,32 @@ locationsRef.on('value',snap=>{
 
 (function initAuth(){
  const savedId=localStorage.getItem(LOC_ID_KEY);
+ const authedId=localStorage.getItem(LOC_AUTHED_KEY);
  if(!savedId)return;
+
+ // Если устройство уже авторизовано для этой мойки — входим сразу без запроса пароля
+ if(authedId && authedId === savedId){
+   document.getElementById('authSelectStep').style.display='none';
+   locationsRef.once('value').then(snap=>{
+     locationsCache=snap.val()||{};
+     const loc=locationsCache[savedId];
+     if(loc){
+       completeLogin(savedId, loc.name);
+     }else{
+       localStorage.removeItem(LOC_ID_KEY);
+       localStorage.removeItem(LOC_NAME_KEY);
+       localStorage.removeItem(LOC_AUTHED_KEY);
+       document.getElementById('authSelectStep').style.display='block';
+       renderLocationList();
+     }
+   }).catch(()=>{
+     const savedName=localStorage.getItem(LOC_NAME_KEY)||'Автомойка';
+     completeLogin(savedId, savedName);
+   });
+   return;
+ }
+
+ // Если требуется ввести пароль
  document.getElementById('authSelectStep').style.display='none';
  locationsRef.once('value').then(snap=>{
    locationsCache=snap.val()||{};
