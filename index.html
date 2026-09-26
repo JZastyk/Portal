@@ -46,7 +46,7 @@ h1{font-size:23px;margin:0 0 3px;letter-spacing:-.01em}
 .report-bar .btn.copy-btn:hover{background:rgba(255,255,255,.26)}
 .report-bar .btn.copy-btn.copied{background:var(--success)}
 
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
 .stat b{display:block;font-size:23px;line-height:1.1}
 .stat span{font-size:12.5px;color:var(--muted)}
@@ -108,21 +108,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .modal-actions{display:flex;gap:8px;margin-top:6px}
 .modal-actions button{flex:1;justify-content:center}
 
-.history{margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
-.history-head{padding:14px 17px;font-weight:800;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:14.5px}
-.history-head .btn{padding:6px 10px;font-size:12.5px}
-.history-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 17px;border-bottom:1px solid #edf1f3;font-size:13px}
-.history-item:last-child{border-bottom:0}
-.hi-info{min-width:0}
-.hi-right{display:flex;align-items:center;gap:8px;flex:none}
-.hi-actions{display:flex;gap:4px}
-.hi-btn{border:0;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#eef3f6;color:var(--accent-dark);flex:none}
-.hi-btn svg{width:14px;height:14px}
-.hi-btn.del{background:var(--danger-soft);color:#b63838}
-.history-item .h-time{color:var(--muted);font-size:12px;margin-top:2px}
-.in{color:var(--success);font-weight:800;background:var(--success-soft);padding:4px 9px;border-radius:7px;white-space:nowrap}
-.out{color:#c44242;font-weight:800;background:var(--danger-soft);padding:4px 9px;border-radius:7px;white-space:nowrap}
-
 .copy-modal .modal{max-width:460px}
 .copy-modal textarea{width:100%;min-height:160px;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;font-family:inherit;font-size:14px;resize:vertical;background:#fbfcfd;color:var(--text)}
 .copy-hint{font-size:12.5px;color:var(--muted);margin:8px 0 14px}
@@ -157,19 +142,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .view.active{display:block}
 
 .date-display{background:var(--accent-soft);color:var(--accent-dark);border-radius:var(--r-md);padding:11px 14px;font-size:14px;font-weight:700;margin-bottom:14px}
-.cl-progress{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:12px}
-.task-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eef1f3}
-.task-row:last-child{border-bottom:0}
-.task-row.task-done{background:linear-gradient(90deg,var(--success-soft),transparent 40%)}
-.task-label{font-size:12.5px;flex:1 1 140px;min-width:120px}
-.task-controls{display:flex;align-items:center;gap:6px;flex:none}
-.task-time{width:104px;padding:8px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--text);transition:border-color .15s,background .15s}
-.task-time.input-error{border-color:var(--danger);background:var(--danger-soft)}
-.task-now-btn{border:0;background:var(--accent-soft);color:var(--accent-dark);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:700;white-space:nowrap;flex:none}
-
-.save-status{border-radius:var(--r-md);padding:10px 14px;font-size:12.5px;font-weight:700;margin-bottom:14px}
-.save-status.ok{background:var(--success-soft);color:var(--success)}
-.save-status.warn{background:var(--warning-soft);color:var(--warning)}
 .author-row{display:flex;gap:8px;flex-wrap:wrap}
 .author-row select{flex:1;min-width:140px}
 .author-row input{flex:1;min-width:140px}
@@ -207,13 +179,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .report-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
 .report-actions .btn{flex:1;min-width:140px;justify-content:center}
 .report-preview{width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid var(--border);border-radius:var(--r-md);padding:12px;background:#fbfcfd;color:var(--text);resize:vertical}
-.report-history-item{padding:12px 17px;border-bottom:1px solid #edf1f3;font-size:13px}
-.report-history-item:last-child{border-bottom:0}
-.report-history-item .rh-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
-.report-history-item .rh-actions{display:flex;align-items:center;gap:5px;flex:none}
-.report-history-item .rh-date{font-weight:800}
-.report-history-item .rh-time{color:var(--muted);font-size:11.5px}
-.report-history-item .rh-copy{border:0;background:var(--accent-soft);color:var(--accent-dark);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;flex:none}
 
 @media(max-width:600px){
   .form-row-inline{grid-template-columns:1fr}
@@ -221,9 +186,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
   .report-actions .btn{min-width:100%}
   .tab-btn{font-size:11.5px;padding:9px 4px;gap:4px}
   .tab-btn svg{width:14px;height:14px}
-  .task-row{flex-direction:column;align-items:flex-start}
-  .task-controls{width:100%;justify-content:space-between}
-  .task-time{flex:1}
 }
 
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(20px);background:#152632;color:#fff;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:40;font-size:14px;max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
@@ -245,7 +207,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
   .measure-main strong{font-size:25px}
   .quick button{font-size:10.5px;padding:6px 3px}
 }
-@media(max-width:390px){.grid{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:last-child{grid-column:1/-1}}
+@media(max-width:390px){.grid{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -296,10 +258,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/><path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7"/></svg>
       <span class="label-text">Сменить автомойку</span>
     </button>
-    <button class="btn secondary" onclick="clearHistory()" aria-label="Очистить историю">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-      <span class="label-text">Очистить историю</span>
-    </button>
     <button class="btn" onclick="openAdd()" aria-label="Добавить химию">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       <span class="label-text">Химия</span>
@@ -331,7 +289,6 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 <section class="stats">
   <div class="stat"><b id="itemsCount">0</b><span>позиций</span></div>
   <div class="stat low"><b id="lowCount">0</b><span>заканчиваются</span></div>
-  <div class="stat"><b id="opsCount">0</b><span>операций</span></div>
 </section>
 
 <div class="toolbar">
@@ -353,26 +310,28 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 
 <main id="cards" class="grid"></main>
 
-<section class="history">
-  <div class="history-head"><span>Последние операции</span></div>
-  <div id="historyList"></div>
-</section>
-
 </section>
 
 <section id="viewReport" class="view">
   <div class="card report-form">
     <div class="date-display">Дата отчёта: <b id="rDateDisplay"></b></div>
-    <div class="save-status" id="saveStatus"></div>
 
-    <div class="report-actions" style="margin:10px 0 14px">
+    <div class="report-actions" style="margin:0 0 14px">
       <button type="button" class="btn secondary" onclick="openSettings()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Настройки отчёта
       </button>
     </div>
 
-    <div class="form-row">
+    <div id="emptyReportHint" class="empty-hint" style="display:none">
+      <button type="button" class="hint-close" onclick="dismissReportHint()" aria-label="Скрыть подсказку">✕</button>
+      <b>Как настроить отчёт дня</b>
+      <p>Нажмите кнопку «Настройки отчёта» выше — укажите ответственных сотрудников, количество боксов, компрессоров, помп и нужные позиции расхода химии.</p>
+      <p>После сохранения настроек в форме сразу появятся все необходимые поля для ежедневного отчёта.</p>
+      <p>Эта подсказка спрячется сама, как только вы настроите параметры автомойки.</p>
+    </div>
+
+    <div class="form-row" id="rowAuthor" style="display:none">
       <label>Ответственный</label>
       <div class="author-row">
         <select id="rAuthor" onchange="onAuthorChange()"></select>
@@ -380,52 +339,46 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
       </div>
     </div>
 
-    <div class="form-row">
+    <div class="form-row" id="rowBoxStatus" style="display:none">
       <label>Статус боксов</label>
       <div class="toggle-row" id="boxStatusRow"></div>
     </div>
 
-    <div class="washed-block">
+    <div class="washed-block" id="rowWashed" style="display:none">
       <label>Помыто машин за <span id="washedDateLabel"></span></label>
       <div class="washed-grid" id="washedGrid"></div>
     </div>
 
-    <div class="form-row"><label>TDS</label><input id="rTds" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>
+    <div class="form-row" id="rowTds" style="display:none"><label>TDS</label><input id="rTds" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>
 
-    <div class="form-row">
+    <div class="form-row" id="rowCompressor" style="display:none">
       <label>Масло компрессоры</label>
       <div class="toggle-row" id="compressorRow"></div>
     </div>
-    <div class="form-row">
+    <div class="form-row" id="rowPump" style="display:none">
       <label>Масло помпы</label>
       <div class="toggle-row" id="pumpRow"></div>
     </div>
-    <div class="washed-block">
+    <div class="washed-block" id="rowPumpPressure" style="display:none">
       <label>Давление помп</label>
       <div class="washed-grid" id="pumpPressureGrid"></div>
     </div>
 
     <div id="boxSections"></div>
 
-    <div class="report-actions">
+    <div class="report-actions" id="rowReportActions" style="display:none">
       <button class="btn" onclick="copyDailyReport()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Копировать отчёт
       </button>
-      <button class="btn secondary" onclick="saveReportToHistory()">Сохранить в историю</button>
       <button class="btn secondary" onclick="clearReportForm()">Очистить форму</button>
     </div>
 
-    <div class="form-row">
+    <div class="form-row" id="rowReportPreview" style="display:none">
       <label>Предпросмотр</label>
       <textarea id="reportPreview" class="report-preview" readonly rows="12"></textarea>
     </div>
   </div>
-
-  <section class="history">
-    <div class="history-head"><span>История отчётов</span></div>
-    <div id="reportsHistoryList"></div>
-  </section>
 </section>
 
 </div>
@@ -444,6 +397,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
     </form>
   </div>
 </div>
+
 <div id="settingsModal" class="modal-backdrop" onclick="settingsBackdropClick(event)">
   <div class="modal">
     <h2>Настройки отчёта</h2>
@@ -459,16 +413,16 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 
     <div class="form-row-inline">
       <div><label>Боксов</label>
-        <div class="stepper"><button type="button" onclick="changeBoxCount(-1)">−</button><span id="setBoxCount"></span><button type="button" onclick="changeBoxCount(1)">+</button></div>
+        <div class="stepper"><button type="button" onclick="changeBoxCount(-1)">−</button><span id="setBoxCount">0</span><button type="button" onclick="changeBoxCount(1)">+</button></div>
       </div>
       <div><label>Компрессоров</label>
-        <div class="stepper"><button type="button" onclick="changeCompressorCount(-1)">−</button><span id="setCompressorCount"></span><button type="button" onclick="changeCompressorCount(1)">+</button></div>
+        <div class="stepper"><button type="button" onclick="changeCompressorCount(-1)">−</button><span id="setCompressorCount">0</span><button type="button" onclick="changeCompressorCount(1)">+</button></div>
       </div>
     </div>
 
     <div class="form-row">
       <label>Помп</label>
-      <div class="stepper"><button type="button" onclick="changePumpCount(-1)">−</button><span id="setPumpCount"></span><button type="button" onclick="changePumpCount(1)">+</button></div>
+      <div class="stepper"><button type="button" onclick="changePumpCount(-1)">−</button><span id="setPumpCount">0</span><button type="button" onclick="changePumpCount(1)">+</button></div>
     </div>
 
     <div class="form-row">
@@ -485,6 +439,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
     </div>
   </div>
 </div>
+
 <div id="copyModal" class="modal-backdrop copy-modal" onclick="if(event.target===this)closeCopyModal()">
   <div class="modal">
     <h2>Скопируйте текст</h2>
@@ -512,7 +467,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const locationsRef = firebase.database().ref('carwashes');
-let dbRef, reportDbRef, reportsHistoryRef, settingsRef;
+let dbRef, reportDbRef, settingsRef;
 </script>
 <script>
 
@@ -520,9 +475,7 @@ var reportPreviewReady=false;
 let locId=null;
 function invKey(){return 'chemical_inventory_v2_'+locId}
 function reportKey(){return 'daily_report_draft_v1_'+locId}
-function reportHistKey(){return 'daily_report_history_v1_'+locId}
 function lastAuthorKey(){return 'report_last_author_'+locId}
-
 
 function toArray(v){
  if(Array.isArray(v))return v;
@@ -539,11 +492,10 @@ function sanitizeData(d){
      min:Number(m&&m.min)||0
    }))
  }));
- const history=toArray(d&&d.history).filter(Boolean);
- return {items,history};
+ return {items};
 }
 
-let data={items:[],history:[]};
+let data={items:[]};
 let editId=null;
 let syncTimer;
 let firebaseReady=false;
@@ -577,6 +529,7 @@ function dismissInvHint(){
  localStorage.setItem(invHintKey(),'1');
  document.getElementById('emptyInvHint').style.display='none';
 }
+
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   document.getElementById('clearSearch').classList.toggle('show',q.length>0);
@@ -584,11 +537,9 @@ function render(){
   const list=data.items.filter(x=>x.name.toLowerCase().includes(q));
   document.getElementById('itemsCount').textContent=data.items.length;
   document.getElementById('lowCount').textContent=data.items.filter(x=>x.measures.some(m=>Number(m.qty)<=Number(m.min))).length;
-  document.getElementById('opsCount').textContent=data.history.length;
   document.getElementById('reportDate').textContent=todayStr();
   document.getElementById('cards').innerHTML=list.length?list.map(card).join(''):
     `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>Ничего не найдено.<br>Добавьте новую позицию.</div></div>`;
-  renderHistory();
   if(typeof reportPreviewReady!=='undefined'&&reportPreviewReady)renderReportPreview();
 }
 function onSearch(){render()}
@@ -638,45 +589,8 @@ function change(id,mi,delta){
  const old=Number(m.qty), next=Math.max(0,Math.round((old+delta)*100)/100);
  const actual=next-old; if(actual===0)return;
  m.qty=next;
- data.history.unshift({id:crypto.randomUUID(),itemId:x.id,item:x.name,measure:mi,delta:actual,unit:m.unit,time:new Date().toISOString()});
- data.history=data.history.slice(0,200);
  persist();render();
  toast(`${x.name}: ${actual>0?'+':''}${fmt(actual)} ${m.unit}`);
-}
-function undoHistoryEntry(entryId){
- const h=data.history.find(e=>e.id===entryId);
- if(!h)return;
- const x=h.itemId?data.items.find(i=>i.id===h.itemId):data.items.find(i=>i.name===h.item);
- if(!x){toast('Позиция не найдена — уже удалена со склада');return}
- const m=x.measures[h.measure];
- if(!m||m.unit!==h.unit){toast('Единица измерения изменилась — отменить нельзя');return}
- m.qty=Math.max(0,Math.round((Number(m.qty)-h.delta)*100)/100);
- data.history=data.history.filter(e=>e.id!==entryId);
- persist();render();
- toast(`Отменено: ${x.name}`);
-}
-function deleteHistoryEntry(entryId){
- data.history=data.history.filter(e=>e.id!==entryId);
- persist();render();
- toast('Запись удалена из истории');
-}
-function renderHistory(){
- const el=document.getElementById('historyList');
- if(!data.history.length){el.innerHTML='<div class="empty">Операций пока нет</div>';return}
- el.innerHTML=data.history.slice(0,15).map(h=>`<div class="history-item">
-   <div class="hi-info"><b>${esc(h.item)}</b><div class="h-time">${new Date(h.time).toLocaleString('ru-RU')}</div></div>
-   <div class="hi-right">
-     <div class="${h.delta>0?'in':'out'}">${h.delta>0?'+':''}${fmt(h.delta)} ${esc(h.unit)}</div>
-     <div class="hi-actions">
-       <button class="hi-btn" onclick="undoHistoryEntry('${h.id}')" title="Отменить операцию" aria-label="Отменить операцию">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
-       </button>
-       <button class="hi-btn del" onclick="deleteHistoryEntry('${h.id}')" title="Удалить запись" aria-label="Удалить запись">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-       </button>
-     </div>
-   </div>
- </div>`).join('');
 }
 
 function openAdd(){
@@ -716,14 +630,7 @@ function saveItem(e){
 
  if(editId){
    const x=data.items.find(i=>i.id===editId);
-   const oldMeasures=x.measures;
    x.name=name;x.measures=measures;
-   const max=Math.max(oldMeasures.length,measures.length);
-   for(let i=0;i<max;i++){
-     const old=oldMeasures[i], neu=measures[i];
-     if(old&&neu&&old.qty!==neu.qty)
-       data.history.unshift({id:crypto.randomUUID(),item:name,measure:i,delta:neu.qty-old.qty,unit:neu.unit,time:new Date().toISOString()});
-   }
  }else{
    data.items.push({id:crypto.randomUUID(),name,measures});
  }
@@ -731,7 +638,6 @@ function saveItem(e){
 }
 function closeModal(){modal.classList.remove('show')}
 function backdropClick(e){if(e.target===modal)closeModal()}
-function clearHistory(){if(!data.history.length)return toast('История уже пустая');if(confirm('Очистить историю операций?')){data.history=[];persist();render();}}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
 function execCommandCopy(text){
@@ -805,7 +711,10 @@ function switchTab(tab){
  document.getElementById('viewReport').classList.toggle('active',tab==='report');
  document.getElementById('tabBtnInventory').classList.toggle('active',tab==='inventory');
  document.getElementById('tabBtnReport').classList.toggle('active',tab==='report');
- if(tab==='report'){renderReportPreview();updateSaveStatus();}
+ if(tab==='report'){
+   renderReportHintsAndVisibility();
+   renderReportPreview();
+ }
 }
 
 /* ===== Ежедневный отчёт ===== */
@@ -814,15 +723,29 @@ const REPORT_STOCK_ITEMS=['Эмульсия','Пена жёлтая','Пена �
 function range(n){const a=[];for(let i=1;i<=n;i++)a.push(i);return a}
 
 function settingsKey(){return 'report_settings_v1_'+locId}
+function reportHintKey(){return 'report_hint_dismissed_'+locId}
+let reportHintDismissed=false;
+
+function dismissReportHint(){
+ reportHintDismissed=true;
+ localStorage.setItem(reportHintKey(),'1');
+ document.getElementById('emptyReportHint').style.display='none';
+}
+
 function defaultSettings(){
  return {
    authors:[],
-   boxCount:3,
-   compressorCount:2,
-   pumpCount:3,
-   consumptionItems:['Пена жёлтая','Пена розовая','Пена голубая','Гидрофоб','Эмульсия']
+   boxCount:0,
+   compressorCount:0,
+   pumpCount:0,
+   consumptionItems:[]
  };
 }
+
+function isReportConfigured(){
+ return (settings.boxCount>0 || settings.compressorCount>0 || settings.pumpCount>0 || settings.authors.length>0);
+}
+
 function sanitizeSettings(s){
  const d=defaultSettings();
  if(!s||typeof s!=='object')return d;
@@ -831,7 +754,7 @@ function sanitizeSettings(s){
  const pumpCount=parseInt(s.pumpCount);
  return {
    authors:Array.isArray(s.authors)?s.authors.filter(a=>a&&String(a).trim()):toArray(s.authors).filter(a=>a&&String(a).trim()),
-   boxCount:Number.isFinite(boxCount)?Math.max(1,Math.min(12,boxCount)):d.boxCount,
+   boxCount:Number.isFinite(boxCount)?Math.max(0,Math.min(12,boxCount)):d.boxCount,
    compressorCount:Number.isFinite(compressorCount)?Math.max(0,Math.min(12,compressorCount)):d.compressorCount,
    pumpCount:Number.isFinite(pumpCount)?Math.max(0,Math.min(12,pumpCount)):d.pumpCount,
    consumptionItems:Array.isArray(s.consumptionItems)?s.consumptionItems.filter(a=>a&&String(a).trim()):toArray(s.consumptionItems).filter(a=>a&&String(a).trim())
@@ -894,7 +817,9 @@ function yesterdayDMY(){
  return d.toLocaleDateString('ru-RU');
 }
 function renderToggleGroup(elId,ids,stateObj,prefix,offLabel){
- document.getElementById(elId).innerHTML=ids.map(i=>`
+ const el=document.getElementById(elId);
+ if(!el)return;
+ el.innerHTML=ids.map(i=>`
    <div class="toggle-item">
      <span>${prefix} ${i}</span>
      <div class="pill-toggle">
@@ -904,9 +829,9 @@ function renderToggleGroup(elId,ids,stateObj,prefix,offLabel){
    </div>`).join('');
 }
 function renderAllToggles(){
- renderToggleGroup('boxStatusRow',range(settings.boxCount),report.boxState,'Бокс','Не работает');
- renderToggleGroup('compressorRow',range(settings.compressorCount),report.compressorState,'Компрессор','Не в норме');
- renderToggleGroup('pumpRow',range(settings.pumpCount),report.pumpState,'Помпа','Не в норме');
+ if(settings.boxCount>0)renderToggleGroup('boxStatusRow',range(settings.boxCount),report.boxState,'Бокс','Не работает');
+ if(settings.compressorCount>0)renderToggleGroup('compressorRow',range(settings.compressorCount),report.compressorState,'Компрессор','Не в норме');
+ if(settings.pumpCount>0)renderToggleGroup('pumpRow',range(settings.pumpCount),report.pumpState,'Помпа','Не в норме');
 }
 function setToggle(group,i,val){
  if(group==='boxStatusRow')report.boxState[i]=val;
@@ -966,6 +891,7 @@ function buildBoxSectionHtml(b){
        <div><label>Сзади</label><input class="hose-in" data-box="${b}" data-side="back" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
        <div><label>Справа</label><input class="hose-in" data-box="${b}" data-side="right" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
      </div>
+     ${settings.consumptionItems.length?`
      <div class="sub-label-row">
        <span class="sub-label">Расход химии, г</span>
        <div class="sub-label-actions">
@@ -981,7 +907,7 @@ function buildBoxSectionHtml(b){
      </div>
      <div class="consumption-grid">
        ${settings.consumptionItems.map(name=>`<div><label>${esc(name)}</label><input class="cons-in" data-box="${b}" data-name="${esc(name)}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`).join('')}
-     </div>
+     </div>`:''}
    </div>
  </details>`;
 }
@@ -1057,9 +983,28 @@ function buildWashedGridOnce(){
 function buildPumpPressureOnce(){
  document.getElementById('pumpPressureGrid').innerHTML=range(settings.pumpCount).map(i=>
    `<div><span>Помпа ${i}</span><input class="pump-pressure-in" data-pump="${i}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`
- ).join('')||'<div class="empty" style="padding:6px 0">Помп не задано</div>';
+ ).join('');
 }
+
+function renderReportHintsAndVisibility(){
+ const configured=isReportConfigured();
+ document.getElementById('emptyReportHint').style.display=(!configured&&!reportHintDismissed)?'block':'none';
+
+ document.getElementById('rowAuthor').style.display=settings.authors.length>0?'block':'none';
+ document.getElementById('rowBoxStatus').style.display=settings.boxCount>0?'block':'none';
+ document.getElementById('rowWashed').style.display=settings.boxCount>0?'block':'none';
+ document.getElementById('rowTds').style.display=configured?'block':'none';
+ document.getElementById('rowCompressor').style.display=settings.compressorCount>0?'block':'none';
+ document.getElementById('rowPump').style.display=settings.pumpCount>0?'block':'none';
+ document.getElementById('rowPumpPressure').style.display=settings.pumpCount>0?'block':'none';
+ document.getElementById('boxSections').style.display=settings.boxCount>0?'block':'none';
+
+ document.getElementById('rowReportActions').style.display=configured?'flex':'none';
+ document.getElementById('rowReportPreview').style.display=configured?'block':'none';
+}
+
 function rebuildReportDynamicUI(){
+ renderReportHintsAndVisibility();
  buildWashedGridOnce();
  buildPumpPressureOnce();
  buildBoxSectionsOnce();
@@ -1090,73 +1035,83 @@ function fillReportForm(){
    inp.value=(report.consumption[b]&&report.consumption[b][name])||'';
  });
  renderAllToggles();
+ renderReportHintsAndVisibility();
  renderReportPreview();
 }
-function joinNums(arr){
- if(!arr.length)return'';
- if(arr.length===1)return String(arr[0]);
- return arr.slice(0,-1).join(', ')+' и '+arr[arr.length-1];
-}
+
 function buildDailyReportText(r){
+ if(!isReportConfigured())return '';
  const dateStr=todayStr();
  const yestStr=yesterdayDMY();
  const lines=[];
  lines.push(`${dateStr}${r.author?(' '+r.author):''}`.trim());
 
- const boxIds=range(settings.boxCount);
- const normalBoxes=boxIds.filter(b=>r.boxState[b]!=='bad');
- const badBoxes=boxIds.filter(b=>r.boxState[b]==='bad');
- if(normalBoxes.length)lines.push(`Боксы ${normalBoxes.join(', ')} - работают в штатном режиме.`);
- badBoxes.forEach(b=>lines.push(`Бокс ${b} - не работает.`));
+ if(settings.boxCount>0){
+   const boxIds=range(settings.boxCount);
+   const normalBoxes=boxIds.filter(b=>r.boxState[b]!=='bad');
+   const badBoxes=boxIds.filter(b=>r.boxState[b]==='bad');
+   if(normalBoxes.length)lines.push(`Боксы ${normalBoxes.join(', ')} - работают в штатном режиме.`);
+   badBoxes.forEach(b=>lines.push(`Бокс ${b} - не работает.`));
+   lines.push('');
+
+   lines.push(`Помыто машин за ${yestStr}:`);
+   range(settings.boxCount).forEach(b=>lines.push(`${b} бокс - ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`));
+   lines.push('');
+ }
+
+ if(data.items.length>0){
+   lines.push('Остаток химии:');
+   REPORT_STOCK_ITEMS.forEach(name=>{
+     const x=data.items.find(it=>it.name.trim().toLowerCase()===name.toLowerCase());
+     if(!x)return;
+     let shown=x.measures.filter(m=>Number(m.qty)!==0);
+     if(!shown.length)shown=x.measures;
+     lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
+   });
+ }
+
+ if(r.tds)lines.push(`TDS - ${r.tds}`);
  lines.push('');
 
- lines.push(`Помыто машин за ${yestStr}:`);
- range(settings.boxCount).forEach(b=>lines.push(`${b} бокс - ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`));
- lines.push('');
+ if(settings.compressorCount>0){
+   range(settings.compressorCount).forEach(i=>{
+     lines.push(`Масло компрессор ${i} - ${r.compressorState[i]==='bad'?'не в норме':'норма'}.`);
+   });
+ }
 
- lines.push('Остаток химии:');
- REPORT_STOCK_ITEMS.forEach(name=>{
-   const x=data.items.find(it=>it.name.trim().toLowerCase()===name.toLowerCase());
-   if(!x)return;
-   let shown=x.measures.filter(m=>Number(m.qty)!==0);
-   if(!shown.length)shown=x.measures;
-   lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
- });
- lines.push(`TDS - ${r.tds||''}`);
- lines.push('');
+ if(settings.pumpCount>0){
+   const pumpIds=range(settings.pumpCount);
+   const pumpOk=pumpIds.filter(i=>r.pumpState[i]!=='bad');
+   const pumpBad=pumpIds.filter(i=>r.pumpState[i]==='bad');
+   if(pumpOk.length)lines.push(`Помпы ${pumpOk.join(', ')} масло в норме.`);
+   if(pumpBad.length)lines.push(`Помпы ${pumpBad.join(', ')} масло не в норме.`);
+   pumpIds.forEach(i=>{
+     if(r.pumpPressure[i]!==''&&r.pumpPressure[i]!=null)lines.push(`Давление помпы ${i} - ${r.pumpPressure[i]}`);
+   });
+   lines.push('');
+ }
 
- range(settings.compressorCount).forEach(i=>{
-   lines.push(`Масло компрессор ${i} - ${r.compressorState[i]==='bad'?'не в норме':'норма'}.`);
- });
- const pumpIds=range(settings.pumpCount);
- const pumpOk=pumpIds.filter(i=>r.pumpState[i]!=='bad');
- const pumpBad=pumpIds.filter(i=>r.pumpState[i]==='bad');
- if(pumpOk.length)lines.push(`Помпы ${pumpOk.join(', ')} масло в норме.`);
- if(pumpBad.length)lines.push(`Помпы ${pumpBad.join(', ')} масло не в норме.`);
- pumpIds.forEach(i=>{
-   if(r.pumpPressure[i]!==''&&r.pumpPressure[i]!=null)lines.push(`Давление помпы ${i} - ${r.pumpPressure[i]}`);
- });
- lines.push('');
-
- range(settings.boxCount).forEach(b=>{
-   const h=r.hoses[b]||{};
-   if(h.left||h.back||h.right){
-     lines.push(`Проход рукава ${b} бокс:`);
-     if(h.left)lines.push(`Слева - ${h.left}`);
-     if(h.back)lines.push(`Сзади - ${h.back}`);
-     if(h.right)lines.push(`Справа - ${h.right}`);
-     lines.push('');
-   }
- });
- range(settings.boxCount).forEach(b=>{
-   const c=r.consumption[b]||{};
-   const rows=settings.consumptionItems.filter(name=>c[name]);
-   if(rows.length){
-     lines.push(`Расход химии ${b} бокс:`);
-     rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
-     lines.push('');
-   }
- });
+ if(settings.boxCount>0){
+   range(settings.boxCount).forEach(b=>{
+     const h=r.hoses[b]||{};
+     if(h.left||h.back||h.right){
+       lines.push(`Проход рукава ${b} бокс:`);
+       if(h.left)lines.push(`Слева - ${h.left}`);
+       if(h.back)lines.push(`Сзади - ${h.back}`);
+       if(h.right)lines.push(`Справа - ${h.right}`);
+       lines.push('');
+     }
+   });
+   range(settings.boxCount).forEach(b=>{
+     const c=r.consumption[b]||{};
+     const rows=settings.consumptionItems.filter(name=>c[name]);
+     if(rows.length){
+       lines.push(`Расход химии ${b} бокс:`);
+       rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
+       lines.push('');
+     }
+   });
+ }
  return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
 }
 function renderReportPreview(){
@@ -1200,78 +1155,9 @@ function clearReportForm(){
 }
 function copyDailyReport(){
  const text=buildDailyReportText(report);
+ if(!text){toast('Отчёт пуст — сначала настройте автомойку');return;}
  lastCopyText=text;
  copyToClipboard(text).then(()=>toast('Отчёт скопирован в буфер обмена')).catch(()=>showCopyFallback(text));
-}
-let reportsHistoryCache=[];
-function updateSaveStatus(){
- const el=document.getElementById('saveStatus');
- if(!el)return;
- const today=todayISO();
- const todays=reportsHistoryCache.filter(h=>h.date===today);
- if(todays.length){
-   const latest=todays.reduce((a,b)=>new Date(a.time)>new Date(b.time)?a:b);
-   const time=new Date(latest.time).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-   el.className='save-status ok';
-   el.textContent=`✅ Отчёт за сегодня сохранён в ${time}`;
- }else{
-   el.className='save-status warn';
-   el.textContent='⚠️ Отчёт за сегодня ещё не сохранён в историю';
- }
-}
-function setReportsHistoryCache(list){
- reportsHistoryCache=list||[];
- localStorage.setItem(reportHistKey(),JSON.stringify(reportsHistoryCache));
- renderReportsHistory(reportsHistoryCache);
- updateSaveStatus();
-}
-function saveReportToHistory(){
- const text=buildDailyReportText(report);
- const entry={id:crypto.randomUUID(),date:todayISO(),author:report.author,text,report:JSON.parse(JSON.stringify(report)),time:new Date().toISOString()};
- let hist=[entry,...reportsHistoryCache].slice(0,60);
- setReportsHistoryCache(hist);
- reportsHistoryRef.child(entry.id).set(entry).catch(()=>{});
- toast('Отчёт сохранён в историю');
-}
-function restoreReportHistory(id){
- const entry=reportsHistoryCache.find(h=>h.id===id);
- if(!entry)return;
- if(!confirm('Загрузить этот отчёт в текущую форму? Незаполненные данные будут заменены.'))return;
- report=entry.report?sanitizeReport(entry.report):sanitizeReport(null);
- fillReportForm();
- persistReport();
- toast('Отчёт восстановлен в форму');
-}
-function deleteReportHistoryEntry(id){
- const hist=reportsHistoryCache.filter(h=>h.id!==id);
- setReportsHistoryCache(hist);
- reportsHistoryRef.child(id).remove().catch(()=>{});
- toast('Отчёт удалён из истории');
-}
-function renderReportsHistory(list){
- const el=document.getElementById('reportsHistoryList');
- if(!list||!list.length){el.innerHTML='<div class="empty">Отчётов пока нет</div>';return}
- el.innerHTML=list.slice(0,30).map(h=>`<div class="report-history-item">
-   <div class="rh-top">
-     <div><span class="rh-date">${esc(h.date?new Date(h.date+'T00:00:00').toLocaleDateString('ru-RU'):'')}</span> ${esc(h.author||'')}</div>
-     <div class="rh-actions">
-       <button class="rh-copy" onclick="copyHistoryReport('${h.id}')">Копировать</button>
-       <button class="hi-btn" onclick="restoreReportHistory('${h.id}')" title="Восстановить в форму" aria-label="Восстановить в форму">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
-       </button>
-       <button class="hi-btn del" onclick="deleteReportHistoryEntry('${h.id}')" title="Удалить" aria-label="Удалить">
-         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-       </button>
-     </div>
-   </div>
-   <div class="rh-time">${h.time?new Date(h.time).toLocaleString('ru-RU'):''}</div>
- </div>`).join('');
-}
-function copyHistoryReport(id){
- const entry=reportsHistoryCache.find(h=>h.id===id);
- if(!entry)return;
- lastCopyText=entry.text;
- copyToClipboard(entry.text).then(()=>toast('Отчёт скопирован')).catch(()=>showCopyFallback(entry.text));
 }
 
 /* ===== Настройки отчёта для автомойки ===== */
@@ -1301,13 +1187,15 @@ function addSettingAuthor(){
  inp.value='';
  persistSettings();
  renderSettingsAuthors();
- buildAuthorSelect();
+ rebuildReportDynamicUI();
+ fillReportForm();
 }
 function removeSettingAuthor(i){
  settings.authors.splice(i,1);
  persistSettings();
  renderSettingsAuthors();
- buildAuthorSelect();
+ rebuildReportDynamicUI();
+ fillReportForm();
 }
 
 function renderSettingsConsumption(){
@@ -1338,7 +1226,7 @@ function removeSettingConsumption(i){
 
 function changeBoxCount(delta){
  const next=settings.boxCount+delta;
- if(next<1||next>12)return;
+ if(next<0||next>12)return;
  settings.boxCount=next;
  persistSettings();
  report=sanitizeReport(report);
@@ -1375,23 +1263,20 @@ function startApp(id,name){
  locId=id;
  dbRef=firebase.database().ref('locations/'+locId+'/inventory');
  reportDbRef=firebase.database().ref('locations/'+locId+'/dailyReport');
- reportsHistoryRef=firebase.database().ref('locations/'+locId+'/reportsHistory');
  settingsRef=firebase.database().ref('locations/'+locId+'/settings');
 
  document.getElementById('currentLocLabel').textContent=name;
 
  invHintDismissed=localStorage.getItem(invHintKey())==='1';
+ reportHintDismissed=localStorage.getItem(reportHintKey())==='1';
  settings=sanitizeSettings(JSON.parse(localStorage.getItem(settingsKey())||'null'));
- data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[],history:[]});
+ data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[]});
  report=sanitizeReport(JSON.parse(localStorage.getItem(reportKey())||'null'));
- reportsHistoryCache=JSON.parse(localStorage.getItem(reportHistKey())||'[]');
 
  render();
  rebuildReportDynamicUI();
  fillReportForm();
  reportPreviewReady=true;
- renderReportsHistory(reportsHistoryCache);
- updateSaveStatus();
 
  settingsRef.on('value',snap=>{
   const remote=snap.val();
@@ -1435,13 +1320,6 @@ function startApp(id,name){
     report=sanitizeReport(remote);
     persistReportLocal();
     fillReportForm();
-  }
- });
- reportsHistoryRef.orderByChild('time').limitToLast(30).on('value',snap=>{
-  const remote=snap.val();
-  if(remote){
-    const list=Object.values(remote).sort((a,b)=>new Date(b.time)-new Date(a.time));
-    setReportsHistoryCache(list);
   }
  });
 }
@@ -1517,37 +1395,12 @@ function submitPin(){
  }
 }
 
-function maybeMigrateLegacyData(id){
- return Promise.all([
-   firebase.database().ref('inventory').once('value'),
-   firebase.database().ref('dailyReport').once('value'),
-   firebase.database().ref('reportsHistory').once('value')
- ]).then(([invSnap,repSnap,histSnap])=>{
-   if(!invSnap.exists()&&!repSnap.exists()&&!histSnap.exists())return;
-   const updates={};
-   updates['locations/'+id+'/inventory']=invSnap.exists()?invSnap.val():null;
-   updates['locations/'+id+'/dailyReport']=repSnap.exists()?repSnap.val():null;
-   updates['locations/'+id+'/reportsHistory']=histSnap.exists()?histSnap.val():null;
-   updates['locations/'+id+'/settings']={
-     authors:['Калабухов','Трофименко'],
-     boxCount:3,
-     compressorCount:2,
-     pumpCount:3,
-     consumptionItems:['Пена жёлтая','Пена розовая','Пена голубая','Гидрофоб','Эмульсия']
-   };
-   updates['inventory']=null;
-   updates['dailyReport']=null;
-   updates['reportsHistory']=null;
-   return firebase.database().ref().update(updates);
- }).catch(()=>{});
-}
-
 function completeLogin(id,name){
  localStorage.setItem(LOC_ID_KEY,id);
  localStorage.setItem(LOC_NAME_KEY,name);
  document.getElementById('authScreen').classList.add('hide');
  document.getElementById('appRoot').style.display='';
- maybeMigrateLegacyData(id).then(()=>startApp(id,name)).catch(()=>startApp(id,name));
+ startApp(id,name);
 }
 
 function logoutLocation(){
