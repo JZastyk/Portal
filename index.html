@@ -61,18 +61,27 @@ h1{font-size:23px;margin:0 0 3px;letter-spacing:-.01em}
 .clear-search.show{display:flex}
 
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);position:relative;transition:border-color .15s}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);position:relative;transition:border-color .15s,box-shadow .15s}
+.card.card-in-report{border-color:var(--success);box-shadow:0 0 0 1px var(--success),var(--shadow)}
 .card-low{border-color:var(--warning);border-width:1.5px}
+.card.card-low.card-in-report{border-color:var(--warning);box-shadow:0 0 0 2px var(--success-soft),var(--shadow)}
+
 .card-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .name-wrap{min-width:0}
 .name{font-weight:800;font-size:16.5px;line-height:1.25;word-break:break-word}
 .unit-line{font-size:12px;color:var(--muted);margin-top:3px}
-.low-badge{display:inline-flex;align-items:center;gap:4px;background:var(--warning-soft);color:var(--warning);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-top:6px}
+
+.badges-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.low-badge{display:inline-flex;align-items:center;gap:4px;background:var(--warning-soft);color:var(--warning);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
 .low-badge svg{width:11px;height:11px}
+.report-badge{display:inline-flex;align-items:center;gap:4px;background:var(--success-soft);color:var(--success);font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px}
+.report-badge svg{width:11px;height:11px}
+
 .card-actions{display:flex;gap:5px;flex:none}
-.icon-btn{border:0;background:#eef3f6;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--accent-dark)}
+.icon-btn{border:0;background:#eef3f6;width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--accent-dark);transition:background .15s,color .15s}
 .icon-btn svg{width:16px;height:16px}
 .icon-btn.menu-btn{font-size:18px;font-weight:800;color:var(--text)}
+.icon-btn.report-toggle-btn.active{background:var(--success-soft);color:var(--success)}
 
 .quantities{display:grid;gap:9px;padding-top:14px}
 .measure{border:1px solid var(--border);border-radius:var(--r-md);padding:11px 12px;background:#fbfcfd}
@@ -304,6 +313,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
   <b>Как добавить свою химию</b>
   <p>Нажмите кнопку «Химия» вверху экрана — укажите название (например, «Пена жёлтая») и текущий остаток.</p>
   <p>Для одной позиции можно завести сразу несколько единиц измерения (например, канистры и килограммы) — в окне добавления нажимайте «＋ Добавить единицу измерения» столько раз, сколько нужно.</p>
+  <p>Чтобы позиция попадала в ежедневный отчёт во вкладке «Отчёт дня», нажмите на значок отчёта (📄) в её карточке — она подсветится зелёным.</p>
   <p>Чтобы изменить уже добавленную позицию, откройте её карточку кнопкой «⋮».</p>
   <p>Эта подсказка спрячется сама, как только вы добавите первую химию.</p>
 </div>
@@ -327,7 +337,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
       <button type="button" class="hint-close" onclick="dismissReportHint()" aria-label="Скрыть подсказку">✕</button>
       <b>Как настроить отчёт дня</b>
       <p>Нажмите кнопку «Настройки отчёта» выше — укажите ответственных сотрудников, количество боксов, компрессоров, помп и нужные позиции расхода химии.</p>
-      <p>После сохранения настроек в форме сразу появятся все необходимые поля для ежедневного отчёта.</p>
+      <p>А во вкладке «Склад» нажмите на карточках значок отчёта (📄), чтобы выбрать, какая химия будет автоматически попадать в блок «Остаток химии».</p>
       <p>Эта подсказка спрячется сама, как только вы настроите параметры автомойки.</p>
     </div>
 
@@ -486,6 +496,7 @@ function sanitizeData(d){
  const items=toArray(d&&d.items).filter(Boolean).map(it=>({
    id:(it&&it.id)||crypto.randomUUID(),
    name:(it&&it.name)||'',
+   inReport:Boolean(it&&it.inReport),
    measures:toArray(it&&it.measures).filter(Boolean).map(m=>({
      unit:(m&&m.unit)||'',
      qty:Number(m&&m.qty)||0,
@@ -540,21 +551,44 @@ function render(){
   document.getElementById('reportDate').textContent=todayStr();
   document.getElementById('cards').innerHTML=list.length?list.map(card).join(''):
     `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>Ничего не найдено.<br>Добавьте новую позицию.</div></div>`;
-  if(typeof reportPreviewReady!=='undefined'&&reportPreviewReady)renderReportPreview();
+  if(typeof reportPreviewReady!=='undefined'&&reportPreviewReady){
+    renderReportHintsAndVisibility();
+    renderReportPreview();
+  }
 }
 function onSearch(){render()}
 function clearSearch(){document.getElementById('search').value='';render();document.getElementById('search').focus()}
 
+function toggleInReport(id){
+ const x=data.items.find(i=>i.id===id);
+ if(!x)return;
+ x.inReport=!x.inReport;
+ persist();
+ render();
+ if(x.inReport){
+   toast(`«${x.name}» добавлена в отчёт дня`);
+ }else{
+   toast(`«${x.name}» убрана из отчёта дня`);
+ }
+}
+
 function card(x){
  const isLow=x.measures.some(m=>m.qty<=m.min);
- return `<article class="card ${isLow?'card-low':''}">
+ const isInRep=Boolean(x.inReport);
+ return `<article class="card ${isLow?'card-low':''} ${isInRep?'card-in-report':''}">
    <div class="card-top">
      <div class="name-wrap">
        <div class="name">${esc(x.name)}</div>
        <div class="unit-line">${x.measures.length} ${x.measures.length===1?'единица':'единицы'} измерения</div>
-       ${isLow?`<div class="low-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>Заканчивается</div>`:''}
+       <div class="badges-row">
+         ${isLow?`<div class="low-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>Заканчивается</div>`:''}
+         ${isInRep?`<div class="report-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>В отчёте дня</div>`:''}
+       </div>
      </div>
      <div class="card-actions">
+       <button class="icon-btn report-toggle-btn ${isInRep?'active':''}" onclick="toggleInReport('${x.id}')" aria-label="В отчёт дня" title="${isInRep?'Убрать из отчёта дня':'Добавить в отчёт дня'}">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+       </button>
        <button class="icon-btn" onclick="copyItem('${x.id}')" aria-label="Копировать позицию" title="Копировать">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
        </button>
@@ -632,7 +666,7 @@ function saveItem(e){
    const x=data.items.find(i=>i.id===editId);
    x.name=name;x.measures=measures;
  }else{
-   data.items.push({id:crypto.randomUUID(),name,measures});
+   data.items.push({id:crypto.randomUUID(),name,measures,inReport:false});
  }
  persist();closeModal();render();toast(editId?'Позиция изменена':'Позиция добавлена');
 }
@@ -718,8 +752,6 @@ function switchTab(tab){
 }
 
 /* ===== Ежедневный отчёт ===== */
-const REPORT_STOCK_ITEMS=['Эмульсия','Пена жёлтая','Пена розовая','Пена голубая','Гидрофоб','Аминат'];
-
 function range(n){const a=[];for(let i=1;i<=n;i++)a.push(i);return a}
 
 function settingsKey(){return 'report_settings_v1_'+locId}
@@ -743,7 +775,7 @@ function defaultSettings(){
 }
 
 function isReportConfigured(){
- return (settings.boxCount>0 || settings.compressorCount>0 || settings.pumpCount>0 || settings.authors.length>0);
+ return (settings.boxCount>0 || settings.compressorCount>0 || settings.pumpCount>0 || settings.authors.length>0 || data.items.some(x=>x.inReport));
 }
 
 function sanitizeSettings(s){
@@ -1059,15 +1091,15 @@ function buildDailyReportText(r){
    lines.push('');
  }
 
- if(data.items.length>0){
+ const reportStockItems=data.items.filter(it=>it.inReport);
+ if(reportStockItems.length>0){
    lines.push('Остаток химии:');
-   REPORT_STOCK_ITEMS.forEach(name=>{
-     const x=data.items.find(it=>it.name.trim().toLowerCase()===name.toLowerCase());
-     if(!x)return;
+   reportStockItems.forEach(x=>{
      let shown=x.measures.filter(m=>Number(m.qty)!==0);
      if(!shown.length)shown=x.measures;
      lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
    });
+   lines.push('');
  }
 
  if(r.tds)lines.push(`TDS - ${r.tds}`);
