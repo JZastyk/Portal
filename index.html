@@ -176,7 +176,10 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .view{display:none}
 .view.active{display:block}
 
-.date-display{background:var(--accent-soft);color:var(--accent-dark);border-radius:var(--r-md);padding:11px 14px;font-size:14px;font-weight:700;margin-bottom:14px}
+.date-bar{background:var(--accent-soft);border-radius:var(--r-md);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.date-bar label{margin:0;font-size:13px;font-weight:800;color:var(--accent-dark)}
+.date-bar input[type="date"]{width:auto;min-width:150px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-weight:700;font-size:13px;color:var(--text)}
+
 .author-row{display:flex;gap:8px;flex-wrap:wrap}
 .author-row select{flex:1;min-width:140px}
 .author-row input{flex:1;min-width:140px}
@@ -217,11 +220,12 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 
 /* Модальные списки истории */
 .history-modal-list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;padding-right:4px}
-.h-card{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:13px}
-.h-card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.h-card{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 13px;font-size:13px;position:relative}
+.h-card-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;gap:8px}
 .h-card-title{font-weight:800;color:var(--accent-dark)}
 .h-card-time{font-size:11.5px;color:var(--muted)}
 .h-card-body{color:#37474f;font-size:12.5px;line-height:1.4}
+.h-del-btn{background:var(--danger-soft);color:var(--danger);border:0;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;cursor:pointer}
 
 /* Аналитика и Инфографика */
 .analytics-hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
@@ -434,11 +438,15 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 <!-- ВКЛАДКА 2: ОТЧЁТ ДНЯ -->
 <section id="viewReport" class="view">
   <div class="card report-form">
-    <div class="date-display">Дата отчёта: <b id="rDateDisplay"></b></div>
+    <!-- Выбор даты смены (по умолчанию вчерашняя) -->
+    <div class="date-bar">
+      <label for="rDateShift">📅 Дата смены отчёта:</label>
+      <input type="date" id="rDateShift" onchange="onReportShiftDateChange()">
+    </div>
 
     <div class="report-actions" style="margin:0 0 14px">
       <button type="button" class="btn secondary" onclick="openSettings()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-1 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-1 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15-.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         Настройки отчёта
       </button>
       <button type="button" class="btn secondary" onclick="openReportHistory()">
@@ -654,7 +662,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО: ИСТОРИЯ ОТЧЁТОВ -->
+<!-- МОДАЛЬНОЕ ОКНО: ИСТОРИЯ ОТЧЁТОВ С КНОПКОЙ УДАЛЕНИЯ -->
 <div id="reportHistoryModal" class="modal-backdrop" onclick="if(event.target===this)closeReportHistory()">
   <div class="modal">
     <h2>История отчётов дня</h2>
@@ -1091,6 +1099,31 @@ function todayISO(){
  const d=new Date();
  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
+function yesterdayISO(){
+ const d=new Date();
+ d.setDate(d.getDate()-1);
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+/* Дата смены для формы отчёта */
+let currentShiftDate = yesterdayISO();
+
+function onReportShiftDateChange(){
+ const el = document.getElementById('rDateShift');
+ if(el && el.value){
+   currentShiftDate = el.value;
+   updateWashedDateLabel();
+   renderReportPreview();
+ }
+}
+
+function updateWashedDateLabel(){
+ const lbl = document.getElementById('washedDateLabel');
+ if(lbl && currentShiftDate){
+   lbl.textContent = new Date(currentShiftDate + 'T00:00:00').toLocaleDateString('ru-RU');
+ }
+}
+
 function defaultReport(){
  const boxState={},washed={},hoses={},consumption={};
  range(settings.boxCount).forEach(b=>{boxState[b]='ok';washed[b]='';hoses[b]={left:'',back:'',right:''};consumption[b]={};});
@@ -1131,10 +1164,6 @@ function sanitizeReport(r){
 let report={};
 let reportsHistoryCache=[];
 
-function yesterdayDMY(){
- const d=new Date();d.setDate(d.getDate()-1);
- return d.toLocaleDateString('ru-RU');
-}
 function renderToggleGroup(elId,ids,stateObj,prefix,offLabel){
  const el=document.getElementById(elId);
  if(!el)return;
@@ -1335,8 +1364,13 @@ function rebuildReportDynamicUI(){
 
 /* Заполнение формы без перезаписи активного поля ввода */
 function fillReportForm(){
- document.getElementById('rDateDisplay').textContent=todayStr();
+ const dateInput = document.getElementById('rDateShift');
+ if(dateInput && !dateInput.value){
+   dateInput.value = currentShiftDate || yesterdayISO();
+ }
+ updateWashedDateLabel();
  buildAuthorSelect();
+
  const authorSel=document.getElementById('rAuthor'),authorCustom=document.getElementById('rAuthorCustom');
  if(settings.authors.includes(report.author)){
    authorSel.value=report.author;authorCustom.style.display='none';authorCustom.value='';
@@ -1379,8 +1413,8 @@ function fillReportForm(){
  renderReportPreview();
 }
 
-/* Универсальная функция сборки отчёта (исключает смешивание данных чужих автомоек) */
-function buildDailyReportTextCustom(r, setObj, chemItems){
+/* Универсальная функция сборки отчёта (с учётом выбранной даты смены) */
+function buildDailyReportTextCustom(r, setObj, chemItems, customShiftDate){
  const bCount = Number(setObj.boxCount) || 0;
  const cCount = Number(setObj.compressorCount) || 0;
  const pCount = Number(setObj.pumpCount) || 0;
@@ -1388,7 +1422,9 @@ function buildDailyReportTextCustom(r, setObj, chemItems){
  if(!bCount && !cCount && !pCount && (!chemItems || !chemItems.length)) return '';
 
  const dateStr = todayStr();
- const yestStr = yesterdayDMY();
+ const shiftD = customShiftDate || currentShiftDate || yesterdayISO();
+ const shiftDateStr = new Date(shiftD + 'T00:00:00').toLocaleDateString('ru-RU');
+
  const lines = [];
  lines.push(`${dateStr}${r.author ? (' ' + r.author) : ''}`.trim());
 
@@ -1400,7 +1436,7 @@ function buildDailyReportTextCustom(r, setObj, chemItems){
    badBoxes.forEach(b => lines.push(`Бокс ${b} - не работает.`));
    lines.push('');
 
-   lines.push(`Помыто машин за ${yestStr}:`);
+   lines.push(`Помыто машин за ${shiftDateStr}:`);
    boxIds.forEach(b => lines.push(`${b} бокс - ${(r.washed && r.washed[b] !== '' && r.washed[b] != null) ? r.washed[b] : 0}`));
    lines.push('');
  }
@@ -1465,7 +1501,7 @@ function buildDailyReportTextCustom(r, setObj, chemItems){
 }
 
 function buildDailyReportText(r){
- return buildDailyReportTextCustom(r, settings, data.items);
+ return buildDailyReportTextCustom(r, settings, data.items, currentShiftDate);
 }
 
 function renderReportPreview(){
@@ -1508,23 +1544,36 @@ function clearReportForm(){
  toast('Форма очищена');
 }
 
-/* Сохранение отчёта с предотвращением дублей и суммирования за день */
+/* Сохранение отчёта строго под датой смены с прямой перезаписью */
 function saveReportToHistoryManual(){
- const text=buildDailyReportText(report);
+ const shiftDate = currentShiftDate || yesterdayISO();
+ const text = buildDailyReportText(report);
  if(!text){toast('Отчёт пуст — заполните параметры');return}
- const today = todayISO();
+
  const entry={
-   id: today,
-   date: today,
+   id: shiftDate,
+   date: shiftDate,
    author: report.author,
    text,
    report: JSON.parse(JSON.stringify(report)),
    time: new Date().toISOString()
  };
- reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e.date !== today)].slice(0, 100);
+
+ // Локально перезаписываем день
+ reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e.date !== shiftDate)];
  localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
- reportsHistoryRef.child(today).set(entry).catch(()=>{});
- toast('Отчёт сохранён в историю');
+
+ // В Firebase сохраняем с ключом по дате
+ reportsHistoryRef.child(shiftDate).set(entry).then(()=>{
+   toast(`Отчёт за ${new Date(shiftDate+'T00:00:00').toLocaleDateString('ru-RU')} сохранён`);
+ }).catch(()=>{
+   toast('Сохранено локально');
+ });
+
+ // Обновляем дату в календаре аналитики на сохранённую
+ const anPicker = document.getElementById('anDateSelect');
+ if(anPicker) anPicker.value = shiftDate;
+
  renderAnalytics();
 }
 
@@ -1536,6 +1585,20 @@ function copyDailyReport(){
    toast('Отчёт скопирован в буфер обмена');
    saveReportToHistoryManual();
  }).catch(()=>showCopyFallback(text));
+}
+
+/* Удаление записи из истории отчётов */
+function deleteReportHistoryEntry(entryId, ev){
+ if(ev) ev.stopPropagation();
+ if(!confirm('Удалить этот отчёт из истории?')) return;
+
+ reportsHistoryCache = reportsHistoryCache.filter(e => e.id !== entryId && e.date !== entryId);
+ localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
+ reportsHistoryRef.child(entryId).remove().catch(()=>{});
+
+ openReportHistory();
+ renderAnalytics();
+ toast('Отчёт удалён');
 }
 
 /* ===== Модальные окна истории ===== */
@@ -1559,14 +1622,18 @@ function closeInvHistory(){document.getElementById('invHistoryModal').classList.
 
 function openReportHistory(){
   const el=document.getElementById('reportHistoryList');
-  if(!reportsHistoryCache||!reportsHistoryCache.length){
+  const uniqueReports = getUniqueDailyReports();
+  if(!uniqueReports.length){
     el.innerHTML='<div class="empty">История отчётов пока пуста</div>';
   }else{
-    el.innerHTML=reportsHistoryCache.map(h=>`
+    el.innerHTML=uniqueReports.map(h=>`
       <div class="h-card" style="cursor:pointer" onclick="toggleReportHistDetail('${h.id}')">
         <div class="h-card-head">
           <span class="h-card-title">${new Date(h.date+'T00:00:00').toLocaleDateString('ru-RU')} ${esc(h.author?('• '+h.author):'')}</span>
-          <span class="h-card-time">${new Date(h.time).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="h-card-time">${new Date(h.time).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span>
+            <button type="button" class="h-del-btn" onclick="deleteReportHistoryEntry('${h.id}', event)">Удалить</button>
+          </div>
         </div>
         <div id="rhDetail_${h.id}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #d0d7de;white-space:pre-wrap;font-family:monospace;font-size:11.5px">${esc(h.text)}</div>
       </div>`).join('');
@@ -1579,12 +1646,13 @@ function toggleReportHistDetail(id){
   if(el)el.style.display=el.style.display==='none'?'block':'none';
 }
 
-/* ===== Аналитика: дедупликация дней, исключение «Бокса 0» и срез по дате ===== */
+/* ===== Аналитика: точная дедупликация и актуальные срезы ===== */
 function getUniqueDailyReports(){
   const map = {};
   reportsHistoryCache.forEach(h => {
     if (!h || !h.date) return;
-    if (!map[h.date] || new Date(h.time) > new Date(map[h.date].time)) {
+    // Всегда берём запись с самой свежей меткой времени time
+    if (!map[h.date] || new Date(h.time).getTime() >= new Date(map[h.date].time).getTime()) {
       map[h.date] = h;
     }
   });
@@ -1658,8 +1726,8 @@ function renderAnalytics(){
 
   // Инициализация календаря для детального среза по дате
   const dateInput = document.getElementById('anDateSelect');
-  if(!dateInput.value){
-    dateInput.value = uniqueReports.length ? uniqueReports[0].date : todayISO();
+  if(!dateInput.value || !uniqueReports.some(r => r.date === dateInput.value)){
+    dateInput.value = uniqueReports.length ? uniqueReports[0].date : (currentShiftDate || yesterdayISO());
   }
   renderDateDetailCard();
 }
