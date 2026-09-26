@@ -203,7 +203,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 .sub-label{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:none;margin:8px 0 6px}
 .sub-label-row{display:flex;justify-content:space-between;align-items:center;margin:8px 0 6px;flex-wrap:wrap;gap:6px}
 .sub-label-row .sub-label{margin:0}
-.sub-label-actions{display:flex;gap:6px;flex:none}
+.sub-label-actions{display:flex;gap:6px;flex-none}
 .mini-copy{border:0;background:var(--accent-soft);color:var(--accent-dark);border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;flex:none}
 .mini-copy svg{width:11px;height:11px}
 .mini-copy.copied{background:var(--success);color:#fff}
@@ -438,7 +438,7 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
 
     <div class="report-actions" style="margin:0 0 14px">
       <button type="button" class="btn secondary" onclick="openSettings()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-1 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
         Настройки отчёта
       </button>
       <button type="button" class="btn secondary" onclick="openReportHistory()">
@@ -479,7 +479,11 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
       <div class="washed-grid" id="washedGrid"></div>
     </div>
 
-    <div class="form-row" id="rowTds" style="display:none"><label>TDS</label><input id="rTds" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>
+    <!-- Защищённый ввод TDS -->
+    <div class="form-row" id="rowTds" style="display:none">
+      <label>TDS</label>
+      <input id="rTds" type="text" inputmode="decimal" placeholder="Например, 0.65" oninput="onDecimalInput(this, updateReport)">
+    </div>
 
     <div class="form-row" id="rowCompressor" style="display:none">
       <label>Масло компрессоры</label>
@@ -712,6 +716,25 @@ let dbRef, reportDbRef, settingsRef, reportsHistoryRef;
 </script>
 <script>
 
+/* Безопасная функция ввода дробных чисел: точка и запятая без сброса курсора и пустоты */
+function onDecimalInput(inp, callback){
+  const start = inp.selectionStart;
+  const oldVal = inp.value;
+  let val = oldVal.replace(/,/g, '.');
+  val = val.replace(/[^0-9.]/g, '');
+  const parts = val.split('.');
+  if(parts.length > 2){
+    val = parts[0] + '.' + parts.slice(1).join('');
+  }
+  if(val !== oldVal){
+    inp.value = val;
+    if(start !== null){
+      inp.setSelectionRange(start, start);
+    }
+  }
+  if(callback) callback();
+}
+
 async function sha256(str){
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -725,7 +748,8 @@ function reportHistKey(){return 'daily_report_history_v1_'+locId}
 function lastAuthorKey(){return 'report_last_author_'+locId}
 
 function isCurrentSuperAdmin(){
-  return localStorage.getItem('is_super_admin') === '1';
+  const name = (localStorage.getItem(LOC_NAME_KEY) || '').trim().toLowerCase();
+  return (name.includes('таганрогская 134б') || name.includes('гоноровская 134б')) && (localStorage.getItem('is_super_admin') === '1');
 }
 
 function toArray(v){
@@ -1164,6 +1188,8 @@ function commitCustomAuthor(){
  inp.style.display='none';
  updateReport();
 }
+
+/* Секция боксов с безопасным decimal вводом для рукава и расхода */
 function buildBoxSectionHtml(b){
  return `<details class="box-section">
    <summary>Бокс ${b}</summary>
@@ -1182,9 +1208,9 @@ function buildBoxSectionHtml(b){
        </div>
      </div>
      <div class="hose-grid">
-       <div><label>Слева</label><input class="hose-in" data-box="${b}" data-side="left" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
-       <div><label>Сзади</label><input class="hose-in" data-box="${b}" data-side="back" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
-       <div><label>Справа</label><input class="hose-in" data-box="${b}" data-side="right" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
+       <div><label>Слева</label><input class="hose-in" data-box="${b}" data-side="left" type="text" inputmode="decimal" placeholder="0.0" oninput="onDecimalInput(this, updateReport)"></div>
+       <div><label>Сзади</label><input class="hose-in" data-box="${b}" data-side="back" type="text" inputmode="decimal" placeholder="0.0" oninput="onDecimalInput(this, updateReport)"></div>
+       <div><label>Справа</label><input class="hose-in" data-box="${b}" data-side="right" type="text" inputmode="decimal" placeholder="0.0" oninput="onDecimalInput(this, updateReport)"></div>
      </div>
      ${settings.consumptionItems.length?`
      <div class="sub-label-row">
@@ -1201,7 +1227,7 @@ function buildBoxSectionHtml(b){
        </div>
      </div>
      <div class="consumption-grid">
-       ${settings.consumptionItems.map(name=>`<div><label>${esc(name)}</label><input class="cons-in" data-box="${b}" data-name="${esc(name)}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`).join('')}
+       ${settings.consumptionItems.map(name=>`<div><label>${esc(name)}</label><input class="cons-in" data-box="${b}" data-name="${esc(name)}" type="text" inputmode="decimal" placeholder="0.0" oninput="onDecimalInput(this, updateReport)"></div>`).join('')}
      </div>`:''}
    </div>
  </details>`;
@@ -1277,7 +1303,7 @@ function buildWashedGridOnce(){
 }
 function buildPumpPressureOnce(){
  document.getElementById('pumpPressureGrid').innerHTML=range(settings.pumpCount).map(i=>
-   `<div><span>Помпа ${i}</span><input class="pump-pressure-in" data-pump="${i}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`
+   `<div><span>Помпа ${i}</span><input class="pump-pressure-in" data-pump="${i}" type="text" inputmode="decimal" placeholder="0.0" oninput="onDecimalInput(this, updateReport)"></div>`
  ).join('');
 }
 
@@ -1306,6 +1332,8 @@ function rebuildReportDynamicUI(){
  buildAuthorSelect();
  renderAllToggles();
 }
+
+/* Заполнение формы без перезаписи активного поля ввода */
 function fillReportForm(){
  document.getElementById('rDateDisplay').textContent=todayStr();
  buildAuthorSelect();
@@ -1317,18 +1345,35 @@ function fillReportForm(){
  }else{
    authorSel.value='';authorCustom.style.display='none';authorCustom.value='';
  }
- document.querySelectorAll('.washed-in').forEach(inp=>{inp.value=report.washed[inp.dataset.box]||''});
- document.getElementById('rTds').value=report.tds;
- document.querySelectorAll('.pump-pressure-in').forEach(inp=>{inp.value=report.pumpPressure[inp.dataset.pump]||''});
+
+ document.querySelectorAll('.washed-in').forEach(inp=>{
+   if(document.activeElement === inp) return;
+   inp.value=report.washed[inp.dataset.box]||'';
+ });
+
+ if(document.activeElement !== document.getElementById('rTds')){
+   document.getElementById('rTds').value=report.tds||'';
+ }
+
+ document.querySelectorAll('.pump-pressure-in').forEach(inp=>{
+   if(document.activeElement === inp) return;
+   inp.value=report.pumpPressure[inp.dataset.pump]||'';
+ });
+
  document.getElementById('washedDateLabel').textContent=yesterdayDMY();
+
  document.querySelectorAll('.hose-in').forEach(inp=>{
+   if(document.activeElement === inp) return;
    const b=inp.dataset.box,side=inp.dataset.side;
    inp.value=(report.hoses[b]&&report.hoses[b][side])||'';
  });
+
  document.querySelectorAll('.cons-in').forEach(inp=>{
+   if(document.activeElement === inp) return;
    const b=inp.dataset.box,name=inp.dataset.name;
    inp.value=(report.consumption[b]&&report.consumption[b][name])||'';
  });
+
  renderAllToggles();
  renderReportHintsAndVisibility();
  renderReportPreview();
@@ -2127,7 +2172,8 @@ async function submitPin(){
 }
 
 function verifyAndCompleteLogin(id, name){
- const isSuper = (name || '').trim().toLowerCase().includes('таганрогская 134б');
+ const n = (name || '').trim().toLowerCase();
+ const isSuper = n.includes('таганрогская 134б') || n.includes('гоноровская 134б');
  localStorage.setItem('is_super_admin', isSuper ? '1' : '0');
  localStorage.setItem(LOC_AUTHED_KEY, id);
  completeLogin(id, name);
@@ -2170,7 +2216,8 @@ locationsRef.on('value',snap=>{
      locationsCache=snap.val()||{};
      const loc=locationsCache[savedId];
      if(loc){
-       const isSuper = (loc.name || '').trim().toLowerCase().includes('таганрогская 134б');
+       const n = (loc.name || '').trim().toLowerCase();
+       const isSuper = n.includes('таганрогская 134б') || n.includes('гоноровская 134б');
        localStorage.setItem('is_super_admin', isSuper ? '1' : '0');
        completeLogin(savedId, loc.name);
      }else{
@@ -2206,3 +2253,4 @@ locationsRef.on('value',snap=>{
 </script>
 </body>
 </html>
+
