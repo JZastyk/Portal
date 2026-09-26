@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a4f78">
 <link rel="icon" href="data:,">
-<title>Учёт химии</title>
+<title>РЈС‡С‘С‚ С…РёРјРёРё</title>
 <style>
 :root{
   --bg:#eef2f5; --card:#ffffff; --text:#152632; --muted:#6b7a86;
@@ -139,6 +139,16 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .auth-loc-name{font-weight:800;font-size:16px;color:var(--accent-dark)}
 .pin-input{width:100%;text-align:center;font-size:28px;letter-spacing:14px;padding:14px;border:1px solid var(--border);border-radius:12px;margin:8px 0}
 .pin-error{color:#b63838;font-size:12.5px;font-weight:700;min-height:16px;margin-bottom:4px}
+.empty-hint{position:relative;background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--r-md);padding:14px 34px 14px 14px;margin-bottom:14px;font-size:13.5px;line-height:1.5;color:var(--accent-dark)}
+.empty-hint b{display:block;margin-bottom:6px;font-size:14.5px}
+.empty-hint p{margin:4px 0}
+.hint-close{position:absolute;top:8px;right:8px;background:none;border:none;font-size:16px;line-height:1;cursor:pointer;color:var(--accent-dark);padding:4px}
+.setting-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.setting-chip{display:flex;align-items:center;gap:6px;background:var(--accent-soft);border:1px solid var(--border);border-radius:999px;padding:5px 6px 5px 12px;font-size:13px;font-weight:600}
+.setting-chip button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;line-height:1;padding:2px 4px}
+.stepper{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px 6px}
+.stepper button{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--card);font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center}
+.stepper span{min-width:18px;text-align:center;font-weight:700}
 .tabs{display:flex;gap:6px;margin-bottom:16px;background:#e3e9ed;padding:4px;border-radius:var(--r-md)}
 .tab-btn{flex:1;border:0;background:transparent;color:var(--muted);padding:10px 12px;border-radius:9px;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:6px}
 .tab-btn svg{width:16px;height:16px;flex:none}
@@ -180,7 +190,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 .box-section{border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:10px;background:#fbfcfd;overflow:hidden}
 .box-section summary{padding:12px 14px;font-weight:800;font-size:14px;color:var(--accent-dark);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between}
 .box-section summary::-webkit-details-marker{display:none}
-.box-section summary::after{content:'▾';color:var(--muted);transition:transform .15s}
+.box-section summary::after{content:'в–ѕ';color:var(--muted);transition:transform .15s}
 .box-section[open] summary::after{transform:rotate(180deg)}
 .box-section-body{padding:0 14px 14px}
 .sub-label{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:none;margin:8px 0 6px}
@@ -243,33 +253,33 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 
 <div id="authScreen" class="auth-screen">
   <div class="auth-card">
-    <h1>Учёт химии</h1>
-    <div class="subtitle">Выберите вашу автомойку</div>
+    <h1>РЈС‡С‘С‚ С…РёРјРёРё</h1>
+    <div class="subtitle">Р’С‹Р±РµСЂРёС‚Рµ РІР°С€Сѓ Р°РІС‚РѕРјРѕР№РєСѓ</div>
 
     <div id="authSelectStep">
       <div class="search-wrap" style="margin:16px 0 10px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="locSearch" class="search" placeholder="Поиск автомойки..." oninput="renderLocationList()">
+        <input id="locSearch" class="search" placeholder="РџРѕРёСЃРє Р°РІС‚РѕРјРѕР№РєРё..." oninput="renderLocationList()">
       </div>
       <div id="locList" class="loc-list"></div>
       <div class="add-loc-row">
-        <input id="newLocName" placeholder="Не нашли? Введите название">
-        <button type="button" class="btn" onclick="addNewLocation()">Добавить</button>
+        <input id="newLocName" placeholder="РќРµ РЅР°С€Р»Рё? Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ">
+        <button type="button" class="btn" onclick="addNewLocation()">Р”РѕР±Р°РІРёС‚СЊ</button>
       </div>
     </div>
 
     <div id="authPinStep" style="display:none">
       <div class="auth-loc-name" id="authLocName"></div>
       <div class="sub-label" id="authPinTitle" style="margin-top:10px"></div>
-      <input id="pinInput" class="pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••">
+      <input id="pinInput" class="pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="вЂўвЂўвЂўвЂў">
       <div id="pinConfirmWrap" style="display:none">
-        <div class="sub-label">Повторите пароль</div>
-        <input id="pinConfirmInput" class="pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="••••">
+        <div class="sub-label">РџРѕРІС‚РѕСЂРёС‚Рµ РїР°СЂРѕР»СЊ</div>
+        <input id="pinConfirmInput" class="pin-input" type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="вЂўвЂўвЂўвЂў">
       </div>
       <div class="pin-error" id="pinError"></div>
       <div class="modal-actions">
-        <button type="button" class="btn secondary" onclick="backToLocationList()">Назад</button>
-        <button type="button" class="btn" onclick="submitPin()">Войти</button>
+        <button type="button" class="btn secondary" onclick="backToLocationList()">РќР°Р·Р°Рґ</button>
+        <button type="button" class="btn" onclick="submitPin()">Р’РѕР№С‚Рё</button>
       </div>
     </div>
   </div>
@@ -278,21 +288,21 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 <div class="app" id="appRoot" style="display:none">
 
 <header>
-  <div><h1>Учёт химии</h1><div class="subtitle" id="currentLocLabel">Приход, расход и остатки</div>
-    <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">Подключение...</span></div>
+  <div><h1>РЈС‡С‘С‚ С…РёРјРёРё</h1><div class="subtitle" id="currentLocLabel">РџСЂРёС…РѕРґ, СЂР°СЃС…РѕРґ Рё РѕСЃС‚Р°С‚РєРё</div>
+    <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">РџРѕРґРєР»СЋС‡РµРЅРёРµ...</span></div>
   </div>
   <div class="header-actions">
-    <button class="btn secondary" onclick="logoutLocation()" aria-label="Сменить автомойку">
+    <button class="btn secondary" onclick="logoutLocation()" aria-label="РЎРјРµРЅРёС‚СЊ Р°РІС‚РѕРјРѕР№РєСѓ">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/><path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7"/></svg>
-      <span class="label-text">Сменить автомойку</span>
+      <span class="label-text">РЎРјРµРЅРёС‚СЊ Р°РІС‚РѕРјРѕР№РєСѓ</span>
     </button>
-    <button class="btn secondary" onclick="clearHistory()" aria-label="Очистить историю">
+    <button class="btn secondary" onclick="clearHistory()" aria-label="РћС‡РёСЃС‚РёС‚СЊ РёСЃС‚РѕСЂРёСЋ">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-      <span class="label-text">Очистить историю</span>
+      <span class="label-text">РћС‡РёСЃС‚РёС‚СЊ РёСЃС‚РѕСЂРёСЋ</span>
     </button>
-    <button class="btn" onclick="openAdd()" aria-label="Добавить химию">
+    <button class="btn" onclick="openAdd()" aria-label="Р”РѕР±Р°РІРёС‚СЊ С…РёРјРёСЋ">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      <span class="label-text">Химия</span>
+      <span class="label-text">РҐРёРјРёСЏ</span>
     </button>
   </div>
 </header>
@@ -300,42 +310,51 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 <nav class="tabs">
   <button class="tab-btn active" id="tabBtnInventory" onclick="switchTab('inventory')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 7.55A9 9 0 1 0 8.83 19.24"/><path d="M12 7v5l3 3"/></svg>
-    Склад
+    РЎРєР»Р°Рґ
   </button>
   <button class="tab-btn" id="tabBtnReport" onclick="switchTab('report')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
-    Отчёт дня
+    РћС‚С‡С‘С‚ РґРЅСЏ
   </button>
 </nav>
 
 <section id="viewInventory" class="view active">
 
 <section class="report-bar">
-  <div class="report-text">Остаток химии на <b id="reportDate"></b></div>
+  <div class="report-text">РћСЃС‚Р°С‚РѕРє С…РёРјРёРё РЅР° <b id="reportDate"></b></div>
   <button class="btn copy-btn" id="copyBtn" onclick="copyReport()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    <span>Копировать</span>
+    <span>РљРѕРїРёСЂРѕРІР°С‚СЊ</span>
   </button>
 </section>
 
 <section class="stats">
-  <div class="stat"><b id="itemsCount">0</b><span>позиций</span></div>
-  <div class="stat low"><b id="lowCount">0</b><span>заканчиваются</span></div>
-  <div class="stat"><b id="opsCount">0</b><span>операций</span></div>
+  <div class="stat"><b id="itemsCount">0</b><span>РїРѕР·РёС†РёР№</span></div>
+  <div class="stat low"><b id="lowCount">0</b><span>Р·Р°РєР°РЅС‡РёРІР°СЋС‚СЃСЏ</span></div>
+  <div class="stat"><b id="opsCount">0</b><span>РѕРїРµСЂР°С†РёР№</span></div>
 </section>
 
 <div class="toolbar">
   <div class="search-wrap">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-    <input id="search" class="search" placeholder="Поиск химии..." oninput="onSearch()">
-    <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="Очистить поиск">✕</button>
+    <input id="search" class="search" placeholder="РџРѕРёСЃРє С…РёРјРёРё..." oninput="onSearch()">
+    <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="РћС‡РёСЃС‚РёС‚СЊ РїРѕРёСЃРє">вњ•</button>
   </div>
+</div>
+
+<div id="emptyInvHint" class="empty-hint" style="display:none">
+  <button type="button" class="hint-close" onclick="dismissInvHint()" aria-label="РЎРєСЂС‹С‚СЊ РїРѕРґСЃРєР°Р·РєСѓ">вњ•</button>
+  <b>РљР°Рє РґРѕР±Р°РІРёС‚СЊ СЃРІРѕСЋ С…РёРјРёСЋ</b>
+  <p>РќР°Р¶РјРёС‚Рµ РєРЅРѕРїРєСѓ В«РҐРёРјРёСЏВ» РІРІРµСЂС…Сѓ СЌРєСЂР°РЅР° вЂ” СѓРєР°Р¶РёС‚Рµ РЅР°Р·РІР°РЅРёРµ (РЅР°РїСЂРёРјРµСЂ, В«РџРµРЅР° Р¶С‘Р»С‚Р°СЏВ») Рё С‚РµРєСѓС‰РёР№ РѕСЃС‚Р°С‚РѕРє.</p>
+  <p>Р”Р»СЏ РѕРґРЅРѕР№ РїРѕР·РёС†РёРё РјРѕР¶РЅРѕ Р·Р°РІРµСЃС‚Рё СЃСЂР°Р·Сѓ РЅРµСЃРєРѕР»СЊРєРѕ РµРґРёРЅРёС† РёР·РјРµСЂРµРЅРёСЏ (РЅР°РїСЂРёРјРµСЂ, РєР°РЅРёСЃС‚СЂС‹ Рё РєРёР»РѕРіСЂР°РјРјС‹) вЂ” РІ РѕРєРЅРµ РґРѕР±Р°РІР»РµРЅРёСЏ РЅР°Р¶РёРјР°Р№С‚Рµ В«пј‹ Р”РѕР±Р°РІРёС‚СЊ РµРґРёРЅРёС†Сѓ РёР·РјРµСЂРµРЅРёСЏВ» СЃС‚РѕР»СЊРєРѕ СЂР°Р·, СЃРєРѕР»СЊРєРѕ РЅСѓР¶РЅРѕ.</p>
+  <p>Р§С‚РѕР±С‹ РёР·РјРµРЅРёС‚СЊ СѓР¶Рµ РґРѕР±Р°РІР»РµРЅРЅСѓСЋ РїРѕР·РёС†РёСЋ, РѕС‚РєСЂРѕР№С‚Рµ РµС‘ РєР°СЂС‚РѕС‡РєСѓ РєРЅРѕРїРєРѕР№ В«в‹®В».</p>
+  <p>Р­С‚Р° РїРѕРґСЃРєР°Р·РєР° СЃРїСЂСЏС‡РµС‚СЃСЏ СЃР°РјР°, РєР°Рє С‚РѕР»СЊРєРѕ РІС‹ РґРѕР±Р°РІРёС‚Рµ РїРµСЂРІСѓСЋ С…РёРјРёСЋ.</p>
 </div>
 
 <main id="cards" class="grid"></main>
 
 <section class="history">
-  <div class="history-head"><span>Последние операции</span></div>
+  <div class="history-head"><span>РџРѕСЃР»РµРґРЅРёРµ РѕРїРµСЂР°С†РёРё</span></div>
   <div id="historyList"></div>
 </section>
 
@@ -343,45 +362,47 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 
 <section id="viewReport" class="view">
   <div class="card report-form">
-    <div class="date-display">Дата отчёта: <b id="rDateDisplay"></b></div>
+    <div class="date-display">Р”Р°С‚Р° РѕС‚С‡С‘С‚Р°: <b id="rDateDisplay"></b></div>
     <div class="save-status" id="saveStatus"></div>
 
+    <div class="report-actions" style="margin:10px 0 14px">
+      <button type="button" class="btn secondary" onclick="openSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        РќР°СЃС‚СЂРѕР№РєРё РѕС‚С‡С‘С‚Р°
+      </button>
+    </div>
+
     <div class="form-row">
-      <label>Ответственный</label>
+      <label>РћС‚РІРµС‚СЃС‚РІРµРЅРЅС‹Р№</label>
       <div class="author-row">
-        <select id="rAuthor" onchange="onAuthorChange()">
-          <option value="">Выберите...</option>
-          <option value="Калабухов">Калабухов</option>
-          <option value="Трофименко">Трофименко</option>
-          <option value="__custom__">Другое имя...</option>
-        </select>
-        <input id="rAuthorCustom" placeholder="Введите имя" style="display:none" oninput="updateReport()">
+        <select id="rAuthor" onchange="onAuthorChange()"></select>
+        <input id="rAuthorCustom" placeholder="Р’РІРµРґРёС‚Рµ РёРјСЏ" style="display:none" oninput="updateReport()" onchange="commitCustomAuthor()">
       </div>
     </div>
 
     <div class="form-row">
-      <label>Статус боксов</label>
+      <label>РЎС‚Р°С‚СѓСЃ Р±РѕРєСЃРѕРІ</label>
       <div class="toggle-row" id="boxStatusRow"></div>
     </div>
 
     <div class="washed-block">
-      <label>Помыто машин за <span id="washedDateLabel"></span></label>
-      <div class="washed-grid">
-        <div><span>Бокс 1</span><input id="rWashed1" type="number" min="0" inputmode="numeric" oninput="updateReport()"></div>
-        <div><span>Бокс 2</span><input id="rWashed2" type="number" min="0" inputmode="numeric" oninput="updateReport()"></div>
-        <div><span>Бокс 3</span><input id="rWashed3" type="number" min="0" inputmode="numeric" oninput="updateReport()"></div>
-      </div>
+      <label>РџРѕРјС‹С‚Рѕ РјР°С€РёРЅ Р·Р° <span id="washedDateLabel"></span></label>
+      <div class="washed-grid" id="washedGrid"></div>
     </div>
 
-    <div class="form-row"><label>PH</label><input id="rPh" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>
+    <div class="form-row"><label>TDS</label><input id="rTds" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>
 
     <div class="form-row">
-      <label>Масло компрессоры</label>
+      <label>РњР°СЃР»Рѕ РєРѕРјРїСЂРµСЃСЃРѕСЂС‹</label>
       <div class="toggle-row" id="compressorRow"></div>
     </div>
     <div class="form-row">
-      <label>Масло помпы</label>
+      <label>РњР°СЃР»Рѕ РїРѕРјРїС‹</label>
       <div class="toggle-row" id="pumpRow"></div>
+    </div>
+    <div class="washed-block">
+      <label>Р”Р°РІР»РµРЅРёРµ РїРѕРјРї</label>
+      <div class="washed-grid" id="pumpPressureGrid"></div>
     </div>
 
     <div id="boxSections"></div>
@@ -389,20 +410,20 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
     <div class="report-actions">
       <button class="btn" onclick="copyDailyReport()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Копировать отчёт
+        РљРѕРїРёСЂРѕРІР°С‚СЊ РѕС‚С‡С‘С‚
       </button>
-      <button class="btn secondary" onclick="saveReportToHistory()">Сохранить в историю</button>
-      <button class="btn secondary" onclick="clearReportForm()">Очистить форму</button>
+      <button class="btn secondary" onclick="saveReportToHistory()">РЎРѕС…СЂР°РЅРёС‚СЊ РІ РёСЃС‚РѕСЂРёСЋ</button>
+      <button class="btn secondary" onclick="clearReportForm()">РћС‡РёСЃС‚РёС‚СЊ С„РѕСЂРјСѓ</button>
     </div>
 
     <div class="form-row">
-      <label>Предпросмотр</label>
+      <label>РџСЂРµРґРїСЂРѕСЃРјРѕС‚СЂ</label>
       <textarea id="reportPreview" class="report-preview" readonly rows="12"></textarea>
     </div>
   </div>
 
   <section class="history">
-    <div class="history-head"><span>История отчётов</span></div>
+    <div class="history-head"><span>РСЃС‚РѕСЂРёСЏ РѕС‚С‡С‘С‚РѕРІ</span></div>
     <div id="reportsHistoryList"></div>
   </section>
 </section>
@@ -411,26 +432,67 @@ input,select{width:100%;padding:12px;border:1px solid var(--border);border-radiu
 
 <div id="modal" class="modal-backdrop" onclick="backdropClick(event)">
   <div class="modal">
-    <h2 id="modalTitle">Добавить химию</h2>
+    <h2 id="modalTitle">Р”РѕР±Р°РІРёС‚СЊ С…РёРјРёСЋ</h2>
     <form onsubmit="saveItem(event)">
-      <div class="form-row"><label>Название</label><input id="fName" required placeholder="Например, Пена жёлтая"></div>
+      <div class="form-row"><label>РќР°Р·РІР°РЅРёРµ</label><input id="fName" required placeholder="РќР°РїСЂРёРјРµСЂ, РџРµРЅР° Р¶С‘Р»С‚Р°СЏ"></div>
       <div id="measureConfig"></div>
-      <button type="button" class="add-measure" onclick="addMeasureRow()">＋ Добавить единицу измерения</button>
+      <button type="button" class="add-measure" onclick="addMeasureRow()">пј‹ Р”РѕР±Р°РІРёС‚СЊ РµРґРёРЅРёС†Сѓ РёР·РјРµСЂРµРЅРёСЏ</button>
       <div class="modal-actions">
-        <button type="button" class="btn secondary" onclick="closeModal()">Отмена</button>
-        <button type="submit" class="btn">Сохранить</button>
+        <button type="button" class="btn secondary" onclick="closeModal()">РћС‚РјРµРЅР°</button>
+        <button type="submit" class="btn">РЎРѕС…СЂР°РЅРёС‚СЊ</button>
       </div>
     </form>
   </div>
 </div>
+<div id="settingsModal" class="modal-backdrop" onclick="settingsBackdropClick(event)">
+  <div class="modal">
+    <h2>РќР°СЃС‚СЂРѕР№РєРё РѕС‚С‡С‘С‚Р°</h2>
+
+    <div class="form-row">
+      <label>РћС‚РІРµС‚СЃС‚РІРµРЅРЅС‹Рµ (Р¤РРћ)</label>
+      <div id="setAuthorsList" class="setting-chips"></div>
+      <div class="add-loc-row">
+        <input id="newAuthorName" placeholder="Р”РѕР±Р°РІРёС‚СЊ РёРјСЏ">
+        <button type="button" class="btn secondary" onclick="addSettingAuthor()">Р”РѕР±Р°РІРёС‚СЊ</button>
+      </div>
+    </div>
+
+    <div class="form-row-inline">
+      <div><label>Р‘РѕРєСЃРѕРІ</label>
+        <div class="stepper"><button type="button" onclick="changeBoxCount(-1)">в€’</button><span id="setBoxCount"></span><button type="button" onclick="changeBoxCount(1)">+</button></div>
+      </div>
+      <div><label>РљРѕРјРїСЂРµСЃСЃРѕСЂРѕРІ</label>
+        <div class="stepper"><button type="button" onclick="changeCompressorCount(-1)">в€’</button><span id="setCompressorCount"></span><button type="button" onclick="changeCompressorCount(1)">+</button></div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>РџРѕРјРї</label>
+      <div class="stepper"><button type="button" onclick="changePumpCount(-1)">в€’</button><span id="setPumpCount"></span><button type="button" onclick="changePumpCount(1)">+</button></div>
+    </div>
+
+    <div class="form-row">
+      <label>РџРѕР·РёС†РёРё В«Р Р°СЃС…РѕРґ С…РёРјРёРёВ» (РґР»СЏ РєР°Р¶РґРѕРіРѕ Р±РѕРєСЃР°)</label>
+      <div id="setConsumptionList" class="setting-chips"></div>
+      <div class="add-loc-row">
+        <input id="newConsumptionName" placeholder="Р”РѕР±Р°РІРёС‚СЊ РїРѕР·РёС†РёСЋ">
+        <button type="button" class="btn secondary" onclick="addSettingConsumption()">Р”РѕР±Р°РІРёС‚СЊ</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn" onclick="closeSettings()">Р“РѕС‚РѕРІРѕ</button>
+    </div>
+  </div>
+</div>
 <div id="copyModal" class="modal-backdrop copy-modal" onclick="if(event.target===this)closeCopyModal()">
   <div class="modal">
-    <h2>Скопируйте текст</h2>
-    <div class="copy-hint">Автоматически скопировать не получилось. Текст уже выделен — нажмите и удерживайте, выберите «Копировать», либо Ctrl+C.</div>
+    <h2>РЎРєРѕРїРёСЂСѓР№С‚Рµ С‚РµРєСЃС‚</h2>
+    <div class="copy-hint">РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё СЃРєРѕРїРёСЂРѕРІР°С‚СЊ РЅРµ РїРѕР»СѓС‡РёР»РѕСЃСЊ. РўРµРєСЃС‚ СѓР¶Рµ РІС‹РґРµР»РµРЅ вЂ” РЅР°Р¶РјРёС‚Рµ Рё СѓРґРµСЂР¶РёРІР°Р№С‚Рµ, РІС‹Р±РµСЂРёС‚Рµ В«РљРѕРїРёСЂРѕРІР°С‚СЊВ», Р»РёР±Рѕ Ctrl+C.</div>
     <textarea id="copyTextarea" readonly></textarea>
     <div class="modal-actions">
-      <button type="button" class="btn secondary" onclick="closeCopyModal()">Закрыть</button>
-      <button type="button" class="btn" onclick="retryCopyFromModal()">Попробовать снова</button>
+      <button type="button" class="btn secondary" onclick="closeCopyModal()">Р—Р°РєСЂС‹С‚СЊ</button>
+      <button type="button" class="btn" onclick="retryCopyFromModal()">РџРѕРїСЂРѕР±РѕРІР°С‚СЊ СЃРЅРѕРІР°</button>
     </div>
   </div>
 </div>
@@ -450,7 +512,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const locationsRef = firebase.database().ref('carwashes');
-let dbRef, reportDbRef, reportsHistoryRef;
+let dbRef, reportDbRef, reportsHistoryRef, settingsRef;
 </script>
 <script>
 
@@ -461,14 +523,6 @@ function reportKey(){return 'daily_report_draft_v1_'+locId}
 function reportHistKey(){return 'daily_report_history_v1_'+locId}
 function lastAuthorKey(){return 'report_last_author_'+locId}
 
-const defaultItems=[
-  {id:crypto.randomUUID(),name:'Эмульсия',measures:[{unit:'кан',qty:22,min:2}]},
-  {id:crypto.randomUUID(),name:'Пена жёлтая',measures:[{unit:'кан',qty:5,min:2}]},
-  {id:crypto.randomUUID(),name:'Пена розовая',measures:[{unit:'кан',qty:5,min:2},{unit:'кг',qty:9.2,min:1}]},
-  {id:crypto.randomUUID(),name:'Пена голубая',measures:[{unit:'кан',qty:5,min:2},{unit:'кг',qty:19.5,min:1}]},
-  {id:crypto.randomUUID(),name:'Гидрофоб',measures:[{unit:'кан',qty:2,min:1},{unit:'кг',qty:14.46,min:1}]},
-  {id:crypto.randomUUID(),name:'Аминат',measures:[{unit:'кан',qty:1,min:1},{unit:'кг',qty:18.8,min:1}]}
-];
 
 function toArray(v){
  if(Array.isArray(v))return v;
@@ -506,9 +560,9 @@ function persist(){
  clearTimeout(syncTimer);
  syncTimer=setTimeout(()=>{
    dbRef.set(data).then(()=>{
-     firebaseReady=true;setSyncStatus('online','Синхронизировано');
+     firebaseReady=true;setSyncStatus('online','РЎРёРЅС…СЂРѕРЅРёР·РёСЂРѕРІР°РЅРѕ');
    }).catch(()=>{
-     setSyncStatus('offline','Офлайн — сохранено локально');
+     setSyncStatus('offline','РћС„Р»Р°Р№РЅ вЂ” СЃРѕС…СЂР°РЅРµРЅРѕ Р»РѕРєР°Р»СЊРЅРѕ');
    });
  },350);
 }
@@ -516,16 +570,24 @@ function persist(){
 function fmt(n){return Number(n).toLocaleString('ru-RU',{maximumFractionDigits:2})}
 function todayStr(){return new Date().toLocaleDateString('ru-RU')}
 
+function invHintKey(){return 'inv_hint_dismissed_'+locId}
+let invHintDismissed=false;
+function dismissInvHint(){
+ invHintDismissed=true;
+ localStorage.setItem(invHintKey(),'1');
+ document.getElementById('emptyInvHint').style.display='none';
+}
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
   document.getElementById('clearSearch').classList.toggle('show',q.length>0);
+  document.getElementById('emptyInvHint').style.display=(data.items.length===0&&!invHintDismissed)?'block':'none';
   const list=data.items.filter(x=>x.name.toLowerCase().includes(q));
   document.getElementById('itemsCount').textContent=data.items.length;
   document.getElementById('lowCount').textContent=data.items.filter(x=>x.measures.some(m=>Number(m.qty)<=Number(m.min))).length;
   document.getElementById('opsCount').textContent=data.history.length;
   document.getElementById('reportDate').textContent=todayStr();
   document.getElementById('cards').innerHTML=list.length?list.map(card).join(''):
-    `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>Ничего не найдено.<br>Добавьте новую позицию.</div></div>`;
+    `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>РќРёС‡РµРіРѕ РЅРµ РЅР°Р№РґРµРЅРѕ.<br>Р”РѕР±Р°РІСЊС‚Рµ РЅРѕРІСѓСЋ РїРѕР·РёС†РёСЋ.</div></div>`;
   renderHistory();
   if(typeof reportPreviewReady!=='undefined'&&reportPreviewReady)renderReportPreview();
 }
@@ -538,14 +600,14 @@ function card(x){
    <div class="card-top">
      <div class="name-wrap">
        <div class="name">${esc(x.name)}</div>
-       <div class="unit-line">${x.measures.length} ${x.measures.length===1?'единица':'единицы'} измерения</div>
-       ${isLow?`<div class="low-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>Заканчивается</div>`:''}
+       <div class="unit-line">${x.measures.length} ${x.measures.length===1?'РµРґРёРЅРёС†Р°':'РµРґРёРЅРёС†С‹'} РёР·РјРµСЂРµРЅРёСЏ</div>
+       ${isLow?`<div class="low-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L14.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>Р—Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ</div>`:''}
      </div>
      <div class="card-actions">
-       <button class="icon-btn" onclick="copyItem('${x.id}')" aria-label="Копировать позицию" title="Копировать">
+       <button class="icon-btn" onclick="copyItem('${x.id}')" aria-label="РљРѕРїРёСЂРѕРІР°С‚СЊ РїРѕР·РёС†РёСЋ" title="РљРѕРїРёСЂРѕРІР°С‚СЊ">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
        </button>
-       <button class="icon-btn menu-btn" onclick="openEdit('${x.id}')" aria-label="Изменить">⋮</button>
+       <button class="icon-btn menu-btn" onclick="openEdit('${x.id}')" aria-label="РР·РјРµРЅРёС‚СЊ">в‹®</button>
      </div>
    </div>
    <div class="quantities">${x.measures.map((m,i)=>measureHtml(x,i)).join('')}</div>
@@ -554,17 +616,17 @@ function card(x){
 function measureHtml(x,i){
  const m=x.measures[i];
  const low=Number(m.qty)<=Number(m.min);
- return `<div class="measure ${low?'is-low':''}" title="Минимальный остаток: ${fmt(m.min)} ${esc(m.unit)}">
+ return `<div class="measure ${low?'is-low':''}" title="РњРёРЅРёРјР°Р»СЊРЅС‹Р№ РѕСЃС‚Р°С‚РѕРє: ${fmt(m.min)} ${esc(m.unit)}">
    <div class="measure-row">
      <div class="measure-main"><div class="unit-label">${esc(m.unit)}</div><strong>${fmt(m.qty)}</strong></div>
      <div class="measure-actions">
-       <button class="mminus" onclick="change('${x.id}',${i},-1)" aria-label="Уменьшить на 1">−</button>
-       <button class="mplus" onclick="change('${x.id}',${i},1)" aria-label="Увеличить на 1">+</button>
+       <button class="mminus" onclick="change('${x.id}',${i},-1)" aria-label="РЈРјРµРЅСЊС€РёС‚СЊ РЅР° 1">в€’</button>
+       <button class="mplus" onclick="change('${x.id}',${i},1)" aria-label="РЈРІРµР»РёС‡РёС‚СЊ РЅР° 1">+</button>
      </div>
    </div>
    <div class="quick">
-     <button onclick="change('${x.id}',${i},-5)">−5</button>
-     <button onclick="change('${x.id}',${i},-0.5)">−0,5</button>
+     <button onclick="change('${x.id}',${i},-5)">в€’5</button>
+     <button onclick="change('${x.id}',${i},-0.5)">в€’0,5</button>
      <button onclick="change('${x.id}',${i},0.5)">+0,5</button>
      <button onclick="change('${x.id}',${i},5)">+5</button>
    </div>
@@ -585,31 +647,31 @@ function undoHistoryEntry(entryId){
  const h=data.history.find(e=>e.id===entryId);
  if(!h)return;
  const x=h.itemId?data.items.find(i=>i.id===h.itemId):data.items.find(i=>i.name===h.item);
- if(!x){toast('Позиция не найдена — уже удалена со склада');return}
+ if(!x){toast('РџРѕР·РёС†РёСЏ РЅРµ РЅР°Р№РґРµРЅР° вЂ” СѓР¶Рµ СѓРґР°Р»РµРЅР° СЃРѕ СЃРєР»Р°РґР°');return}
  const m=x.measures[h.measure];
- if(!m||m.unit!==h.unit){toast('Единица измерения изменилась — отменить нельзя');return}
+ if(!m||m.unit!==h.unit){toast('Р•РґРёРЅРёС†Р° РёР·РјРµСЂРµРЅРёСЏ РёР·РјРµРЅРёР»Р°СЃСЊ вЂ” РѕС‚РјРµРЅРёС‚СЊ РЅРµР»СЊР·СЏ');return}
  m.qty=Math.max(0,Math.round((Number(m.qty)-h.delta)*100)/100);
  data.history=data.history.filter(e=>e.id!==entryId);
  persist();render();
- toast(`Отменено: ${x.name}`);
+ toast(`РћС‚РјРµРЅРµРЅРѕ: ${x.name}`);
 }
 function deleteHistoryEntry(entryId){
  data.history=data.history.filter(e=>e.id!==entryId);
  persist();render();
- toast('Запись удалена из истории');
+ toast('Р—Р°РїРёСЃСЊ СѓРґР°Р»РµРЅР° РёР· РёСЃС‚РѕСЂРёРё');
 }
 function renderHistory(){
  const el=document.getElementById('historyList');
- if(!data.history.length){el.innerHTML='<div class="empty">Операций пока нет</div>';return}
+ if(!data.history.length){el.innerHTML='<div class="empty">РћРїРµСЂР°С†РёР№ РїРѕРєР° РЅРµС‚</div>';return}
  el.innerHTML=data.history.slice(0,15).map(h=>`<div class="history-item">
    <div class="hi-info"><b>${esc(h.item)}</b><div class="h-time">${new Date(h.time).toLocaleString('ru-RU')}</div></div>
    <div class="hi-right">
      <div class="${h.delta>0?'in':'out'}">${h.delta>0?'+':''}${fmt(h.delta)} ${esc(h.unit)}</div>
      <div class="hi-actions">
-       <button class="hi-btn" onclick="undoHistoryEntry('${h.id}')" title="Отменить операцию" aria-label="Отменить операцию">
+       <button class="hi-btn" onclick="undoHistoryEntry('${h.id}')" title="РћС‚РјРµРЅРёС‚СЊ РѕРїРµСЂР°С†РёСЋ" aria-label="РћС‚РјРµРЅРёС‚СЊ РѕРїРµСЂР°С†РёСЋ">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
        </button>
-       <button class="hi-btn del" onclick="deleteHistoryEntry('${h.id}')" title="Удалить запись" aria-label="Удалить запись">
+       <button class="hi-btn del" onclick="deleteHistoryEntry('${h.id}')" title="РЈРґР°Р»РёС‚СЊ Р·Р°РїРёСЃСЊ" aria-label="РЈРґР°Р»РёС‚СЊ Р·Р°РїРёСЃСЊ">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
        </button>
      </div>
@@ -618,13 +680,13 @@ function renderHistory(){
 }
 
 function openAdd(){
- editId=null;modalTitle.textContent='Добавить химию';fName.value='';
+ editId=null;modalTitle.textContent='Р”РѕР±Р°РІРёС‚СЊ С…РёРјРёСЋ';fName.value='';
  measureConfig.innerHTML='';addMeasureRow();
  modal.classList.add('show');setTimeout(()=>fName.focus(),50);
 }
 function openEdit(id){
  const x=data.items.find(i=>i.id===id);if(!x)return;
- editId=id;modalTitle.textContent='Изменить химию';fName.value=x.name;
+ editId=id;modalTitle.textContent='РР·РјРµРЅРёС‚СЊ С…РёРјРёСЋ';fName.value=x.name;
  measureConfig.innerHTML='';
  x.measures.forEach(m=>addMeasureRow(m));
  modal.classList.add('show');
@@ -632,11 +694,11 @@ function openEdit(id){
 function addMeasureRow(m={unit:'',qty:0,min:1}){
  const wrap=document.createElement('div');
  wrap.className='measure-config';
- wrap.innerHTML=`<div class="measure-config-head"><span>Единица измерения</span><button type="button" class="remove-measure" onclick="this.closest('.measure-config').remove()">Удалить</button></div>
+ wrap.innerHTML=`<div class="measure-config-head"><span>Р•РґРёРЅРёС†Р° РёР·РјРµСЂРµРЅРёСЏ</span><button type="button" class="remove-measure" onclick="this.closest('.measure-config').remove()">РЈРґР°Р»РёС‚СЊ</button></div>
  <div class="measure-config-grid">
-   <div><label>Единица</label><input class="m-unit" required placeholder="кан, кг, л, шт..." value="${esc(m.unit)}"></div>
-   <div><label>Количество</label><input class="m-qty" type="number" step="0.01" min="0" required value="${m.qty}"></div>
-   <div><label>Минимальный остаток</label><input class="m-min" type="number" step="0.01" min="0" required value="${m.min}"></div>
+   <div><label>Р•РґРёРЅРёС†Р°</label><input class="m-unit" required placeholder="РєР°РЅ, РєРі, Р», С€С‚..." value="${esc(m.unit)}"></div>
+   <div><label>РљРѕР»РёС‡РµСЃС‚РІРѕ</label><input class="m-qty" type="number" step="0.01" min="0" required value="${m.qty}"></div>
+   <div><label>РњРёРЅРёРјР°Р»СЊРЅС‹Р№ РѕСЃС‚Р°С‚РѕРє</label><input class="m-min" type="number" step="0.01" min="0" required value="${m.min}"></div>
  </div>`;
  measureConfig.appendChild(wrap);
 }
@@ -644,13 +706,13 @@ function saveItem(e){
  e.preventDefault();
  const name=fName.value.trim();
  const rows=[...document.querySelectorAll('.measure-config')];
- if(!rows.length){toast('Добавьте хотя бы одну единицу');return}
+ if(!rows.length){toast('Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРЅСѓ РµРґРёРЅРёС†Сѓ');return}
  const measures=rows.map(r=>({
    unit:r.querySelector('.m-unit').value.trim(),
    qty:Number(r.querySelector('.m-qty').value),
    min:Number(r.querySelector('.m-min').value)
  }));
- if(measures.some(m=>!m.unit)){toast('Укажите единицу измерения');return}
+ if(measures.some(m=>!m.unit)){toast('РЈРєР°Р¶РёС‚Рµ РµРґРёРЅРёС†Сѓ РёР·РјРµСЂРµРЅРёСЏ');return}
 
  if(editId){
    const x=data.items.find(i=>i.id===editId);
@@ -665,11 +727,11 @@ function saveItem(e){
  }else{
    data.items.push({id:crypto.randomUUID(),name,measures});
  }
- persist();closeModal();render();toast(editId?'Позиция изменена':'Позиция добавлена');
+ persist();closeModal();render();toast(editId?'РџРѕР·РёС†РёСЏ РёР·РјРµРЅРµРЅР°':'РџРѕР·РёС†РёСЏ РґРѕР±Р°РІР»РµРЅР°');
 }
 function closeModal(){modal.classList.remove('show')}
 function backdropClick(e){if(e.target===modal)closeModal()}
-function clearHistory(){if(!data.history.length)return toast('История уже пустая');if(confirm('Очистить историю операций?')){data.history=[];persist();render();}}
+function clearHistory(){if(!data.history.length)return toast('РСЃС‚РѕСЂРёСЏ СѓР¶Рµ РїСѓСЃС‚Р°СЏ');if(confirm('РћС‡РёСЃС‚РёС‚СЊ РёСЃС‚РѕСЂРёСЋ РѕРїРµСЂР°С†РёР№?')){data.history=[];persist();render();}}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 
 function execCommandCopy(text){
@@ -697,15 +759,15 @@ function copyToClipboard(text){
  return tryModern().catch(()=>execCommandCopy(text));
 }
 function buildReportText(items){
- const lines=items.map(x=>`${x.name} — ${x.measures.map(m=>`${fmt(m.qty)}${m.unit}`).join(', ')}`);
- return `Остаток химии на ${todayStr()}\n\n${lines.join('\n')}`;
+ const lines=items.map(x=>`${x.name} вЂ” ${x.measures.map(m=>`${fmt(m.qty)}${m.unit}`).join(', ')}`);
+ return `РћСЃС‚Р°С‚РѕРє С…РёРјРёРё РЅР° ${todayStr()}\n\n${lines.join('\n')}`;
 }
 let lastCopyText='';
 function copyReport(){
  const text=buildReportText(data.items);
  lastCopyText=text;
  copyToClipboard(text).then(()=>{
-   toast('Остаток скопирован в буфер обмена');
+   toast('РћСЃС‚Р°С‚РѕРє СЃРєРѕРїРёСЂРѕРІР°РЅ РІ Р±СѓС„РµСЂ РѕР±РјРµРЅР°');
    const btn=document.getElementById('copyBtn');
    btn.classList.add('copied');setTimeout(()=>btn.classList.remove('copied'),1200);
  }).catch(()=>showCopyFallback(text));
@@ -714,7 +776,7 @@ function copyItem(id){
  const x=data.items.find(i=>i.id===id);if(!x)return;
  const text=buildReportText([x]);
  lastCopyText=text;
- copyToClipboard(text).then(()=>toast(`«${x.name}» скопировано`)).catch(()=>showCopyFallback(text));
+ copyToClipboard(text).then(()=>toast(`В«${x.name}В» СЃРєРѕРїРёСЂРѕРІР°РЅРѕ`)).catch(()=>showCopyFallback(text));
 }
 function showCopyFallback(text){
  const ta=document.getElementById('copyTextarea');
@@ -724,20 +786,20 @@ function showCopyFallback(text){
 }
 function closeCopyModal(){document.getElementById('copyModal').classList.remove('show')}
 function retryCopyFromModal(){
- copyToClipboard(lastCopyText).then(()=>{toast('Скопировано');closeCopyModal();}).catch(()=>{
+ copyToClipboard(lastCopyText).then(()=>{toast('РЎРєРѕРїРёСЂРѕРІР°РЅРѕ');closeCopyModal();}).catch(()=>{
    const ta=document.getElementById('copyTextarea');ta.focus();ta.select();
-   toast('Выделите текст вручную и скопируйте');
+   toast('Р’С‹РґРµР»РёС‚Рµ С‚РµРєСЃС‚ РІСЂСѓС‡РЅСѓСЋ Рё СЃРєРѕРїРёСЂСѓР№С‚Рµ');
  });
 }
 
 let toastTimer;
 function toast(s){clearTimeout(toastTimer);toastEl.textContent=s;toastEl.classList.add('show');toastTimer=setTimeout(()=>toastEl.classList.remove('show'),1800)}
 const modal=document.getElementById('modal'),modalTitle=document.getElementById('modalTitle'),fName=document.getElementById('fName'),measureConfig=document.getElementById('measureConfig'),toastEl=document.getElementById('toast');
-window.addEventListener('online',()=>setSyncStatus('online','Синхронизировано'));
-window.addEventListener('offline',()=>setSyncStatus('offline','Офлайн — работает локально'));
+window.addEventListener('online',()=>setSyncStatus('online','РЎРёРЅС…СЂРѕРЅРёР·РёСЂРѕРІР°РЅРѕ'));
+window.addEventListener('offline',()=>setSyncStatus('offline','РћС„Р»Р°Р№РЅ вЂ” СЂР°Р±РѕС‚Р°РµС‚ Р»РѕРєР°Р»СЊРЅРѕ'));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('show'))closeModal()});
 
-/* ===== Вкладки ===== */
+/* ===== Р’РєР»Р°РґРєРё ===== */
 function switchTab(tab){
  document.getElementById('viewInventory').classList.toggle('active',tab==='inventory');
  document.getElementById('viewReport').classList.toggle('active',tab==='report');
@@ -746,26 +808,60 @@ function switchTab(tab){
  if(tab==='report'){renderReportPreview();updateSaveStatus();}
 }
 
-/* ===== Ежедневный отчёт ===== */
-const CONSUMPTION_ITEMS=['Пена жёлтая','Пена розовая','Пена голубая','Гидрофоб','Эмульсия'];
-const REPORT_STOCK_ITEMS=['Эмульсия','Пена жёлтая','Пена розовая','Пена голубая','Гидрофоб','Аминат'];
-const KNOWN_AUTHORS=['Калабухов','Трофименко'];
-const BOX_COUNT=3;
+/* ===== Р•Р¶РµРґРЅРµРІРЅС‹Р№ РѕС‚С‡С‘С‚ ===== */
+const REPORT_STOCK_ITEMS=['Р­РјСѓР»СЊСЃРёСЏ','РџРµРЅР° Р¶С‘Р»С‚Р°СЏ','РџРµРЅР° СЂРѕР·РѕРІР°СЏ','РџРµРЅР° РіРѕР»СѓР±Р°СЏ','Р“РёРґСЂРѕС„РѕР±','РђРјРёРЅР°С‚'];
+
+function range(n){const a=[];for(let i=1;i<=n;i++)a.push(i);return a}
+
+function settingsKey(){return 'report_settings_v1_'+locId}
+function defaultSettings(){
+ return {
+   authors:[],
+   boxCount:3,
+   compressorCount:2,
+   pumpCount:3,
+   consumptionItems:['РџРµРЅР° Р¶С‘Р»С‚Р°СЏ','РџРµРЅР° СЂРѕР·РѕРІР°СЏ','РџРµРЅР° РіРѕР»СѓР±Р°СЏ','Р“РёРґСЂРѕС„РѕР±','Р­РјСѓР»СЊСЃРёСЏ']
+ };
+}
+function sanitizeSettings(s){
+ const d=defaultSettings();
+ if(!s||typeof s!=='object')return d;
+ const boxCount=parseInt(s.boxCount);
+ const compressorCount=parseInt(s.compressorCount);
+ const pumpCount=parseInt(s.pumpCount);
+ return {
+   authors:Array.isArray(s.authors)?s.authors.filter(a=>a&&String(a).trim()):toArray(s.authors).filter(a=>a&&String(a).trim()),
+   boxCount:Number.isFinite(boxCount)?Math.max(1,Math.min(12,boxCount)):d.boxCount,
+   compressorCount:Number.isFinite(compressorCount)?Math.max(0,Math.min(12,compressorCount)):d.compressorCount,
+   pumpCount:Number.isFinite(pumpCount)?Math.max(0,Math.min(12,pumpCount)):d.pumpCount,
+   consumptionItems:Array.isArray(s.consumptionItems)?s.consumptionItems.filter(a=>a&&String(a).trim()):toArray(s.consumptionItems).filter(a=>a&&String(a).trim())
+ };
+}
+let settings=defaultSettings();
+let settingsSyncTimer;
+function persistSettingsLocal(){localStorage.setItem(settingsKey(),JSON.stringify(settings))}
+function persistSettings(){
+ persistSettingsLocal();
+ clearTimeout(settingsSyncTimer);
+ settingsSyncTimer=setTimeout(()=>{settingsRef.set(settings).catch(()=>{});},350);
+}
 
 function todayISO(){
  const d=new Date();
  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function defaultReport(){
+ const boxState={},washed={},hoses={},consumption={};
+ range(settings.boxCount).forEach(b=>{boxState[b]='ok';washed[b]='';hoses[b]={left:'',back:'',right:''};consumption[b]={};});
+ const compressorState={};
+ range(settings.compressorCount).forEach(i=>{compressorState[i]='ok';});
+ const pumpState={},pumpPressure={};
+ range(settings.pumpCount).forEach(i=>{pumpState[i]='ok';pumpPressure[i]='';});
  return {
    author:localStorage.getItem(lastAuthorKey())||'',
-   boxState:{1:'ok',2:'ok',3:'ok'},
-   washed:{1:'',2:'',3:''},
-   ph:'',
-   compressorState:{1:'ok',2:'ok'},
-   pumpState:{1:'ok',2:'ok',3:'ok'},
-   hoses:{1:{left:'',back:'',right:''},2:{left:'',back:'',right:''},3:{left:'',back:'',right:''}},
-   consumption:{1:{},2:{},3:{}}
+   boxState,washed,tds:'',
+   compressorState,pumpState,pumpPressure,
+   hoses,consumption
  };
 }
 function sanitizeReport(r){
@@ -773,19 +869,22 @@ function sanitizeReport(r){
  if(!r||typeof r!=='object')return d;
  const out={
    author:r.author!==undefined?r.author:d.author,
-   boxState:{},washed:{},ph:r.ph||'',
-   compressorState:{},pumpState:{},
+   boxState:{},washed:{},tds:r.tds!==undefined?r.tds:(r.ph!==undefined?r.ph:''),
+   compressorState:{},pumpState:{},pumpPressure:{},
    hoses:{},consumption:{}
  };
- for(let b=1;b<=BOX_COUNT;b++){
+ range(settings.boxCount).forEach(b=>{
    out.boxState[b]=(r.boxState&&r.boxState[b])||'ok';
    out.washed[b]=(r.washed&&r.washed[b])||'';
    const h=r.hoses&&r.hoses[b];
    out.hoses[b]={left:(h&&h.left)||'',back:(h&&h.back)||'',right:(h&&h.right)||''};
    out.consumption[b]=Object.assign({},r.consumption&&r.consumption[b]);
- }
- for(let i=1;i<=2;i++)out.compressorState[i]=(r.compressorState&&r.compressorState[i])||'ok';
- for(let i=1;i<=3;i++)out.pumpState[i]=(r.pumpState&&r.pumpState[i])||'ok';
+ });
+ range(settings.compressorCount).forEach(i=>{out.compressorState[i]=(r.compressorState&&r.compressorState[i])||'ok';});
+ range(settings.pumpCount).forEach(i=>{
+   out.pumpState[i]=(r.pumpState&&r.pumpState[i])||'ok';
+   out.pumpPressure[i]=(r.pumpPressure&&r.pumpPressure[i])||'';
+ });
  return out;
 }
 let report={};
@@ -799,15 +898,15 @@ function renderToggleGroup(elId,ids,stateObj,prefix,offLabel){
    <div class="toggle-item">
      <span>${prefix} ${i}</span>
      <div class="pill-toggle">
-       <button type="button" class="${stateObj[i]!=='bad'?'on':''}" onclick="setToggle('${elId}',${i},'ok')">Норма</button>
+       <button type="button" class="${stateObj[i]!=='bad'?'on':''}" onclick="setToggle('${elId}',${i},'ok')">РќРѕСЂРјР°</button>
        <button type="button" class="${stateObj[i]==='bad'?'off':''}" onclick="setToggle('${elId}',${i},'bad')">${offLabel}</button>
      </div>
    </div>`).join('');
 }
 function renderAllToggles(){
- renderToggleGroup('boxStatusRow',[1,2,3],report.boxState,'Бокс','Не работает');
- renderToggleGroup('compressorRow',[1,2],report.compressorState,'Компрессор','Не в норме');
- renderToggleGroup('pumpRow',[1,2,3],report.pumpState,'Помпа','Не в норме');
+ renderToggleGroup('boxStatusRow',range(settings.boxCount),report.boxState,'Р‘РѕРєСЃ','РќРµ СЂР°Р±РѕС‚Р°РµС‚');
+ renderToggleGroup('compressorRow',range(settings.compressorCount),report.compressorState,'РљРѕРјРїСЂРµСЃСЃРѕСЂ','РќРµ РІ РЅРѕСЂРјРµ');
+ renderToggleGroup('pumpRow',range(settings.pumpCount),report.pumpState,'РџРѕРјРїР°','РќРµ РІ РЅРѕСЂРјРµ');
 }
 function setToggle(group,i,val){
  if(group==='boxStatusRow')report.boxState[i]=val;
@@ -817,66 +916,88 @@ function setToggle(group,i,val){
  renderReportPreview();
  persistReport();
 }
+function buildAuthorSelect(){
+ const sel=document.getElementById('rAuthor');
+ const cur=sel.value;
+ let html='<option value="">Р’С‹Р±РµСЂРёС‚Рµ...</option>';
+ settings.authors.forEach(a=>{html+=`<option value="${esc(a)}">${esc(a)}</option>`});
+ html+='<option value="__custom__">Р”СЂСѓРіРѕРµ РёРјСЏ...</option>';
+ sel.innerHTML=html;
+ if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+}
 function onAuthorChange(){
  const sel=document.getElementById('rAuthor').value;
  const custom=document.getElementById('rAuthorCustom');
  custom.style.display=sel==='__custom__'?'block':'none';
  updateReport();
 }
+function commitCustomAuthor(){
+ const inp=document.getElementById('rAuthorCustom');
+ const name=inp.value.trim();
+ if(!name)return;
+ if(!settings.authors.includes(name)){
+   settings.authors.push(name);
+   persistSettings();
+ }
+ buildAuthorSelect();
+ document.getElementById('rAuthor').value=name;
+ inp.style.display='none';
+ updateReport();
+}
 function buildBoxSectionHtml(b){
  return `<details class="box-section">
-   <summary>Бокс ${b}</summary>
+   <summary>Р‘РѕРєСЃ ${b}</summary>
    <div class="box-section-body">
      <div class="sub-label-row">
-       <span class="sub-label">Проход рукава</span>
+       <span class="sub-label">РџСЂРѕС…РѕРґ СЂСѓРєР°РІР°</span>
        <div class="sub-label-actions">
          <button type="button" class="mini-copy" onclick="copyBoxHose(${b},event)">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-           Копировать
+           РљРѕРїРёСЂРѕРІР°С‚СЊ
          </button>
          <button type="button" class="mini-copy clear" onclick="clearBoxHose(${b},event)">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-           Очистить
+           РћС‡РёСЃС‚РёС‚СЊ
          </button>
        </div>
      </div>
      <div class="hose-grid">
-       <div><label>Слева</label><input class="hose-in" data-box="${b}" data-side="left" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
-       <div><label>Сзади</label><input class="hose-in" data-box="${b}" data-side="back" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
-       <div><label>Справа</label><input class="hose-in" data-box="${b}" data-side="right" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
+       <div><label>РЎР»РµРІР°</label><input class="hose-in" data-box="${b}" data-side="left" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
+       <div><label>РЎР·Р°РґРё</label><input class="hose-in" data-box="${b}" data-side="back" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
+       <div><label>РЎРїСЂР°РІР°</label><input class="hose-in" data-box="${b}" data-side="right" type="number" step="0.001" inputmode="decimal" oninput="updateReport()"></div>
      </div>
      <div class="sub-label-row">
-       <span class="sub-label">Расход химии, г</span>
+       <span class="sub-label">Р Р°СЃС…РѕРґ С…РёРјРёРё, Рі</span>
        <div class="sub-label-actions">
          <button type="button" class="mini-copy" onclick="copyBoxConsumption(${b},event)">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-           Копировать
+           РљРѕРїРёСЂРѕРІР°С‚СЊ
          </button>
          <button type="button" class="mini-copy clear" onclick="clearBoxConsumption(${b},event)">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-           Очистить
+           РћС‡РёСЃС‚РёС‚СЊ
          </button>
        </div>
      </div>
      <div class="consumption-grid">
-       ${CONSUMPTION_ITEMS.map(name=>`<div><label>${esc(name)}</label><input class="cons-in" data-box="${b}" data-name="${esc(name)}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`).join('')}
+       ${settings.consumptionItems.map(name=>`<div><label>${esc(name)}</label><input class="cons-in" data-box="${b}" data-name="${esc(name)}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`).join('')}
      </div>
    </div>
  </details>`;
 }
 function buildHoseText(b){
  const h=report.hoses[b]||{};
- const lines=[`Проход рукава ${b} бокс:`];
- if(h.left)lines.push(`Слева - ${h.left}`);
- if(h.back)lines.push(`Сзади - ${h.back}`);
- if(h.right)lines.push(`Справа - ${h.right}`);
+ const lines=[`РџСЂРѕС…РѕРґ СЂСѓРєР°РІР° ${b} Р±РѕРєСЃ:`];
+ if(h.left)lines.push(`РЎР»РµРІР° - ${h.left}`);
+ if(h.back)lines.push(`РЎР·Р°РґРё - ${h.back}`);
+ if(h.right)lines.push(`РЎРїСЂР°РІР° - ${h.right}`);
  return lines.join('\n');
 }
 function buildConsumptionText(b){
  const c=report.consumption[b]||{};
- const rows=CONSUMPTION_ITEMS.filter(name=>c[name]);
- const lines=[`Расход химии ${b} бокс:`];
- rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
+ const rows=settings.consumptionItems.filter(name=>c[name]);
+ const lines=[`Р Р°СЃС…РѕРґ С…РёРјРёРё ${b} Р±РѕРєСЃ:`];
+ rows.forEach(name=>lines.push(`${name} - ${c[name]} Рі.`));
  return lines.join('\n');
 }
 function flashMiniCopy(btn){
@@ -885,63 +1006,80 @@ function flashMiniCopy(btn){
 }
 function copyBoxHose(b,ev){
  const h=report.hoses[b]||{};
- if(!h.left&&!h.back&&!h.right){toast(`Бокс ${b}: нет данных по рукаву`);return}
+ if(!h.left&&!h.back&&!h.right){toast(`Р‘РѕРєСЃ ${b}: РЅРµС‚ РґР°РЅРЅС‹С… РїРѕ СЂСѓРєР°РІСѓ`);return}
  const text=buildHoseText(b);
  lastCopyText=text;
  copyToClipboard(text).then(()=>{
-   toast(`Проход рукава, бокс ${b} — скопировано`);
+   toast(`РџСЂРѕС…РѕРґ СЂСѓРєР°РІР°, Р±РѕРєСЃ ${b} вЂ” СЃРєРѕРїРёСЂРѕРІР°РЅРѕ`);
    if(ev&&ev.currentTarget)flashMiniCopy(ev.currentTarget);
  }).catch(()=>showCopyFallback(text));
 }
 function copyBoxConsumption(b,ev){
  const c=report.consumption[b]||{};
- if(!CONSUMPTION_ITEMS.some(name=>c[name])){toast(`Бокс ${b}: нет данных по расходу`);return}
+ if(!settings.consumptionItems.some(name=>c[name])){toast(`Р‘РѕРєСЃ ${b}: РЅРµС‚ РґР°РЅРЅС‹С… РїРѕ СЂР°СЃС…РѕРґСѓ`);return}
  const text=buildConsumptionText(b);
  lastCopyText=text;
  copyToClipboard(text).then(()=>{
-   toast(`Расход химии, бокс ${b} — скопировано`);
+   toast(`Р Р°СЃС…РѕРґ С…РёРјРёРё, Р±РѕРєСЃ ${b} вЂ” СЃРєРѕРїРёСЂРѕРІР°РЅРѕ`);
    if(ev&&ev.currentTarget)flashMiniCopy(ev.currentTarget);
  }).catch(()=>showCopyFallback(text));
 }
 function clearBoxHose(b,ev){
  const h=report.hoses[b]||{};
- if(!h.left&&!h.back&&!h.right){toast(`Бокс ${b}: проход рукава уже пуст`);return}
- if(!confirm(`Очистить проход рукава для бокса ${b}?`))return;
+ if(!h.left&&!h.back&&!h.right){toast(`Р‘РѕРєСЃ ${b}: РїСЂРѕС…РѕРґ СЂСѓРєР°РІР° СѓР¶Рµ РїСѓСЃС‚`);return}
+ if(!confirm(`РћС‡РёСЃС‚РёС‚СЊ РїСЂРѕС…РѕРґ СЂСѓРєР°РІР° РґР»СЏ Р±РѕРєСЃР° ${b}?`))return;
  report.hoses[b]={left:'',back:'',right:''};
  document.querySelectorAll(`.hose-in[data-box="${b}"]`).forEach(inp=>inp.value='');
  renderReportPreview();
  persistReport();
- toast(`Проход рукава, бокс ${b} — очищено`);
+ toast(`РџСЂРѕС…РѕРґ СЂСѓРєР°РІР°, Р±РѕРєСЃ ${b} вЂ” РѕС‡РёС‰РµРЅРѕ`);
 }
 function clearBoxConsumption(b,ev){
  const c=report.consumption[b]||{};
- if(!CONSUMPTION_ITEMS.some(name=>c[name])){toast(`Бокс ${b}: расход химии уже пуст`);return}
- if(!confirm(`Очистить расход химии для бокса ${b}?`))return;
+ if(!settings.consumptionItems.some(name=>c[name])){toast(`Р‘РѕРєСЃ ${b}: СЂР°СЃС…РѕРґ С…РёРјРёРё СѓР¶Рµ РїСѓСЃС‚`);return}
+ if(!confirm(`РћС‡РёСЃС‚РёС‚СЊ СЂР°СЃС…РѕРґ С…РёРјРёРё РґР»СЏ Р±РѕРєСЃР° ${b}?`))return;
  report.consumption[b]={};
  document.querySelectorAll(`.cons-in[data-box="${b}"]`).forEach(inp=>inp.value='');
  renderReportPreview();
  persistReport();
- toast(`Расход химии, бокс ${b} — очищено`);
+ toast(`Р Р°СЃС…РѕРґ С…РёРјРёРё, Р±РѕРєСЃ ${b} вЂ” РѕС‡РёС‰РµРЅРѕ`);
 }
 function buildBoxSectionsOnce(){
  let html='';
- for(let b=1;b<=BOX_COUNT;b++)html+=buildBoxSectionHtml(b);
+ range(settings.boxCount).forEach(b=>{html+=buildBoxSectionHtml(b);});
  document.getElementById('boxSections').innerHTML=html;
+}
+function buildWashedGridOnce(){
+ document.getElementById('washedGrid').innerHTML=range(settings.boxCount).map(b=>
+   `<div><span>Р‘РѕРєСЃ ${b}</span><input class="washed-in" data-box="${b}" type="number" min="0" inputmode="numeric" oninput="updateReport()"></div>`
+ ).join('');
+}
+function buildPumpPressureOnce(){
+ document.getElementById('pumpPressureGrid').innerHTML=range(settings.pumpCount).map(i=>
+   `<div><span>РџРѕРјРїР° ${i}</span><input class="pump-pressure-in" data-pump="${i}" type="number" step="0.1" inputmode="decimal" oninput="updateReport()"></div>`
+ ).join('')||'<div class="empty" style="padding:6px 0">РџРѕРјРї РЅРµ Р·Р°РґР°РЅРѕ</div>';
+}
+function rebuildReportDynamicUI(){
+ buildWashedGridOnce();
+ buildPumpPressureOnce();
+ buildBoxSectionsOnce();
+ buildAuthorSelect();
+ renderAllToggles();
 }
 function fillReportForm(){
  document.getElementById('rDateDisplay').textContent=todayStr();
+ buildAuthorSelect();
  const authorSel=document.getElementById('rAuthor'),authorCustom=document.getElementById('rAuthorCustom');
- if(KNOWN_AUTHORS.includes(report.author)){
+ if(settings.authors.includes(report.author)){
    authorSel.value=report.author;authorCustom.style.display='none';authorCustom.value='';
  }else if(report.author){
    authorSel.value='__custom__';authorCustom.style.display='block';authorCustom.value=report.author;
  }else{
    authorSel.value='';authorCustom.style.display='none';authorCustom.value='';
  }
- document.getElementById('rWashed1').value=report.washed[1];
- document.getElementById('rWashed2').value=report.washed[2];
- document.getElementById('rWashed3').value=report.washed[3];
- document.getElementById('rPh').value=report.ph;
+ document.querySelectorAll('.washed-in').forEach(inp=>{inp.value=report.washed[inp.dataset.box]||''});
+ document.getElementById('rTds').value=report.tds;
+ document.querySelectorAll('.pump-pressure-in').forEach(inp=>{inp.value=report.pumpPressure[inp.dataset.pump]||''});
  document.getElementById('washedDateLabel').textContent=yesterdayDMY();
  document.querySelectorAll('.hose-in').forEach(inp=>{
    const b=inp.dataset.box,side=inp.dataset.side;
@@ -957,7 +1095,7 @@ function fillReportForm(){
 function joinNums(arr){
  if(!arr.length)return'';
  if(arr.length===1)return String(arr[0]);
- return arr.slice(0,-1).join(', ')+' и '+arr[arr.length-1];
+ return arr.slice(0,-1).join(', ')+' Рё '+arr[arr.length-1];
 }
 function buildDailyReportText(r){
  const dateStr=todayStr();
@@ -965,55 +1103,60 @@ function buildDailyReportText(r){
  const lines=[];
  lines.push(`${dateStr}${r.author?(' '+r.author):''}`.trim());
 
- const normalBoxes=[1,2,3].filter(b=>r.boxState[b]!=='bad');
- const badBoxes=[1,2,3].filter(b=>r.boxState[b]==='bad');
- if(normalBoxes.length)lines.push(`Боксы ${normalBoxes.join(', ')} - работают в штатном режиме.`);
- badBoxes.forEach(b=>lines.push(`Бокс ${b} - не работает.`));
+ const boxIds=range(settings.boxCount);
+ const normalBoxes=boxIds.filter(b=>r.boxState[b]!=='bad');
+ const badBoxes=boxIds.filter(b=>r.boxState[b]==='bad');
+ if(normalBoxes.length)lines.push(`Р‘РѕРєСЃС‹ ${normalBoxes.join(', ')} - СЂР°Р±РѕС‚Р°СЋС‚ РІ С€С‚Р°С‚РЅРѕРј СЂРµР¶РёРјРµ.`);
+ badBoxes.forEach(b=>lines.push(`Р‘РѕРєСЃ ${b} - РЅРµ СЂР°Р±РѕС‚Р°РµС‚.`));
  lines.push('');
 
- lines.push(`Помыто машин за ${yestStr}:`);
- for(let b=1;b<=BOX_COUNT;b++)lines.push(`${b} бокс - ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`);
+ lines.push(`РџРѕРјС‹С‚Рѕ РјР°С€РёРЅ Р·Р° ${yestStr}:`);
+ range(settings.boxCount).forEach(b=>lines.push(`${b} Р±РѕРєСЃ - ${r.washed[b]!==''&&r.washed[b]!=null?r.washed[b]:0}`));
  lines.push('');
 
- lines.push('Остаток химии:');
+ lines.push('РћСЃС‚Р°С‚РѕРє С…РёРјРёРё:');
  REPORT_STOCK_ITEMS.forEach(name=>{
    const x=data.items.find(it=>it.name.trim().toLowerCase()===name.toLowerCase());
    if(!x)return;
    let shown=x.measures.filter(m=>Number(m.qty)!==0);
    if(!shown.length)shown=x.measures;
-   lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' и ')}`);
+   lines.push(`${x.name} - ${shown.map(m=>`${fmt(m.qty)}${m.unit}.`).join(' Рё ')}`);
  });
- lines.push(`PH - ${r.ph||''}`);
+ lines.push(`TDS - ${r.tds||''}`);
  lines.push('');
 
- for(let i=1;i<=2;i++){
-   lines.push(`Масло компрессор ${i} - ${r.compressorState[i]==='bad'?'не в норме':'норма'}.`);
- }
- const pumpOk=[1,2,3].filter(i=>r.pumpState[i]!=='bad');
- const pumpBad=[1,2,3].filter(i=>r.pumpState[i]==='bad');
- if(pumpOk.length)lines.push(`Помпы ${pumpOk.join(', ')} масло в норме.`);
- if(pumpBad.length)lines.push(`Помпы ${pumpBad.join(', ')} масло не в норме.`);
+ range(settings.compressorCount).forEach(i=>{
+   lines.push(`РњР°СЃР»Рѕ РєРѕРјРїСЂРµСЃСЃРѕСЂ ${i} - ${r.compressorState[i]==='bad'?'РЅРµ РІ РЅРѕСЂРјРµ':'РЅРѕСЂРјР°'}.`);
+ });
+ const pumpIds=range(settings.pumpCount);
+ const pumpOk=pumpIds.filter(i=>r.pumpState[i]!=='bad');
+ const pumpBad=pumpIds.filter(i=>r.pumpState[i]==='bad');
+ if(pumpOk.length)lines.push(`РџРѕРјРїС‹ ${pumpOk.join(', ')} РјР°СЃР»Рѕ РІ РЅРѕСЂРјРµ.`);
+ if(pumpBad.length)lines.push(`РџРѕРјРїС‹ ${pumpBad.join(', ')} РјР°СЃР»Рѕ РЅРµ РІ РЅРѕСЂРјРµ.`);
+ pumpIds.forEach(i=>{
+   if(r.pumpPressure[i]!==''&&r.pumpPressure[i]!=null)lines.push(`Р”Р°РІР»РµРЅРёРµ РїРѕРјРїС‹ ${i} - ${r.pumpPressure[i]}`);
+ });
  lines.push('');
 
- for(let b=1;b<=BOX_COUNT;b++){
+ range(settings.boxCount).forEach(b=>{
    const h=r.hoses[b]||{};
    if(h.left||h.back||h.right){
-     lines.push(`Проход рукава ${b} бокс:`);
-     if(h.left)lines.push(`Слева - ${h.left}`);
-     if(h.back)lines.push(`Сзади - ${h.back}`);
-     if(h.right)lines.push(`Справа - ${h.right}`);
+     lines.push(`РџСЂРѕС…РѕРґ СЂСѓРєР°РІР° ${b} Р±РѕРєСЃ:`);
+     if(h.left)lines.push(`РЎР»РµРІР° - ${h.left}`);
+     if(h.back)lines.push(`РЎР·Р°РґРё - ${h.back}`);
+     if(h.right)lines.push(`РЎРїСЂР°РІР° - ${h.right}`);
      lines.push('');
    }
- }
- for(let b=1;b<=BOX_COUNT;b++){
+ });
+ range(settings.boxCount).forEach(b=>{
    const c=r.consumption[b]||{};
-   const rows=CONSUMPTION_ITEMS.filter(name=>c[name]);
+   const rows=settings.consumptionItems.filter(name=>c[name]);
    if(rows.length){
-     lines.push(`Расход химии ${b} бокс:`);
-     rows.forEach(name=>lines.push(`${name} - ${c[name]} г.`));
+     lines.push(`Р Р°СЃС…РѕРґ С…РёРјРёРё ${b} Р±РѕРєСЃ:`);
+     rows.forEach(name=>lines.push(`${name} - ${c[name]} Рі.`));
      lines.push('');
    }
- }
+ });
  return lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
 }
 function renderReportPreview(){
@@ -1028,12 +1171,12 @@ function persistReport(){
 }
 function updateReport(){
  const selVal=document.getElementById('rAuthor').value;
- report.author=selVal==='__custom__'?document.getElementById('rAuthorCustom').value:selVal;
+ if(selVal!=='__custom__')report.author=selVal;
+ else report.author=document.getElementById('rAuthorCustom').value;
  localStorage.setItem(lastAuthorKey(),report.author);
- report.washed[1]=document.getElementById('rWashed1').value;
- report.washed[2]=document.getElementById('rWashed2').value;
- report.washed[3]=document.getElementById('rWashed3').value;
- report.ph=document.getElementById('rPh').value;
+ document.querySelectorAll('.washed-in').forEach(inp=>{report.washed[inp.dataset.box]=inp.value});
+ report.tds=document.getElementById('rTds').value;
+ document.querySelectorAll('.pump-pressure-in').forEach(inp=>{report.pumpPressure[inp.dataset.pump]=inp.value});
  document.querySelectorAll('.hose-in').forEach(inp=>{
    const b=inp.dataset.box,side=inp.dataset.side;
    report.hoses[b][side]=inp.value;
@@ -1047,18 +1190,18 @@ function updateReport(){
  persistReport();
 }
 function clearReportForm(){
- if(!confirm('Очистить форму отчёта на новый день? Ответственный останется прежним.'))return;
+ if(!confirm('РћС‡РёСЃС‚РёС‚СЊ С„РѕСЂРјСѓ РѕС‚С‡С‘С‚Р° РЅР° РЅРѕРІС‹Р№ РґРµРЅСЊ? РћС‚РІРµС‚СЃС‚РІРµРЅРЅС‹Р№ РѕСЃС‚Р°РЅРµС‚СЃСЏ РїСЂРµР¶РЅРёРј.'))return;
  const keepAuthor=report.author;
  report=defaultReport();
  report.author=keepAuthor;
  fillReportForm();
  persistReport();
- toast('Форма очищена');
+ toast('Р¤РѕСЂРјР° РѕС‡РёС‰РµРЅР°');
 }
 function copyDailyReport(){
  const text=buildDailyReportText(report);
  lastCopyText=text;
- copyToClipboard(text).then(()=>toast('Отчёт скопирован в буфер обмена')).catch(()=>showCopyFallback(text));
+ copyToClipboard(text).then(()=>toast('РћС‚С‡С‘С‚ СЃРєРѕРїРёСЂРѕРІР°РЅ РІ Р±СѓС„РµСЂ РѕР±РјРµРЅР°')).catch(()=>showCopyFallback(text));
 }
 let reportsHistoryCache=[];
 function updateSaveStatus(){
@@ -1070,10 +1213,10 @@ function updateSaveStatus(){
    const latest=todays.reduce((a,b)=>new Date(a.time)>new Date(b.time)?a:b);
    const time=new Date(latest.time).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
    el.className='save-status ok';
-   el.textContent=`✅ Отчёт за сегодня сохранён в ${time}`;
+   el.textContent=`вњ… РћС‚С‡С‘С‚ Р·Р° СЃРµРіРѕРґРЅСЏ СЃРѕС…СЂР°РЅС‘РЅ РІ ${time}`;
  }else{
    el.className='save-status warn';
-   el.textContent='⚠️ Отчёт за сегодня ещё не сохранён в историю';
+   el.textContent='вљ пёЏ РћС‚С‡С‘С‚ Р·Р° СЃРµРіРѕРґРЅСЏ РµС‰С‘ РЅРµ СЃРѕС…СЂР°РЅС‘РЅ РІ РёСЃС‚РѕСЂРёСЋ';
  }
 }
 function setReportsHistoryCache(list){
@@ -1088,35 +1231,35 @@ function saveReportToHistory(){
  let hist=[entry,...reportsHistoryCache].slice(0,60);
  setReportsHistoryCache(hist);
  reportsHistoryRef.child(entry.id).set(entry).catch(()=>{});
- toast('Отчёт сохранён в историю');
+ toast('РћС‚С‡С‘С‚ СЃРѕС…СЂР°РЅС‘РЅ РІ РёСЃС‚РѕСЂРёСЋ');
 }
 function restoreReportHistory(id){
  const entry=reportsHistoryCache.find(h=>h.id===id);
  if(!entry)return;
- if(!confirm('Загрузить этот отчёт в текущую форму? Незаполненные данные будут заменены.'))return;
+ if(!confirm('Р—Р°РіСЂСѓР·РёС‚СЊ СЌС‚РѕС‚ РѕС‚С‡С‘С‚ РІ С‚РµРєСѓС‰СѓСЋ С„РѕСЂРјСѓ? РќРµР·Р°РїРѕР»РЅРµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ Р±СѓРґСѓС‚ Р·Р°РјРµРЅРµРЅС‹.'))return;
  report=entry.report?sanitizeReport(entry.report):sanitizeReport(null);
  fillReportForm();
  persistReport();
- toast('Отчёт восстановлен в форму');
+ toast('РћС‚С‡С‘С‚ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅ РІ С„РѕСЂРјСѓ');
 }
 function deleteReportHistoryEntry(id){
  const hist=reportsHistoryCache.filter(h=>h.id!==id);
  setReportsHistoryCache(hist);
  reportsHistoryRef.child(id).remove().catch(()=>{});
- toast('Отчёт удалён из истории');
+ toast('РћС‚С‡С‘С‚ СѓРґР°Р»С‘РЅ РёР· РёСЃС‚РѕСЂРёРё');
 }
 function renderReportsHistory(list){
  const el=document.getElementById('reportsHistoryList');
- if(!list||!list.length){el.innerHTML='<div class="empty">Отчётов пока нет</div>';return}
+ if(!list||!list.length){el.innerHTML='<div class="empty">РћС‚С‡С‘С‚РѕРІ РїРѕРєР° РЅРµС‚</div>';return}
  el.innerHTML=list.slice(0,30).map(h=>`<div class="report-history-item">
    <div class="rh-top">
      <div><span class="rh-date">${esc(h.date?new Date(h.date+'T00:00:00').toLocaleDateString('ru-RU'):'')}</span> ${esc(h.author||'')}</div>
      <div class="rh-actions">
-       <button class="rh-copy" onclick="copyHistoryReport('${h.id}')">Копировать</button>
-       <button class="hi-btn" onclick="restoreReportHistory('${h.id}')" title="Восстановить в форму" aria-label="Восстановить в форму">
+       <button class="rh-copy" onclick="copyHistoryReport('${h.id}')">РљРѕРїРёСЂРѕРІР°С‚СЊ</button>
+       <button class="hi-btn" onclick="restoreReportHistory('${h.id}')" title="Р’РѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ РІ С„РѕСЂРјСѓ" aria-label="Р’РѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ РІ С„РѕСЂРјСѓ">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
        </button>
-       <button class="hi-btn del" onclick="deleteReportHistoryEntry('${h.id}')" title="Удалить" aria-label="Удалить">
+       <button class="hi-btn del" onclick="deleteReportHistoryEntry('${h.id}')" title="РЈРґР°Р»РёС‚СЊ" aria-label="РЈРґР°Р»РёС‚СЊ">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
        </button>
      </div>
@@ -1128,32 +1271,145 @@ function copyHistoryReport(id){
  const entry=reportsHistoryCache.find(h=>h.id===id);
  if(!entry)return;
  lastCopyText=entry.text;
- copyToClipboard(entry.text).then(()=>toast('Отчёт скопирован')).catch(()=>showCopyFallback(entry.text));
+ copyToClipboard(entry.text).then(()=>toast('РћС‚С‡С‘С‚ СЃРєРѕРїРёСЂРѕРІР°РЅ')).catch(()=>showCopyFallback(entry.text));
 }
 
-/* ===== Запуск приложения после выбора автомойки ===== */
+/* ===== РќР°СЃС‚СЂРѕР№РєРё РѕС‚С‡С‘С‚Р° РґР»СЏ Р°РІС‚РѕРјРѕР№РєРё ===== */
+const settingsModal=document.getElementById('settingsModal');
+function openSettings(){
+ renderSettingsAuthors();
+ renderSettingsConsumption();
+ document.getElementById('setBoxCount').textContent=settings.boxCount;
+ document.getElementById('setCompressorCount').textContent=settings.compressorCount;
+ document.getElementById('setPumpCount').textContent=settings.pumpCount;
+ settingsModal.classList.add('show');
+}
+function closeSettings(){settingsModal.classList.remove('show')}
+function settingsBackdropClick(e){if(e.target===settingsModal)closeSettings()}
+
+function renderSettingsAuthors(){
+ const el=document.getElementById('setAuthorsList');
+ el.innerHTML=settings.authors.length?settings.authors.map((a,i)=>
+   `<div class="setting-chip"><span>${esc(a)}</span><button type="button" onclick="removeSettingAuthor(${i})" aria-label="РЈРґР°Р»РёС‚СЊ">вњ•</button></div>`
+ ).join(''):'<div class="empty" style="padding:8px 0">РЎРїРёСЃРѕРє РїСѓСЃС‚</div>';
+}
+function addSettingAuthor(){
+ const inp=document.getElementById('newAuthorName');
+ const name=inp.value.trim();
+ if(!name)return;
+ if(!settings.authors.includes(name))settings.authors.push(name);
+ inp.value='';
+ persistSettings();
+ renderSettingsAuthors();
+ buildAuthorSelect();
+}
+function removeSettingAuthor(i){
+ settings.authors.splice(i,1);
+ persistSettings();
+ renderSettingsAuthors();
+ buildAuthorSelect();
+}
+
+function renderSettingsConsumption(){
+ const el=document.getElementById('setConsumptionList');
+ el.innerHTML=settings.consumptionItems.length?settings.consumptionItems.map((a,i)=>
+   `<div class="setting-chip"><span>${esc(a)}</span><button type="button" onclick="removeSettingConsumption(${i})" aria-label="РЈРґР°Р»РёС‚СЊ">вњ•</button></div>`
+ ).join(''):'<div class="empty" style="padding:8px 0">РЎРїРёСЃРѕРє РїСѓСЃС‚</div>';
+}
+function addSettingConsumption(){
+ const inp=document.getElementById('newConsumptionName');
+ const name=inp.value.trim();
+ if(!name)return;
+ if(!settings.consumptionItems.includes(name))settings.consumptionItems.push(name);
+ inp.value='';
+ persistSettings();
+ renderSettingsConsumption();
+ buildBoxSectionsOnce();
+ fillReportForm();
+}
+function removeSettingConsumption(i){
+ settings.consumptionItems.splice(i,1);
+ persistSettings();
+ renderSettingsConsumption();
+ buildBoxSectionsOnce();
+ fillReportForm();
+ persistReport();
+}
+
+function changeBoxCount(delta){
+ const next=settings.boxCount+delta;
+ if(next<1||next>12)return;
+ settings.boxCount=next;
+ persistSettings();
+ report=sanitizeReport(report);
+ document.getElementById('setBoxCount').textContent=settings.boxCount;
+ rebuildReportDynamicUI();
+ fillReportForm();
+ persistReport();
+}
+function changeCompressorCount(delta){
+ const next=settings.compressorCount+delta;
+ if(next<0||next>12)return;
+ settings.compressorCount=next;
+ persistSettings();
+ report=sanitizeReport(report);
+ document.getElementById('setCompressorCount').textContent=settings.compressorCount;
+ rebuildReportDynamicUI();
+ fillReportForm();
+ persistReport();
+}
+function changePumpCount(delta){
+ const next=settings.pumpCount+delta;
+ if(next<0||next>12)return;
+ settings.pumpCount=next;
+ persistSettings();
+ report=sanitizeReport(report);
+ document.getElementById('setPumpCount').textContent=settings.pumpCount;
+ rebuildReportDynamicUI();
+ fillReportForm();
+ persistReport();
+}
+
+/* ===== Р—Р°РїСѓСЃРє РїСЂРёР»РѕР¶РµРЅРёСЏ РїРѕСЃР»Рµ РІС‹Р±РѕСЂР° Р°РІС‚РѕРјРѕР№РєРё ===== */
 function startApp(id,name){
  locId=id;
  dbRef=firebase.database().ref('locations/'+locId+'/inventory');
  reportDbRef=firebase.database().ref('locations/'+locId+'/dailyReport');
  reportsHistoryRef=firebase.database().ref('locations/'+locId+'/reportsHistory');
+ settingsRef=firebase.database().ref('locations/'+locId+'/settings');
 
  document.getElementById('currentLocLabel').textContent=name;
 
- data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:defaultItems,history:[]});
+ invHintDismissed=localStorage.getItem(invHintKey())==='1';
+ settings=sanitizeSettings(JSON.parse(localStorage.getItem(settingsKey())||'null'));
+ data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[],history:[]});
  report=sanitizeReport(JSON.parse(localStorage.getItem(reportKey())||'null'));
  reportsHistoryCache=JSON.parse(localStorage.getItem(reportHistKey())||'[]');
 
  render();
- buildBoxSectionsOnce();
+ rebuildReportDynamicUI();
  fillReportForm();
  reportPreviewReady=true;
  renderReportsHistory(reportsHistoryCache);
  updateSaveStatus();
 
+ settingsRef.on('value',snap=>{
+  const remote=snap.val();
+  if(remote){
+    settings=sanitizeSettings(remote);
+    localStorage.setItem(settingsKey(),JSON.stringify(settings));
+    report=sanitizeReport(report);
+    rebuildReportDynamicUI();
+    fillReportForm();
+    persistReportLocal();
+  }else{
+    settingsRef.set(settings).catch(()=>{});
+  }
+ });
+
  dbRef.on('value',snap=>{
   firebaseReady=true;
-  setSyncStatus('online','Синхронизировано');
+  setSyncStatus('online','РЎРёРЅС…СЂРѕРЅРёР·РёСЂРѕРІР°РЅРѕ');
   const remote=snap.val();
   try{
     if(remote&&remote.items){
@@ -1165,12 +1421,12 @@ function startApp(id,name){
     }
     render();
   }catch(e){
-    console.error('Ошибка обработки данных:',e);
-    toast('Ошибка синхронизации данных');
+    console.error('РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…:',e);
+    toast('РћС€РёР±РєР° СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёРё РґР°РЅРЅС‹С…');
   }
  },err=>{
   console.error(err);
-  setSyncStatus('offline','Офлайн — работает локально');
+  setSyncStatus('offline','РћС„Р»Р°Р№РЅ вЂ” СЂР°Р±РѕС‚Р°РµС‚ Р»РѕРєР°Р»СЊРЅРѕ');
  });
 
  reportDbRef.on('value',snap=>{
@@ -1190,7 +1446,7 @@ function startApp(id,name){
  });
 }
 
-/* ===== Выбор автомойки и вход по паролю ===== */
+/* ===== Р’С‹Р±РѕСЂ Р°РІС‚РѕРјРѕР№РєРё Рё РІС…РѕРґ РїРѕ РїР°СЂРѕР»СЋ ===== */
 const LOC_ID_KEY='carwash_loc_id';
 const LOC_NAME_KEY='carwash_loc_name';
 let locationsCache={};
@@ -1204,20 +1460,20 @@ function renderLocationList(){
  const entries=Object.entries(locationsCache).filter(([id,l])=>l&&l.name&&l.name.toLowerCase().includes(q));
  entries.sort((a,b)=>a[1].name.localeCompare(b[1].name,'ru'));
  el.innerHTML=entries.length?entries.map(([id,l])=>`<button type="button" class="loc-item" onclick="selectLocation('${id}')">${esc(l.name)}</button>`).join(''):
-   `<div class="empty" style="padding:18px">Автомоек пока нет — добавьте свою ниже</div>`;
+   `<div class="empty" style="padding:18px">РђРІС‚РѕРјРѕРµРє РїРѕРєР° РЅРµС‚ вЂ” РґРѕР±Р°РІСЊС‚Рµ СЃРІРѕСЋ РЅРёР¶Рµ</div>`;
 }
 
 function addNewLocation(){
  const input=document.getElementById('newLocName');
  const name=input.value.trim();
- if(!name){toast('Введите название автомойки');return}
+ if(!name){toast('Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ Р°РІС‚РѕРјРѕР№РєРё');return}
  const dup=Object.entries(locationsCache).find(([id,l])=>l&&l.name&&l.name.toLowerCase()===name.toLowerCase());
  if(dup){input.value='';selectLocation(dup[0]);return}
  const ref=locationsRef.push();
  ref.set({name,password:null,createdAt:new Date().toISOString()}).then(()=>{
    input.value='';
    selectLocation(ref.key);
- }).catch(()=>toast('Не удалось добавить автомойку — проверьте подключение'));
+ }).catch(()=>toast('РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ Р°РІС‚РѕРјРѕР№РєСѓ вЂ” РїСЂРѕРІРµСЂСЊС‚Рµ РїРѕРґРєР»СЋС‡РµРЅРёРµ'));
 }
 
 function selectLocation(id){
@@ -1228,7 +1484,7 @@ function selectLocation(id){
  document.getElementById('authSelectStep').style.display='none';
  document.getElementById('authPinStep').style.display='block';
  document.getElementById('authLocName').textContent=loc.name;
- document.getElementById('authPinTitle').textContent=isNewLocation?'Придумайте пароль из 4 цифр для этой автомойки':'Введите пароль для входа';
+ document.getElementById('authPinTitle').textContent=isNewLocation?'РџСЂРёРґСѓРјР°Р№С‚Рµ РїР°СЂРѕР»СЊ РёР· 4 С†РёС„СЂ РґР»СЏ СЌС‚РѕР№ Р°РІС‚РѕРјРѕР№РєРё':'Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ РґР»СЏ РІС…РѕРґР°';
  document.getElementById('pinConfirmWrap').style.display=isNewLocation?'block':'none';
  document.getElementById('pinInput').value='';
  document.getElementById('pinConfirmInput').value='';
@@ -1245,18 +1501,18 @@ function backToLocationList(){
 function submitPin(){
  const pin=document.getElementById('pinInput').value.trim();
  const errEl=document.getElementById('pinError');
- if(!/^\d{4}$/.test(pin)){errEl.textContent='Пароль должен состоять из 4 цифр';return}
+ if(!/^\d{4}$/.test(pin)){errEl.textContent='РџР°СЂРѕР»СЊ РґРѕР»Р¶РµРЅ СЃРѕСЃС‚РѕСЏС‚СЊ РёР· 4 С†РёС„СЂ';return}
  const loc=locationsCache[pendingLocId];
  if(!loc)return;
 
  if(isNewLocation){
    const confirmPin=document.getElementById('pinConfirmInput').value.trim();
-   if(confirmPin!==pin){errEl.textContent='Пароли не совпадают';return}
+   if(confirmPin!==pin){errEl.textContent='РџР°СЂРѕР»Рё РЅРµ СЃРѕРІРїР°РґР°СЋС‚';return}
    locationsRef.child(pendingLocId).update({password:pin}).then(()=>{
      completeLogin(pendingLocId,loc.name);
-   }).catch(()=>{errEl.textContent='Не удалось сохранить пароль, попробуйте снова';});
+   }).catch(()=>{errEl.textContent='РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РїР°СЂРѕР»СЊ, РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°';});
  }else{
-   if(pin!==String(loc.password)){errEl.textContent='Неверный пароль';return}
+   if(pin!==String(loc.password)){errEl.textContent='РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ';return}
    completeLogin(pendingLocId,loc.name);
  }
 }
@@ -1272,6 +1528,13 @@ function maybeMigrateLegacyData(id){
    updates['locations/'+id+'/inventory']=invSnap.exists()?invSnap.val():null;
    updates['locations/'+id+'/dailyReport']=repSnap.exists()?repSnap.val():null;
    updates['locations/'+id+'/reportsHistory']=histSnap.exists()?histSnap.val():null;
+   updates['locations/'+id+'/settings']={
+     authors:['РљР°Р»Р°Р±СѓС…РѕРІ','РўСЂРѕС„РёРјРµРЅРєРѕ'],
+     boxCount:3,
+     compressorCount:2,
+     pumpCount:3,
+     consumptionItems:['РџРµРЅР° Р¶С‘Р»С‚Р°СЏ','РџРµРЅР° СЂРѕР·РѕРІР°СЏ','РџРµРЅР° РіРѕР»СѓР±Р°СЏ','Р“РёРґСЂРѕС„РѕР±','Р­РјСѓР»СЊСЃРёСЏ']
+   };
    updates['inventory']=null;
    updates['dailyReport']=null;
    updates['reportsHistory']=null;
@@ -1288,7 +1551,7 @@ function completeLogin(id,name){
 }
 
 function logoutLocation(){
- if(!confirm('Сменить автомойку? При следующем входе понадобится пароль.'))return;
+ if(!confirm('РЎРјРµРЅРёС‚СЊ Р°РІС‚РѕРјРѕР№РєСѓ? РџСЂРё СЃР»РµРґСѓСЋС‰РµРј РІС…РѕРґРµ РїРѕРЅР°РґРѕР±РёС‚СЃСЏ РїР°СЂРѕР»СЊ.'))return;
  localStorage.removeItem(LOC_ID_KEY);
  localStorage.removeItem(LOC_NAME_KEY);
  location.reload();
