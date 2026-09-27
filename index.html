@@ -184,7 +184,10 @@
     </div>
 
     <div class="washed-block" id="rowWashed" style="display:none">
-      <label>Помыто машин за <span id="washedDateLabel"></span></label>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+        <label style="margin:0">Помыто машин за <span id="washedDateLabel"></span></label>
+        <span id="washedAutoBadge" style="display:none;font-size:11.5px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 8px;border-radius:6px">⚡ из INTELJET</span>
+      </div>
       <div class="washed-grid" id="washedGrid"></div>
     </div>
 
@@ -259,6 +262,9 @@
     </div>
     <div id="anDateDetailContainer"></div>
   </div>
+
+  <!-- БЛОК INTELJET: ДАННЫЕ ТЕРМИНАЛА (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
+  <div id="inteljetContainer" style="display:none"></div>
 
   <div class="chart-card">
     <h3>
