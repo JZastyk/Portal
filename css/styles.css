@@ -110,8 +110,8 @@ h1{font-size:22px;margin:0 0 2px;letter-spacing:-.01em}
 .remove-measure{border:0;background:var(--danger-soft);color:#b63838;border-radius:var(--r-sm);padding:5px 9px;font-size:12.5px;font-weight:700}
 label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600}
 input,select{width:100%;padding:11px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff;font-size:15px}
-.modal-actions{display:flex;gap:8px;margin-top:8px}
-.modal-actions button{flex:1;justify-content:center}
+.modal-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.modal-actions button{flex:1;min-width:100px;justify-content:center}
 
 .auth-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
 .auth-screen.hide{display:none}
