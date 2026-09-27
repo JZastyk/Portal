@@ -303,4 +303,24 @@ input,select{width:100%;padding:11px;border:1px solid var(--border);border-radiu
   .analytics-hero{grid-template-columns:1fr}
   .day-boxes-grid{grid-template-columns:1fr}
 }
+
+/* INTELJET Live Аналитика */
+.inteljet-card{background:#fff;border:1.5px solid #0a4f78;border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;position:relative}
+.inteljet-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.inteljet-badge{background:#e0f2fe;color:#0369a1;padding:4px 10px;border-radius:6px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:5px}
+.inteljet-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.ij-stat-item{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px}
+.ij-stat-item span{display:block;font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.ij-stat-item b{font-size:20px;color:var(--accent-dark)}
+.ij-stat-item.money b{color:#10b981}
+.ij-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:640px){.ij-row{grid-template-columns:1fr}}
+.ij-subblock{background:#f8fafc;border:1px solid var(--border);border-radius:var(--r-md);padding:12px}
+.ij-subblock h4{margin:0 0 8px;font-size:13px;color:var(--accent-dark);font-weight:700}
+.ij-table{width:100%;font-size:12px;border-collapse:collapse}
+.ij-table td{padding:5px 0;border-bottom:1px dashed #e2e8f0}
+.ij-table tr:last-child td{border-bottom:none}
+.ij-reconcile{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--r-md);padding:10px 14px;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ij-reconcile.warning{background:#fefce8;border-color:#fef08a}
+
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
