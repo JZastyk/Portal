@@ -108,6 +108,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span class="label-text">История</span>
     </button>
+    <button type="button" class="btn secondary" onclick="openGuide('inventory')" title="Обучение по складу" style="padding:11px 13px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="label-text">Обучение</span>
+    </button>
   </div>
 
   <div id="emptyInvHint" class="empty-hint" style="display:none">
@@ -145,6 +149,10 @@
       <button type="button" class="btn secondary" onclick="openReportHistory()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         История отчётов
+      </button>
+      <button type="button" class="btn secondary" onclick="openGuide('report')" title="Обучение по отчёту">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Обучение
       </button>
     </div>
 
@@ -303,6 +311,7 @@
       <div id="measureConfig"></div>
       <button type="button" class="add-measure" onclick="addMeasureRow()">＋ Добавить единицу измерения</button>
       <div class="modal-actions">
+        <button type="button" class="btn danger" id="btnDeleteItem" style="display:none" onclick="deleteCurrentItem()">Удалить карточку</button>
         <button type="button" class="btn secondary" onclick="closeModal()">Отмена</button>
         <button type="submit" class="btn">Сохранить</button>
       </div>
