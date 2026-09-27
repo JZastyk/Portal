@@ -1,11 +1,14 @@
 /* ===== Вкладка «Отчёт дня»: настройки, форма смены, сборка текста отчёта, история отчётов ===== */
 /* Дата смены для формы отчёта */
 let currentShiftDate = yesterdayISO();
+let isCustomShiftDatePicked = false;
+let lastKnownTodayISO = todayISO();
 
 function onReportShiftDateChange(){
  const el = document.getElementById('rDateShift');
  if(el && el.value){
    currentShiftDate = el.value;
+   isCustomShiftDatePicked = (currentShiftDate !== yesterdayISO());
    updateWashedDateLabel();
    renderReportPreview();
  }
@@ -14,9 +17,30 @@ function onReportShiftDateChange(){
 function updateWashedDateLabel(){
  const lbl = document.getElementById('washedDateLabel');
  if(lbl && currentShiftDate){
-   lbl.textContent = new Date(currentShiftDate + 'T00:00:00').toLocaleDateString('ru-RU');
+   lbl.textContent = isoToRuDate(currentShiftDate);
  }
 }
+
+function refreshShiftDateIfDayChanged(forceReset = false){
+ const currentToday = todayISO();
+ const dateInput = document.getElementById('rDateShift');
+ if(forceReset || (!isCustomShiftDatePicked && currentToday !== lastKnownTodayISO)){
+   lastKnownTodayISO = currentToday;
+   currentShiftDate = yesterdayISO();
+   isCustomShiftDatePicked = false;
+   if(dateInput) dateInput.value = currentShiftDate;
+   updateWashedDateLabel();
+   renderReportPreview();
+ } else if(dateInput && !dateInput.value){
+   dateInput.value = currentShiftDate || yesterdayISO();
+   updateWashedDateLabel();
+ }
+}
+
+document.addEventListener('visibilitychange', () => {
+ if(!document.hidden) refreshShiftDateIfDayChanged();
+});
+window.addEventListener('focus', () => refreshShiftDateIfDayChanged());
 
 
 /* ===== Ежедневный отчёт ===== */
@@ -363,12 +387,12 @@ function buildDailyReportTextCustom(r, setObj, chemItems, customShiftDate){
 
  if(!bCount && !cCount && !pCount && (!chemItems || !chemItems.length)) return '';
 
- const dateStr = todayStr();
  const shiftD = customShiftDate || currentShiftDate || yesterdayISO();
- const shiftDateStr = new Date(shiftD + 'T00:00:00').toLocaleDateString('ru-RU');
+ const shiftDateStr = isoToRuDate(shiftD);
+ const repDateStr = isoToRuDate(addDaysISO(shiftD, 1));
 
  const lines = [];
- lines.push(`${dateStr}${r.author ? (' ' + r.author) : ''}`.trim());
+ lines.push(`${repDateStr}${r.author ? (' ' + r.author) : ''}`.trim());
 
  if(bCount > 0){
    const boxIds = range(bCount);
@@ -481,20 +505,24 @@ function clearReportForm(){
  const keepAuthor=report.author;
  report=defaultReport();
  report.author=keepAuthor;
+ refreshShiftDateIfDayChanged(true);
  fillReportForm();
  persistReport();
  toast('Форма очищена');
 }
 
-/* Сохранение отчёта строго под датой смены с прямой перезаписью */
+/* Сохранение отчёта строго под датой составления (сегодня) с сохранением смены */
 function saveReportToHistoryManual(){
  const shiftDate = currentShiftDate || yesterdayISO();
  const text = buildDailyReportText(report);
  if(!text){toast('Отчёт пуст — заполните параметры');return}
 
+ const reportDate = addDaysISO(shiftDate, 1);
  const entry={
-   id: shiftDate,
+   id: reportDate,
    date: shiftDate,
+   shiftDate: shiftDate,
+   reportDate: reportDate,
    author: report.author,
    text,
    report: JSON.parse(JSON.stringify(report)),
@@ -502,19 +530,19 @@ function saveReportToHistoryManual(){
  };
 
  // Локально перезаписываем день
- reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e.date !== shiftDate)];
+ reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e.id !== reportDate && e.reportDate !== reportDate && e.date !== shiftDate)];
  localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
 
- // В Firebase сохраняем с ключом по дате
- reportsHistoryRef.child(shiftDate).set(entry).then(()=>{
-   toast(`Отчёт за ${new Date(shiftDate+'T00:00:00').toLocaleDateString('ru-RU')} сохранён`);
+ // В Firebase сохраняем с ключом по дате отчёта
+ reportsHistoryRef.child(reportDate).set(entry).then(()=>{
+   toast(`Отчёт за ${isoToRuDate(reportDate)} сохранён`);
  }).catch(()=>{
    toast('Сохранено локально');
  });
 
- // Обновляем дату в календаре аналитики на сохранённую
+ // Обновляем дату в календаре аналитики на сохранённую дату отчёта
  const anPicker = document.getElementById('anDateSelect');
- if(anPicker) anPicker.value = shiftDate;
+ if(anPicker) anPicker.value = reportDate;
 
  renderAnalytics();
 }
@@ -534,7 +562,7 @@ function deleteReportHistoryEntry(entryId, ev){
  if(ev) ev.stopPropagation();
  if(!confirm('Удалить этот отчёт из истории?')) return;
 
- reportsHistoryCache = reportsHistoryCache.filter(e => e.id !== entryId && e.date !== entryId);
+ reportsHistoryCache = reportsHistoryCache.filter(e => e.id !== entryId && e.date !== entryId && e.reportDate !== entryId);
  localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
  reportsHistoryRef.child(entryId).remove().catch(()=>{});
 
@@ -550,17 +578,20 @@ function openReportHistory(){
   if(!uniqueReports.length){
     el.innerHTML='<div class="empty">История отчётов пока пуста</div>';
   }else{
-    el.innerHTML=uniqueReports.map(h=>`
+    el.innerHTML=uniqueReports.map(h=>{
+      const titleDate = h.reportDate ? isoToRuDate(h.reportDate) : (h.date ? isoToRuDate(addDaysISO(h.date, 1)) : '');
+      return `
       <div class="h-card" style="cursor:pointer" onclick="toggleReportHistDetail('${h.id}')">
         <div class="h-card-head">
-          <span class="h-card-title">${new Date(h.date+'T00:00:00').toLocaleDateString('ru-RU')} ${esc(h.author?('• '+h.author):'')}</span>
+          <span class="h-card-title">${titleDate} ${esc(h.author?('• '+h.author):'')}</span>
           <div style="display:flex;align-items:center;gap:6px">
             <span class="h-card-time">${new Date(h.time).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span>
             <button type="button" class="h-del-btn" onclick="deleteReportHistoryEntry('${h.id}', event)">Удалить</button>
           </div>
         </div>
         <div id="rhDetail_${h.id}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #d0d7de;white-space:pre-wrap;font-family:monospace;font-size:11.5px">${esc(h.text)}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
   document.getElementById('reportHistoryModal').classList.add('show');
 }

@@ -45,10 +45,11 @@ function sanitizeData(d){
    id:(it&&it.id)||crypto.randomUUID(),
    name:(it&&it.name)||'',
    inReport:Boolean(it&&it.inReport),
-   measures:toArray(it&&it.measures).filter(Boolean).map(m=>({
+   measures:toArray(it&&it.measures).filter(Boolean).map((m, idx)=>({
      unit:(m&&m.unit)||'',
      qty:Number(m&&m.qty)||0,
-     min:Number(m&&m.min)||0
+     min:Number(m&&m.min)||0,
+     trackMin:typeof m.trackMin!=='undefined'?Boolean(m.trackMin):(idx===0)
    }))
  }));
  const history=toArray(d&&d.history).filter(Boolean);
@@ -94,4 +95,13 @@ function yesterdayDMY(){
  const d=new Date();
  d.setDate(d.getDate()-1);
  return d.toLocaleDateString('ru-RU');
+}
+function addDaysISO(isoDateStr, days){
+ const d=new Date(isoDateStr + 'T00:00:00');
+ d.setDate(d.getDate() + (days || 0));
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function isoToRuDate(isoDateStr){
+ if(!isoDateStr) return '';
+ return new Date(isoDateStr + 'T00:00:00').toLocaleDateString('ru-RU');
 }

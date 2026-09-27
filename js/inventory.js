@@ -23,7 +23,7 @@ function render(){
   document.getElementById('emptyInvHint').style.display=(data.items.length===0&&!invHintDismissed)?'block':'none';
   const list=data.items.filter(x=>x.name.toLowerCase().includes(q));
   document.getElementById('itemsCount').textContent=data.items.length;
-  document.getElementById('lowCount').textContent=data.items.filter(x=>x.measures.some(m=>Number(m.qty)<=Number(m.min))).length;
+  document.getElementById('lowCount').textContent=data.items.filter(x=>x.measures.some(m=>(m.trackMin!==false)&&Number(m.qty)<=Number(m.min))).length;
   document.getElementById('reportDate').textContent=todayStr();
   document.getElementById('cards').innerHTML=list.length?list.map(card).join(''):
     `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><div>Ничего не найдено.<br>Добавьте новую позицию.</div></div>`;
@@ -46,7 +46,7 @@ function toggleInReport(id){
 }
 
 function card(x){
- const isLow=x.measures.some(m=>m.qty<=m.min);
+ const isLow=x.measures.some(m=>(m.trackMin!==false)&&Number(m.qty)<=Number(m.min));
  const isInRep=Boolean(x.inReport);
  return `<article class="card ${isLow?'card-low':''} ${isInRep?'card-in-report':''}">
    <div class="card-top">
@@ -73,8 +73,9 @@ function card(x){
 }
 function measureHtml(x,i){
  const m=x.measures[i];
- const low=Number(m.qty)<=Number(m.min);
- return `<div class="measure ${low?'is-low':''}" title="Минимальный остаток: ${fmt(m.min)} ${esc(m.unit)}">
+ const track=m.trackMin!==false;
+ const low=track&&Number(m.qty)<=Number(m.min);
+ return `<div class="measure ${low?'is-low':''}" title="${track?('Минимальный остаток: '+fmt(m.min)+' '+esc(m.unit)):'Минимальный остаток не отслеживается'}">
    <div class="measure-row">
      <div class="measure-main"><span class="unit-label">${esc(m.unit)}:</span><strong>${fmt(m.qty)}</strong></div>
      <div class="measure-actions">
@@ -103,46 +104,107 @@ function change(id,mi,delta){
 
 function openAdd(){
  editId=null;modalTitle.textContent='Добавить химию';fName.value='';
- measureConfig.innerHTML='';addMeasureRow();
+ const delBtn=document.getElementById('btnDeleteItem');
+ if(delBtn) delBtn.style.display='none';
+ measureConfig.innerHTML='';addMeasureRow(null, true);
  modal.classList.add('show');setTimeout(()=>fName.focus(),50);
 }
 function openEdit(id){
  const x=data.items.find(i=>i.id===id);if(!x)return;
  editId=id;modalTitle.textContent='Изменить химию';fName.value=x.name;
+ const delBtn=document.getElementById('btnDeleteItem');
+ if(delBtn) delBtn.style.display='block';
  measureConfig.innerHTML='';
- x.measures.forEach(m=>addMeasureRow(m));
+ x.measures.forEach((m, idx)=>addMeasureRow(m, idx===0));
  modal.classList.add('show');
 }
-function addMeasureRow(m={unit:'',qty:0,min:1}){
+function deleteCurrentItem(){
+ if(!editId) return;
+ const x=data.items.find(i=>i.id===editId);
+ if(!x) return;
+ if(!confirm(`Вы уверены, что хотите удалить «${x.name}» со всеми остатками?`)) return;
+ data.items = data.items.filter(i=>i.id!==editId);
+ logInvHistory('Удалена позиция', x.name);
+ persist();
+ closeModal();
+ render();
+ toast(`Позиция «${x.name}» удалена`);
+}
+function addMeasureRow(m=null, isFirst=null){
+ const isFirstRow = isFirst !== null ? isFirst : (measureConfig.children.length === 0);
+ const unit = m ? (m.unit || '') : '';
+ const qty = m ? (m.qty != null ? m.qty : 0) : 0;
+ const min = m ? (m.min != null ? m.min : 1) : 1;
+ const trackMin = m ? (m.trackMin !== false) : isFirstRow;
+
  const wrap=document.createElement('div');
  wrap.className='measure-config';
  wrap.innerHTML=`<div class="measure-config-head"><span>Единица измерения</span><button type="button" class="remove-measure" onclick="this.closest('.measure-config').remove()">Удалить</button></div>
  <div class="measure-config-grid">
-   <div><label>Единица</label><input class="m-unit" required placeholder="кан, кг, л, шт..." value="${esc(m.unit)}"></div>
-   <div><label>Количество</label><input class="m-qty" type="number" step="0.01" min="0" required value="${m.qty}"></div>
-   <div><label>Минимальный остаток</label><input class="m-min" type="number" step="0.01" min="0" required value="${m.min}"></div>
+   <div><label>Единица</label><input class="m-unit" required placeholder="кан, кг, л, шт..." value="${esc(unit)}"></div>
+   <div><label>Количество</label><input class="m-qty" type="number" step="0.01" min="0" required value="${qty}"></div>
+   <div style="grid-column:1/-1">
+     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+       <label style="margin:0">Минимальный остаток</label>
+       <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--accent-dark);user-select:none">
+         <input type="checkbox" class="m-track-min" ${trackMin?'checked':''} onchange="toggleTrackMin(this)" style="width:auto;margin:0;cursor:pointer">
+         Отслеживать
+       </label>
+     </div>
+     <input class="m-min" type="number" step="0.01" min="0" ${trackMin?'required':'disabled'} value="${min}" style="${trackMin?'':'opacity:0.4;background:var(--bg)'}">
+   </div>
  </div>`;
  measureConfig.appendChild(wrap);
+}
+function toggleTrackMin(cb){
+ const wrap=cb.closest('.measure-config');
+ if(!wrap) return;
+ const inp=wrap.querySelector('.m-min');
+ if(!inp) return;
+ inp.disabled = !cb.checked;
+ inp.required = cb.checked;
+ inp.style.opacity = cb.checked ? '1' : '0.4';
+ inp.style.background = cb.checked ? '' : 'var(--bg)';
 }
 function saveItem(e){
  e.preventDefault();
  const name=fName.value.trim();
  const rows=[...document.querySelectorAll('.measure-config')];
  if(!rows.length){toast('Добавьте хотя бы одну единицу');return}
- const measures=rows.map(r=>({
-   unit:r.querySelector('.m-unit').value.trim(),
-   qty:Number(r.querySelector('.m-qty').value),
-   min:Number(r.querySelector('.m-min').value)
- }));
+ const measures=rows.map(r=>{
+   const cb=r.querySelector('.m-track-min');
+   const trackMin=cb ? cb.checked : true;
+   return {
+     unit:r.querySelector('.m-unit').value.trim(),
+     qty:Number(r.querySelector('.m-qty').value),
+     min:Number(r.querySelector('.m-min').value),
+     trackMin:trackMin
+   };
+ });
  if(measures.some(m=>!m.unit)){toast('Укажите единицу измерения');return}
 
  if(editId){
    const x=data.items.find(i=>i.id===editId);
+   const changes=[];
+   if(x.name!==name) changes.push(`Название: ${x.name} → ${name}`);
+   const oldM=x.measures||[];
+   const maxLen=Math.max(oldM.length,measures.length);
+   for(let i=0;i<maxLen;i++){
+     const om=oldM[i], nm=measures[i];
+     if(!om&&nm){changes.push(`+ ${nm.qty} ${nm.unit} (мин. ${nm.trackMin ? nm.min : 'не отсл.'})`);continue}
+     if(om&&!nm){changes.push(`− ${om.qty} ${om.unit}`);continue}
+     const parts=[];
+     if(om.unit!==nm.unit) parts.push(`ед: ${om.unit} → ${nm.unit}`);
+     if(Number(om.qty)!==Number(nm.qty)) parts.push(`кол-во: ${fmt(om.qty)} → ${fmt(nm.qty)}`);
+     if(Boolean(om.trackMin)!==Boolean(nm.trackMin)) parts.push(`отслеживание: ${nm.trackMin?'вкл':'выкл'}`);
+     if(Number(om.min)!==Number(nm.min) && nm.trackMin) parts.push(`мин: ${fmt(om.min)} → ${fmt(nm.min)}`);
+     if(parts.length) changes.push(`${nm.unit||om.unit}: ${parts.join(', ')}`);
+   }
    x.name=name;x.measures=measures;
-   logInvHistory('Редактирование', `${name}`);
+   logInvHistory('Редактирование', `${name}${changes.length ? '\n'+changes.join('\n') : ''}`);
  }else{
    data.items.push({id:crypto.randomUUID(),name,measures,inReport:false});
-   logInvHistory('Добавлена позиция', `${name} (${measures.map(m=>m.qty+' '+m.unit).join(', ')})`);
+   logInvHistory('Добавлена позиция', `${name} (${measures.map(m=>m.qty+' '+m.unit+(m.trackMin?'':' [без отсл.]')).join(', ')})`);
  }
  persist();closeModal();render();toast(editId?'Позиция изменена':'Позиция добавлена');
 }
@@ -228,7 +290,7 @@ function openInvHistory(){
           <span class="h-card-title">${esc(h.action)}</span>
           <span class="h-card-time">${new Date(h.time).toLocaleString('ru-RU')}</span>
         </div>
-        <div class="h-card-body">${esc(h.desc)}</div>
+        <div class="h-card-body">${h.desc.split('\n').map(l=>esc(l)).join('<br>')}</div>
       </div>`).join('');
   }
   document.getElementById('invHistoryModal').classList.add('show');

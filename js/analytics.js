@@ -26,13 +26,19 @@ function clearAnalytics(){
 function getUniqueDailyReports(){
   const map = {};
   reportsHistoryCache.forEach(h => {
-    if (!h || !h.date) return;
+    if (!h) return;
+    const key = h.reportDate || (h.date ? addDaysISO(h.date, 1) : h.id);
+    if (!key) return;
     // Всегда берём запись с самой свежей меткой времени time
-    if (!map[h.date] || new Date(h.time).getTime() >= new Date(map[h.date].time).getTime()) {
-      map[h.date] = h;
+    if (!map[key] || new Date(h.time).getTime() >= new Date(map[key].time).getTime()) {
+      map[key] = h;
     }
   });
-  return Object.values(map).sort((a,b) => b.date.localeCompare(a.date));
+  return Object.values(map).sort((a,b) => {
+    const da = a.reportDate || (a.date ? addDaysISO(a.date, 1) : '');
+    const db = b.reportDate || (b.date ? addDaysISO(b.date, 1) : '');
+    return db.localeCompare(da);
+  });
 }
 
 function renderAnalytics(){
@@ -102,8 +108,9 @@ function renderAnalytics(){
 
   // Инициализация календаря для детального среза по дате
   const dateInput = document.getElementById('anDateSelect');
-  if(!dateInput.value || !uniqueReports.some(r => r.date === dateInput.value)){
-    dateInput.value = uniqueReports.length ? uniqueReports[0].date : (currentShiftDate || yesterdayISO());
+  const getEntryDisplayDate = r => r.reportDate || (r.date ? addDaysISO(r.date, 1) : '');
+  if(!dateInput.value || !uniqueReports.some(r => getEntryDisplayDate(r) === dateInput.value || (r.shiftDate || r.date) === dateInput.value)){
+    dateInput.value = uniqueReports.length ? getEntryDisplayDate(uniqueReports[0]) : todayISO();
   }
   renderDateDetailCard();
 }
@@ -118,26 +125,42 @@ function renderDateDetailCard(){
   }
 
   const uniqueReports = getUniqueDailyReports();
-  const entry = uniqueReports.find(e => e.date === dateVal);
 
-  if(!entry){
+  // Вычисляем эффективную дату замеров: для старых отчётов без reportDate = date + 1 день
+  function getEffectiveReportDate(entry){
+    if(entry.reportDate) return entry.reportDate;
+    if(entry.date) return addDaysISO(entry.date, 1);
+    return '';
+  }
+
+  // Машины — ищем по дате смены (shiftDate или date)
+  const washedEntry = uniqueReports.find(e => (e.shiftDate || e.date) === dateVal);
+  // TDS, рукава, расход — ищем по дате составления отчёта (reportDate или date+1 для старых)
+  const metricsEntry = uniqueReports.find(e => getEffectiveReportDate(e) === dateVal);
+
+  if(!washedEntry && !metricsEntry){
     const dStr = new Date(dateVal + 'T00:00:00').toLocaleDateString('ru-RU');
     container.innerHTML = `<div class="empty">За ${dStr} сохранённый отчёт не найден</div>`;
     return;
   }
 
-  const rep = entry.report || {};
-  const washed = rep.washed || {};
-  const hoses = rep.hoses || {};
-  const consumption = rep.consumption || {};
   const boxCountNum = Number(settings.boxCount) || 0;
+  const formattedDate = new Date(dateVal + 'T00:00:00').toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
 
+  // --- Данные о машинах (из washedEntry) ---
+  const washedRep = (washedEntry && washedEntry.report) || {};
+  const washed = washedRep.washed || {};
   let dayCarsTotal = 0;
   for (let b = 1; b <= boxCountNum; b++) {
     dayCarsTotal += Number(washed[b]) || 0;
   }
 
-  const formattedDate = new Date(entry.date + 'T00:00:00').toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+  // --- Данные замеров (из metricsEntry) ---
+  const metricsRep = (metricsEntry && metricsEntry.report) || {};
+  const hoses = metricsRep.hoses || {};
+  const consumption = metricsRep.consumption || {};
+  const tdsValue = metricsRep.tds || '—';
+  const metricsAuthor = (metricsEntry && metricsEntry.author) || (washedEntry && washedEntry.author) || 'Не указан';
 
   let boxesHtml = '';
   for(let b = 1; b <= boxCountNum; b++){
@@ -176,11 +199,21 @@ function renderDateDetailCard(){
     `;
   }
 
+  // Подсказки об источниках данных
+  let sourceHints = '';
+  if(washedEntry && metricsEntry && washedEntry !== metricsEntry){
+    const washedDateStr = new Date(washedEntry.date + 'T00:00:00').toLocaleDateString('ru-RU');
+    const metricsDateStr = metricsEntry.reportDate
+      ? new Date(metricsEntry.reportDate + 'T00:00:00').toLocaleDateString('ru-RU')
+      : new Date(metricsEntry.date + 'T00:00:00').toLocaleDateString('ru-RU');
+    sourceHints = `<div style="font-size:11px;color:var(--muted);margin-top:8px">Машины: отчёт за ${washedDateStr} • Замеры: отчёт от ${metricsDateStr}</div>`;
+  }
+
   container.innerHTML = `
     <div class="day-summary-strip">
       <div class="day-summary-info">
         <b>${formattedDate}</b><br>
-        Ответственный: <span>${esc(entry.author || 'Не указан')}</span> • TDS: <span>${esc(rep.tds || '—')}</span>
+        Ответственный: <span>${esc(metricsAuthor)}</span> • TDS: <span>${esc(tdsValue)}</span>
       </div>
       <div class="day-summary-stat">
         Помыто за день
@@ -190,6 +223,7 @@ function renderDateDetailCard(){
     <div class="day-boxes-grid">
       ${boxesHtml || '<div class="empty">Боксы не настроены</div>'}
     </div>
+    ${sourceHints}
   `;
 }
 

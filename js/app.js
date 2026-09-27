@@ -15,6 +15,7 @@ function switchTab(tab){
  document.getElementById('tabBtnNetwork').classList.toggle('active',tab==='network');
 
  if(tab==='report'){
+   if(typeof refreshShiftDateIfDayChanged === 'function') refreshShiftDateIfDayChanged();
    renderReportHintsAndVisibility();
    renderReportPreview();
  }else if(tab==='analytics'){
