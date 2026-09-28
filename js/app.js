@@ -51,12 +51,13 @@ function startApp(id,name){
  settings=sanitizeSettings(JSON.parse(localStorage.getItem(settingsKey())||'null'));
  data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[],history:[]});
  report=sanitizeReport(JSON.parse(localStorage.getItem(reportKey())||'null'));
-  const localHistory = JSON.parse(localStorage.getItem(reportHistKey()) || '[]');
-  const seedHistory = (typeof getSeedReportsHistory === 'function') ? getSeedReportsHistory() : [];
-  const histMap = {};
-  seedHistory.forEach(e => { if(e && e.id) histMap[e.id] = e; });
-  localHistory.forEach(e => { if(e && e.id) histMap[e.id] = e; });
-  reportsHistoryCache = Object.values(histMap).sort((a,b) => new Date(b.time) - new Date(a.time));
+  let localHist = JSON.parse(localStorage.getItem(reportHistKey()) || '[]');
+  const isFlagship = (id === '-P2Rh9_It6dCkSMobgfm' || (name || '').toLowerCase().includes('таганрог'));
+  if(!isFlagship && Array.isArray(localHist) && localHist.some(e => e && e.id && e.id.startsWith('2026-09'))){
+    localHist = localHist.filter(e => !(e && e.id && e.id.startsWith('2026-09')));
+    localStorage.setItem(reportHistKey(), JSON.stringify(localHist));
+  }
+  reportsHistoryCache = localHist;
 
  render();
  rebuildReportDynamicUI();
@@ -110,16 +111,10 @@ function startApp(id,name){
  });
 
  reportsHistoryRef.limitToLast(100).on('value',snap=>{
-  const remote=snap.val();
-  if(remote){
-    const histMap = {};
-    const seedHistory = (typeof getSeedReportsHistory === 'function') ? getSeedReportsHistory() : [];
-    seedHistory.forEach(e => { if(e && e.id) histMap[e.id] = e; });
-    Object.values(remote).forEach(e => { if(e && e.id) histMap[e.id] = e; });
-    reportsHistoryCache = Object.values(histMap).sort((a,b) => new Date(b.time) - new Date(a.time));
-    localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
-    renderAnalytics();
-  }
+  const remote = snap.val();
+  reportsHistoryCache = remote ? Object.values(remote).sort((a,b) => new Date(b.time) - new Date(a.time)) : [];
+  localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
+  renderAnalytics();
  });
 
  initInteljetSync();
