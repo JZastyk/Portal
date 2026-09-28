@@ -55,7 +55,7 @@
 }
 
 [data-theme="dark"] {
-  /* Тёмная тема в стиле portalwash.ru */
+  /* Тёмная тема */
   --bg: #141414;
   --bg-subtle: #1c1c1e;
   --card: #1f1f21;
@@ -135,7 +135,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 
 
-/* Фирменный стиль ПОРТАЛ (portalwash.ru) */
+/* Стили шапки и брендинга */
 .brand-header {
   display: flex;
   align-items: center;
@@ -146,11 +146,11 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   align-items: center;
   gap: 12px;
 }
-.portal-brand-pin {
+.portal-brand-pin, .brand-logo-icon {
   flex: none;
   filter: drop-shadow(0 2px 8px rgba(255, 80, 20, 0.35));
 }
-.portal-pin-bg {
+.portal-pin-bg, .brand-logo-bg {
   fill: var(--card);
   transition: fill var(--trans-smooth);
 }
