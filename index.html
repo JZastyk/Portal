@@ -3,17 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0a4f78">
-<link rel="icon" href="data:,">
-<title>Учёт химии</title>
+<meta name="theme-color" content="#FF5014">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 149 180' fill='none'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M132.495 119.773C142.355 107.19 148.234 91.3358 148.234 74.1046H148.209C148.209 33.1709 115.038 0 74.1046 0C33.1709 0 0 33.1709 0 74.1046C0 91.3406 5.88177 107.205 15.7513 119.794C23.4598 129.626 32.8854 138.107 42.3045 146.582C53.6568 156.797 64.9997 167.003 73.316 179.556C73.7103 180.148 74.5482 180.148 74.9425 179.556C83.258 167.005 94.5957 156.796 105.943 146.578C115.361 138.097 124.786 129.61 132.495 119.773ZM61.6452 40.8828H84.346C104.889 40.8828 121.62 57.6141 121.62 78.1569C121.62 98.6997 104.917 115.431 84.346 115.431H61.6452C41.1024 115.431 24.3711 98.6997 24.3711 78.1569C24.3711 57.6141 41.0744 40.8828 61.6452 40.8828ZM61.6452 101.502H84.346C97.2098 101.502 107.663 91.0207 107.663 78.1569C107.663 65.2932 97.2098 54.8396 84.346 54.8396H61.6452C48.7534 54.8396 38.2998 65.2651 38.2998 78.1569C38.2998 91.0487 48.7814 101.502 61.6452 101.502Z' fill='%23FF5014'/%3E%3C/svg%3E">
+<title>ПОРТАЛ — Учёт химии и аналитика сети умных робот-автомоек</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  (function(){
+    try {
+      var saved = localStorage.getItem('portal_theme');
+      var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e){}
+  })();
+</script>
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
 <div id="authScreen" class="auth-screen">
   <div class="auth-card">
-    <h1>Учёт химии</h1>
-    <div class="subtitle">Выберите вашу автомойку</div>
+    <div class="auth-header-bar">
+      <div class="brand-logo-wrap">
+        <svg class="portal-brand-pin" viewBox="0 0 149 180" width="36" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="18" y="36" width="112" height="83" class="portal-pin-bg"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M132.495 119.773C142.355 107.19 148.234 91.3358 148.234 74.1046H148.209C148.209 33.1709 115.038 0 74.1046 0C33.1709 0 0 33.1709 0 74.1046C0 91.3406 5.88177 107.205 15.7513 119.794C23.4598 129.626 32.8854 138.107 42.3045 146.582C53.6568 156.797 64.9997 167.003 73.316 179.556C73.7103 180.148 74.5482 180.148 74.9425 179.556C83.258 167.005 94.5957 156.796 105.943 146.578C115.361 138.097 124.786 129.61 132.495 119.773ZM61.6452 40.8828H84.346C104.889 40.8828 121.62 57.6141 121.62 78.1569C121.62 98.6997 104.917 115.431 84.346 115.431H61.6452C41.1024 115.431 24.3711 98.6997 24.3711 78.1569C24.3711 57.6141 41.0744 40.8828 61.6452 40.8828ZM61.6452 101.502H84.346C97.2098 101.502 107.663 91.0207 107.663 78.1569C107.663 65.2932 97.2098 54.8396 84.346 54.8396H61.6452C48.7534 54.8396 38.2998 65.2651 38.2998 78.1569C38.2998 91.0487 48.7814 101.502 61.6452 101.502Z" fill="#FF5014"/>
+        </svg>
+        <div class="brand-title-wrap">
+          <div class="brand-title">ПОРТАЛ <span class="brand-badge">АВТОРИЗАЦИЯ</span></div>
+          <div class="subtitle">Выберите вашу автомойку</div>
+        </div>
+      </div>
+      <button class="btn secondary theme-btn" onclick="toggleTheme()" aria-label="Сменить тему" title="Сменить тему" style="padding:8px;width:38px;height:38px;justify-content:center">
+        <svg class="theme-icon-sun svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="theme-icon-moon svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
 
     <div id="authSelectStep">
       <div class="search-wrap" style="margin:16px 0 10px">
@@ -47,10 +73,28 @@
 <div class="app" id="appRoot" style="display:none">
 
 <header>
-  <div><h1>Учёт химии</h1><div class="subtitle" id="currentLocLabel">Приход, расход и остатки</div>
-    <div class="sync-status" id="syncStatus"><span class="dot"></span><span id="syncText">Подключение...</span></div>
+  <div class="brand-header">
+    <div class="brand-logo-wrap">
+      <svg class="portal-brand-pin" viewBox="0 0 149 180" width="34" height="41" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="18" y="36" width="112" height="83" class="portal-pin-bg"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M132.495 119.773C142.355 107.19 148.234 91.3358 148.234 74.1046H148.209C148.209 33.1709 115.038 0 74.1046 0C33.1709 0 0 33.1709 0 74.1046C0 91.3406 5.88177 107.205 15.7513 119.794C23.4598 129.626 32.8854 138.107 42.3045 146.582C53.6568 156.797 64.9997 167.003 73.316 179.556C73.7103 180.148 74.5482 180.148 74.9425 179.556C83.258 167.005 94.5957 156.796 105.943 146.578C115.361 138.097 124.786 129.61 132.495 119.773ZM61.6452 40.8828H84.346C104.889 40.8828 121.62 57.6141 121.62 78.1569C121.62 98.6997 104.917 115.431 84.346 115.431H61.6452C41.1024 115.431 24.3711 98.6997 24.3711 78.1569C24.3711 57.6141 41.0744 40.8828 61.6452 40.8828ZM61.6452 101.502H84.346C97.2098 101.502 107.663 91.0207 107.663 78.1569C107.663 65.2932 97.2098 54.8396 84.346 54.8396H61.6452C48.7534 54.8396 38.2998 65.2651 38.2998 78.1569C38.2998 91.0487 48.7814 101.502 61.6452 101.502Z" fill="#FF5014"/>
+      </svg>
+      <div class="brand-title-wrap">
+        <div class="brand-title">ПОРТАЛ <span class="brand-badge">УЧЁТ ХИМИИ</span></div>
+        <div class="subtitle" id="currentLocLabel">Сеть умных робот-автомоек</div>
+        <div class="sync-status" id="syncStatus">
+          <span class="dot"></span>
+          <span id="syncText">Подключение...</span>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="header-actions">
+    <button class="btn secondary theme-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Переключить тему" title="Переключить тему">
+      <svg class="theme-icon-sun svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="theme-icon-moon svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span class="label-text theme-label-text">Тёмная тема</span>
+    </button>
     <button class="btn secondary" onclick="logoutLocation()" aria-label="Сменить автомойку" title="Сменить автомойку">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/><path d="M12 22H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7"/></svg>
       <span class="label-text">Сменить автомойку</span>
@@ -76,11 +120,6 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
     Аналитика
   </button>
-  <!-- Доступно ТОЛЬКО для Таганрогская 134Б -->
-  <button class="tab-btn" id="tabBtnNetwork" style="display:none" onclick="switchTab('network')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-    Обзор сети
-  </button>
 </nav>
 
 <!-- ВКЛАДКА 1: СКЛАД -->
@@ -102,7 +141,9 @@
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input id="search" class="search" placeholder="Поиск химии..." oninput="onSearch()">
-      <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="Очистить поиск">✕</button>
+      <button class="clear-search" id="clearSearch" onclick="clearSearch()" aria-label="Очистить поиск">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <button type="button" class="btn secondary" onclick="openInvHistory()" title="История склада" style="padding:11px 13px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -115,16 +156,18 @@
   </div>
 
   <div id="emptyInvHint" class="empty-hint" style="display:none">
-    <button type="button" class="hint-close" onclick="dismissInvHint()" aria-label="Скрыть подсказку">✕</button>
+    <button type="button" class="hint-close" onclick="dismissInvHint()" aria-label="Скрыть подсказку">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
     <b>Как добавить свою химию</b>
     <p>Нажмите кнопку «Химия» вверху экрана — укажите название (например, «Пена жёлтая») и текущий остаток.</p>
     <p>Для одной позиции можно завести сразу несколько единиц измерения (например, канистры и килограммы).</p>
-    <p>Чтобы позиция попадала в ежедневный отчёт во вкладке «Отчёт дня», нажмите на значок отчёта (📄) в её карточке — она подсветится зелёным.</p>
+    <p>Чтобы позиция попадала в ежедневный отчёт во вкладке «Отчёт дня», нажмите на кнопку отчёта в её карточке — она подсветится зелёным бейджем.</p>
     
     <div class="hint-action-bar">
       <button type="button" class="btn-guide-open" onclick="openGuide('inventory')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-        🎬 Интерактивное обучение (в слайдах)
+        Интерактивное обучение (в слайдах)
       </button>
     </div>
   </div>
@@ -134,96 +177,173 @@
 
 <!-- ВКЛАДКА 2: ОТЧЁТ ДНЯ -->
 <section id="viewReport" class="view">
-  <div class="card report-form">
-    <!-- Выбор даты смены (по умолчанию вчерашняя) -->
-    <div class="date-bar">
-      <label for="rDateShift">📅 Дата смены отчёта:</label>
-      <input type="date" id="rDateShift" onchange="onReportShiftDateChange()">
-    </div>
+  <div class="report-layout">
+    <!-- Левая колонка: форма ввода и проверки -->
+    <div class="report-form-col">
+      <!-- Верхняя панель: смена отчёта и быстрые действия -->
+      <div class="card report-top-card">
+        <div class="report-date-control">
+          <label for="rDateShift">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Смена:</span>
+          </label>
+          <input type="date" id="rDateShift" onchange="onReportShiftDateChange()">
+        </div>
 
-    <div class="report-actions" style="margin:0 0 14px">
-      <button type="button" class="btn secondary" onclick="openSettings()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-1 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-        Настройки отчёта
-      </button>
-      <button type="button" class="btn secondary" onclick="openReportHistory()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        История отчётов
-      </button>
-      <button type="button" class="btn secondary" onclick="openGuide('report')" title="Обучение по отчёту">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Обучение
-      </button>
-    </div>
+        <div class="report-quick-tools">
+          <button type="button" class="btn secondary sm" onclick="openSettings()" title="Настройки отчёта">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-1 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Настройки</span>
+          </button>
+          <button type="button" class="btn secondary sm" onclick="openReportHistory()" title="История отчётов">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>История</span>
+          </button>
+          <button type="button" class="btn secondary sm" onclick="openGuide('report')" title="Обучение по отчёту">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Обучение</span>
+          </button>
+        </div>
+      </div>
 
-    <div id="emptyReportHint" class="empty-hint" style="display:none">
-      <button type="button" class="hint-close" onclick="dismissReportHint()" aria-label="Скрыть подсказку">✕</button>
-      <b>Как настроить отчёт дня</b>
-      <p>Нажмите кнопку «Настройки отчёта» выше — укажите ответственных сотрудников, количество боксов, компрессоров, помп и нужные позиции расхода химии.</p>
-      <p>А во вкладке «Склад» нажмите на карточках значок отчёта (📄), чтобы выбрать, какая химия будет попадать в блок «Остаток химии».</p>
-      
-      <div class="hint-action-bar">
-        <button type="button" class="btn-guide-open" onclick="openGuide('report')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-          🎬 Интерактивное обучение (в слайдах)
+      <!-- Подсказка настройки отчёта -->
+      <div id="emptyReportHint" class="empty-hint" style="display:none">
+        <button type="button" class="hint-close" onclick="dismissReportHint()" aria-label="Скрыть подсказку">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
+        <b>Как настроить отчёт дня</b>
+        <p>Нажмите кнопку «Настройки отчёта» выше — укажите ответственных сотрудников, количество боксов, компрессоров, помп и нужные позиции расхода химии.</p>
+        <p>А во вкладке «Склад» нажмите на карточках кнопку отчёта, чтобы выбрать, какая химия будет попадать в блок «Остаток химии».</p>
+        
+        <div class="hint-action-bar">
+          <button type="button" class="btn-guide-open" onclick="openGuide('report')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            Интерактивное обучение (в слайдах)
+          </button>
+        </div>
+      </div>
+
+      <!-- Блок 1: Ответственный и TDS -->
+      <div class="card report-section-card" id="cardShiftParams">
+        <div class="section-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Параметры смены</span>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group" id="rowAuthor" style="display:none">
+            <label>Ответственный сотрудник</label>
+            <div class="author-row">
+              <select id="rAuthor" onchange="onAuthorChange()"></select>
+              <input id="rAuthorCustom" placeholder="Введите имя" style="display:none" oninput="updateReport()" onchange="commitCustomAuthor()">
+            </div>
+          </div>
+          <div class="form-group" id="rowTds" style="display:none">
+            <label>TDS (Качество воды осмоса)</label>
+            <div class="input-unit-wrap">
+              <input id="rTds" type="text" inputmode="decimal" placeholder="Например, 18" oninput="onDecimalInput(this, updateReport)">
+              <span class="input-unit">ppm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Блок 2: Помыто машин -->
+      <div class="card report-section-card" id="rowWashed" style="display:none">
+        <div class="section-card-header">
+          <div class="section-card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <span>Помыто машин за <span id="washedDateLabel"></span></span>
+          </div>
+          <div class="section-header-badges">
+            <span id="washedAutoBadge" style="display:none" class="badge-inteljet"></span>
+            <span id="washedTotalBadge" class="badge-total-cars" style="display:none">Всего: 0 авто</span>
+          </div>
+        </div>
+        <div class="washed-grid" id="washedGrid"></div>
+      </div>
+
+      <!-- Блок 3: Оборудование и посты -->
+      <div class="card report-section-card" id="cardEquipment">
+        <div class="section-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <span>Технический контроль оборудования</span>
+        </div>
+        
+        <div class="equip-grid">
+          <div class="equip-block" id="rowBoxStatus" style="display:none">
+            <span class="sub-label">Статус боксов</span>
+            <div class="toggle-row" id="boxStatusRow"></div>
+          </div>
+
+          <div class="equip-block" id="rowPumpPressure" style="display:none">
+            <span class="sub-label">Давление помп (бар)</span>
+            <div class="washed-grid" id="pumpPressureGrid"></div>
+          </div>
+
+          <div class="equip-block" id="rowCompressor" style="display:none">
+            <span class="sub-label">Масло компрессоров</span>
+            <div class="toggle-row" id="compressorRow"></div>
+          </div>
+
+          <div class="equip-block" id="rowPump" style="display:none">
+            <span class="sub-label">Масло помп</span>
+            <div class="toggle-row" id="pumpRow"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Блок 4: Рукава и расход химии по боксам -->
+      <div class="card report-section-card" id="cardBoxSections">
+        <div class="section-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span>Детализация по боксам (проход рукава и расход)</span>
+        </div>
+        <div id="boxSections"></div>
       </div>
     </div>
 
-    <div class="form-row" id="rowAuthor" style="display:none">
-      <label>Ответственный</label>
-      <div class="author-row">
-        <select id="rAuthor" onchange="onAuthorChange()"></select>
-        <input id="rAuthorCustom" placeholder="Введите имя" style="display:none" oninput="updateReport()" onchange="commitCustomAuthor()">
+    <!-- Правая колонка: Sticky Live Preview & Actions -->
+    <div class="report-preview-col">
+      <div class="card report-preview-sticky">
+        <div class="preview-header">
+          <div class="preview-title-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
+            <div>
+              <span class="preview-heading">Готовый отчёт дня</span>
+              <span class="preview-sub">Формируется автоматически для чата</span>
+            </div>
+          </div>
+          <span class="preview-live-badge">Live</span>
+        </div>
+
+        <div class="report-actions" id="rowReportActions" style="display:none">
+          <button class="btn primary-action-btn" onclick="copyDailyReport()" title="Скопировать отчёт">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Копировать отчёт</span>
+          </button>
+          <div class="action-btn-row">
+            <button class="btn secondary" onclick="saveReportToHistoryManual()" title="Сохранить отчёт в архив">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>В историю</span>
+            </button>
+            <button class="btn secondary danger-hover" onclick="clearReportForm()" title="Очистить форму на новую смену">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              <span>Очистить</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row" id="rowReportPreview" style="display:none; margin:0">
+          <div class="textarea-header">
+            <span>Предпросмотр сообщения</span>
+            <button type="button" class="mini-copy-btn" onclick="copyDailyReport()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Копировать
+            </button>
+          </div>
+          <textarea id="reportPreview" class="report-preview" readonly rows="16" placeholder="Отчёт сформируется автоматически..."></textarea>
+        </div>
       </div>
-    </div>
-
-    <div class="form-row" id="rowBoxStatus" style="display:none">
-      <label>Статус боксов</label>
-      <div class="toggle-row" id="boxStatusRow"></div>
-    </div>
-
-    <div class="washed-block" id="rowWashed" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px">
-        <label style="margin:0">Помыто машин за <span id="washedDateLabel"></span></label>
-        <span id="washedAutoBadge" style="display:none;font-size:11.5px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 8px;border-radius:6px">⚡ из INTELJET</span>
-      </div>
-      <div class="washed-grid" id="washedGrid"></div>
-    </div>
-
-    <!-- Защищённый ввод TDS -->
-    <div class="form-row" id="rowTds" style="display:none">
-      <label>TDS</label>
-      <input id="rTds" type="text" inputmode="decimal" placeholder="Например, 0.65" oninput="onDecimalInput(this, updateReport)">
-    </div>
-
-    <div class="form-row" id="rowCompressor" style="display:none">
-      <label>Масло компрессоры</label>
-      <div class="toggle-row" id="compressorRow"></div>
-    </div>
-    <div class="form-row" id="rowPump" style="display:none">
-      <label>Масло помпы</label>
-      <div class="toggle-row" id="pumpRow"></div>
-    </div>
-    <div class="washed-block" id="rowPumpPressure" style="display:none">
-      <label>Давление помп</label>
-      <div class="washed-grid" id="pumpPressureGrid"></div>
-    </div>
-
-    <div id="boxSections"></div>
-
-    <div class="report-actions" id="rowReportActions" style="display:none">
-      <button class="btn" onclick="copyDailyReport()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        Копировать отчёт
-      </button>
-      <button class="btn secondary" onclick="saveReportToHistoryManual()">Сохранить в историю</button>
-      <button class="btn secondary" onclick="clearReportForm()">Очистить форму</button>
-    </div>
-
-    <div class="form-row" id="rowReportPreview" style="display:none">
-      <label>Предпросмотр</label>
-      <textarea id="reportPreview" class="report-preview" readonly rows="12"></textarea>
     </div>
   </div>
 </section>
@@ -232,7 +352,7 @@
 <section id="viewAnalytics" class="view">
   <!-- Кнопка очистки аналитики -->
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-    <h2 style="margin:0; font-size:19px; color:var(--accent-dark);">Аналитика сети</h2>
+    <h2 style="margin:0; font-size:19px; color:var(--text); font-weight:800;">Аналитика сети</h2>
     <button type="button" class="btn danger" style="padding:8px 12px; font-size:12px;" onclick="clearAnalytics()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
       Очистить
@@ -254,55 +374,87 @@
     </div>
   </div>
 
-  <!-- БОЛЬШАЯ ИНТЕРАКТИВНАЯ КАРТОЧКА: ДЕТАЛЬНЫЙ СРЕЗ ПО ВЫБРАННОЙ ДАТЕ -->
-  <div class="detail-date-card">
-    <div class="date-picker-row">
-      <label for="anDateSelect">📅 Детальный срез по дате:</label>
-      <input type="date" id="anDateSelect" onchange="renderDateDetailCard()">
+  <!-- ИНТЕРАКТИВНЫЙ БЛОК: КАЛЕНДАРЬ СЛЕВА + ДЕТАЛИ ВЫБРАННОГО ДНЯ СПРАВА -->
+  <input type="hidden" id="anDateSelect">
+  <div class="an-split-grid">
+    <!-- Левая колонка: Кастомный интерактивный календарь с переключением месяцев -->
+    <div class="chart-card cal-card">
+      <div class="cal-header">
+        <div class="cal-nav-wrap">
+          <button type="button" class="cal-nav-btn" onclick="prevCalMonth()" title="Предыдущий месяц" aria-label="Предыдущий месяц">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="cal-month-title" id="calMonthTitle">Сентябрь 2026</span>
+          <button type="button" class="cal-nav-btn" onclick="nextCalMonth()" title="Следующий месяц" aria-label="Следующий месяц">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <button type="button" class="cal-today-btn" onclick="goCalToday()">Сегодня</button>
+      </div>
+      <div class="cal-weekdays">
+        <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span class="cal-we">Сб</span><span class="cal-we">Вс</span>
+      </div>
+      <div class="cal-grid" id="calDaysGrid"></div>
+      <div class="cal-footer-legend">
+        <span class="legend-item"><span class="legend-dot active"></span> Есть смена с авто</span>
+        <span class="legend-item"><span class="legend-dot today"></span> Сегодня</span>
+      </div>
     </div>
-    <div id="anDateDetailContainer"></div>
+
+    <!-- Правая колонка: Рекорд смены (на одном уровне с календарем) -->
+    <div class="chart-card record-card" id="recordDayCard">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Рекорд смены
+        </span>
+        <small>максимум за 1 день</small>
+      </h3>
+      <div id="recordDayContent"></div>
+    </div>
+  </div>
+
+  <!-- ЕДИНАЯ ЦЕЛЬНАЯ КАРТОЧКА ВЫБРАННОГО ДНЯ: СВОДКА + БОКСЫ И ЗАМЕРЫ -->
+  <div class="chart-card day-full-card" id="calDayCard" style="margin-bottom:14px">
+    <div id="anDaySummaryContainer"></div>
+    <div class="day-boxes-title" style="margin-top:16px">
+      <span style="display:flex;align-items:center;gap:7px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Состояние боксов и замеры смены
+      </span>
+      <small style="font-size:11.5px;color:var(--muted)">машины • рукава • расход химии</small>
+    </div>
+    <div id="anDayBoxesContainer"></div>
   </div>
 
   <!-- БЛОК INTELJET: ДАННЫЕ ТЕРМИНАЛА (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
   <div id="inteljetContainer" style="display:none"></div>
 
-  <div class="chart-card">
-    <h3>
-      <span>Загрузка по дням недели</span>
-      <small>машин за смену</small>
-    </h3>
-    <div class="weekday-chart" id="weekdayChart"></div>
-  </div>
-
-  <div class="chart-card">
-    <h3>
-      <span>Общая загрузка по боксам</span>
-      <small>распределение машин</small>
-    </h3>
-    <div id="boxesMetricList"></div>
-  </div>
-</section>
-
-<!-- ВКЛАДКА 4: ОБЗОР СЕТИ (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
-<section id="viewNetwork" class="view">
-  <div class="network-bar">
-    <div class="network-bar-top">
-      <div>
-        <span class="network-badge">Суперадминистратор</span>
-        <h2 style="margin:4px 0 0;font-size:18px">Обзор автомоек сети</h2>
-      </div>
-      <div style="min-width:200px">
-        <select id="networkLocSelect" onchange="onNetworkLocChange()"></select>
-      </div>
+  <!-- НИЖНИЕ КАРТОЧКИ АНАЛИТИКИ (2 В РЯДУ НА 50% / 50%) -->
+  <div class="an-bottom-grid">
+    <!-- Карточка 1: Самые загруженные дни недели (от большего к меньшему) -->
+    <div class="chart-card">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Загрузка по дням недели
+        </span>
+        <small>рейтинг от большего к меньшему</small>
+      </h3>
+      <div id="busiestDaysRanking"></div>
     </div>
-    <div class="read-only-banner">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Режим наблюдения: данные загружены только для просмотра. Редактирование и копирование отключены.
-    </div>
-  </div>
 
-  <div id="networkContent">
-    <div class="empty">Выберите автомойку из списка выше для просмотра её данных</div>
+    <!-- Карточка 2: Общая загрузка по боксам за всё время -->
+    <div class="chart-card">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/></svg>
+          Общая загрузка по боксам
+        </span>
+        <small>распределение машин за всё время</small>
+      </h3>
+      <div id="boxesMetricList"></div>
+    </div>
   </div>
 </section>
 
@@ -315,7 +467,10 @@
     <form onsubmit="saveItem(event)">
       <div class="form-row"><label>Название</label><input id="fName" required placeholder="Например, Пена жёлтая"></div>
       <div id="measureConfig"></div>
-      <button type="button" class="add-measure" onclick="addMeasureRow()">＋ Добавить единицу измерения</button>
+      <button type="button" class="add-measure" onclick="addMeasureRow()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Добавить единицу измерения
+      </button>
       <div class="modal-actions">
         <button type="button" class="btn danger" id="btnDeleteItem" style="display:none" onclick="deleteCurrentItem()">Удалить карточку</button>
         <button type="button" class="btn secondary" onclick="closeModal()">Отмена</button>
@@ -412,8 +567,8 @@
 <div id="copyModal" class="modal-backdrop copy-modal" onclick="if(event.target===this)closeCopyModal()">
   <div class="modal">
     <h2>Скопируйте текст</h2>
-    <div class="copy-hint">Автоматически скопировать не получилось. Текст уже выделен — нажмите «Копировать» или Ctrl+C.</div>
-    <textarea id="copyTextarea" readonly></textarea>
+    <div class="copy-hint" style="color:var(--muted);margin-bottom:12px;font-size:13px">Автоматически скопировать не получилось. Текст уже выделен — нажмите «Копировать» или Ctrl+C.</div>
+    <textarea id="copyTextarea" readonly rows="8" style="margin-bottom:12px"></textarea>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="closeCopyModal()">Закрыть</button>
       <button type="button" class="btn" onclick="retryCopyFromModal()">Попробовать снова</button>
@@ -428,9 +583,9 @@
 <script src="js/firebase-config.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/inventory.js"></script>
+<script src="js/initial-history.js"></script>
 <script src="js/report.js"></script>
 <script src="js/analytics.js"></script>
-<script src="js/network.js"></script>
 <script src="js/guide.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
