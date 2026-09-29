@@ -251,8 +251,21 @@ function createDebounce(fn, delay = 350){
  * Получение точной даты смены для отображения в календаре и аналитике
  */
 function getEntryDisplayDate(entry){
+  return getEntryShiftDate(entry);
+}
+
+/** Дата МОЙКИ (за какой день помыты машины) */
+function getEntryShiftDate(entry){
   if(!entry) return '';
-  return entry.shiftDate || entry.date || entry.id || entry.reportDate || '';
+  return entry.shiftDate || entry.date || entry.id || '';
+}
+
+/** Дата ОТЧЁТА (в какой день составлен отчёт: остатки, TDS, рукава, расход) */
+function getEntryReportDate(entry){
+  if(!entry) return '';
+  if(entry.reportDate) return entry.reportDate;
+  const shift = getEntryShiftDate(entry);
+  return shift ? addDaysISO(shift, 1) : '';
 }
 
 /**
