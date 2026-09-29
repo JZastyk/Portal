@@ -52,11 +52,7 @@ function startApp(id,name){
  data=sanitizeData(JSON.parse(localStorage.getItem(invKey())||'null')||{items:[],history:[]});
  report=sanitizeReport(JSON.parse(localStorage.getItem(reportKey())||'null'));
   let localHist = JSON.parse(localStorage.getItem(reportHistKey()) || '[]');
-  const isFlagship = (id === '-P2Rh9_It6dCkSMobgfm' || (name || '').toLowerCase().includes('таганрог'));
-  if(!isFlagship && Array.isArray(localHist) && localHist.some(e => e && e.id && e.id.startsWith('2026-09'))){
-    localHist = localHist.filter(e => !(e && e.id && e.id.startsWith('2026-09')));
-    localStorage.setItem(reportHistKey(), JSON.stringify(localHist));
-  }
+  if(!Array.isArray(localHist)) localHist = [];
   reportsHistoryCache = localHist;
 
  render();
@@ -110,7 +106,7 @@ function startApp(id,name){
   }
  });
 
- reportsHistoryRef.limitToLast(100).on('value',snap=>{
+ reportsHistoryRef.limitToLast(400).on('value',snap=>{
   const remote = snap.val();
   reportsHistoryCache = remote ? Object.values(remote).sort((a,b) => new Date(b.time) - new Date(a.time)) : [];
   localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
