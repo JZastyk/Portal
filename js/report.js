@@ -7,7 +7,8 @@ let lastKnownTodayISO = todayISO();
 function onReportShiftDateChange(){
  const el = document.getElementById('rDateShift');
  if(el && el.value){
-   currentShiftDate = el.value;
+   // В поле стоит ДАТА ОТЧЁТА; дата мойки = день раньше
+   currentShiftDate = addDaysISO(el.value, -1);
    isCustomShiftDatePicked = (currentShiftDate !== yesterdayISO());
    updateWashedDateLabel();
    applyInteljetAutofill();
@@ -22,56 +23,79 @@ function updateWashedDateLabel(){
  }
 }
 
-/* Автоматическое заполнение количества машин по боксам из INTELJET */
+/* Автоматическое заполнение количества машин по боксам из INTELJET.
+   Флаг «заполнено автоматически» хранится в самом отчёте (report.washedAuto),
+   поэтому переживает перезагрузку страницы и синхронизацию настроек. */
 function applyInteljetAutofill(){
   const badge = document.getElementById('washedAutoBadge');
   if(typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()){
     if(badge) badge.style.display = 'none';
     return;
   }
+  if(!report.washedAuto || typeof report.washedAuto !== 'object') report.washedAuto = {};
 
   const shiftD = currentShiftDate || yesterdayISO();
   const allOrders = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {});
   const shiftOrders = allOrders.filter(o => o && o.date === shiftD);
+  const boxCountNum = Number(settings.boxCount) || 0;
+  let changed = false;
 
   if(!shiftOrders.length){
+    // Заказы ещё не загружены вообще — ничего не трогаем
+    if(allOrders.length){
+      // За выбранную дату заказов нет: убираем устаревшие автоцифры от другой даты, ручные оставляем
+      for(let b=1; b<=boxCountNum; b++){
+        if(report.washedAuto[b]){
+          report.washed[b] = '';
+          delete report.washedAuto[b];
+          const inp = document.querySelector(`.washed-in[data-box="${b}"]`);
+          if(inp && document.activeElement !== inp) inp.value = '';
+          changed = true;
+        }
+      }
+    }
     if(badge) badge.style.display = 'none';
+    if(changed){ updateWashedTotalBadge(); persistReport(); }
     return;
   }
 
-  const boxCountNum = Number(settings.boxCount) || 0;
   const counts = {};
   for(let b=1; b<=boxCountNum; b++) counts[b] = 0;
-
   shiftOrders.forEach(o => {
     const b = Number(o.box) || 1;
     if(counts[b] !== undefined) counts[b] += 1;
   });
-
   const total = shiftOrders.length;
-  let didAutofill = false;
 
   for(let b=1; b<=boxCountNum; b++){
     const inp = document.querySelector(`.washed-in[data-box="${b}"]`);
-    if(inp && document.activeElement !== inp){
-      // Заполняем, если поле пустое или было автозаполнено ранее
-      if(report.washed[b] === '' || report.washed[b] == null || inp.dataset.autoFilled === '1'){
-        report.washed[b] = String(counts[b] || 0);
-        inp.value = report.washed[b];
-        inp.dataset.autoFilled = '1';
-        didAutofill = true;
-      }
+    if(inp && document.activeElement === inp) continue;
+    const cur = report.washed[b];
+    const isEmpty = (cur === '' || cur == null);
+    // Заполняем, если поле пустое или значение поставлено автоматически ранее
+    if(isEmpty || report.washedAuto[b]){
+      const val = String(counts[b] || 0);
+      if(report.washed[b] !== val || !report.washedAuto[b]) changed = true;
+      report.washed[b] = val;
+      report.washedAuto[b] = true;
+      if(inp) inp.value = val;
     }
   }
 
   if(badge){
-    const hasManual = Array.from(document.querySelectorAll('.washed-in')).some(el => el.dataset.autoFilled === '0');
+    let hasManual = false;
+    for(let b=1; b<=boxCountNum; b++){
+      const v = report.washed[b];
+      if(v !== '' && v != null && !report.washedAuto[b]) hasManual = true;
+    }
     badge.style.display = 'inline-flex';
-    badge.innerHTML = hasManual 
+    badge.innerHTML = hasManual
       ? `${getSvg('zap')} Заполнено из INTELJET (${total} авто, отредактировано)`
       : `${getSvg('zap')} Заполнено из INTELJET (${total} авто)`;
     badge.title = 'Данные подтянуты автоматически из INTELJET. Вы можете скорректировать цифры в любой момент.';
   }
+
+  if(changed){ updateWashedTotalBadge(); persistReport(); }
 }
 
 
@@ -99,11 +123,11 @@ function refreshShiftDateIfDayChanged(forceReset = false){
    lastKnownTodayISO = currentToday;
    currentShiftDate = yesterdayISO();
    isCustomShiftDatePicked = false;
-   if(dateInput) dateInput.value = currentShiftDate;
+   if(dateInput) dateInput.value = addDaysISO(currentShiftDate, 1);
    updateWashedDateLabel();
    renderReportPreview();
  } else if(dateInput && !dateInput.value){
-   dateInput.value = currentShiftDate || yesterdayISO();
+   dateInput.value = addDaysISO(currentShiftDate || yesterdayISO(), 1);
    updateWashedDateLabel();
  }
 }
@@ -169,7 +193,7 @@ function persistSettings(){
 }
 
 function defaultReport(){
- const boxState={},washed={},hoses={},consumption={};
+ const boxState={},washed={},washedAuto={},hoses={},consumption={};
  range(settings.boxCount).forEach(b=>{boxState[b]='ok';washed[b]='';hoses[b]={left:'',back:'',right:''};consumption[b]={};});
  const compressorState={};
  range(settings.compressorCount).forEach(i=>{compressorState[i]='ok';});
@@ -177,7 +201,7 @@ function defaultReport(){
  range(settings.pumpCount).forEach(i=>{pumpState[i]='ok';pumpPressure[i]='';});
  return {
    author:localStorage.getItem(lastAuthorKey())||'',
-   boxState,washed,tds:'',
+   boxState,washed,washedAuto,tds:'',
    compressorState,pumpState,pumpPressure,
    hoses,consumption
  };
@@ -187,13 +211,14 @@ function sanitizeReport(r){
  if(!r||typeof r!=='object')return d;
  const out={
    author:r.author!==undefined?r.author:d.author,
-   boxState:{},washed:{},tds:r.tds!==undefined?r.tds:(r.ph!==undefined?r.ph:''),
+   boxState:{},washed:{},washedAuto:{},tds:r.tds!==undefined?r.tds:(r.ph!==undefined?r.ph:''),
    compressorState:{},pumpState:{},pumpPressure:{},
    hoses:{},consumption:{}
  };
  range(settings.boxCount).forEach(b=>{
    out.boxState[b]=(r.boxState&&r.boxState[b])||'ok';
    out.washed[b]=(r.washed&&r.washed[b])||'';
+   if(r.washedAuto&&r.washedAuto[b]===true&&out.washed[b]!=='')out.washedAuto[b]=true;
    const h=r.hoses&&r.hoses[b];
    out.hoses[b]={left:(h&&h.left)||'',back:(h&&h.back)||'',right:(h&&h.right)||''};
    out.consumption[b]=Object.assign({},r.consumption&&r.consumption[b]);
@@ -410,7 +435,7 @@ function rebuildReportDynamicUI(){
 function fillReportForm(){
  const dateInput = document.getElementById('rDateShift');
  if(dateInput && !dateInput.value){
-   dateInput.value = currentShiftDate || yesterdayISO();
+   dateInput.value = addDaysISO(currentShiftDate || yesterdayISO(), 1);
  }
  updateWashedDateLabel();
  buildAuthorSelect();
@@ -429,6 +454,7 @@ function fillReportForm(){
    inp.value=report.washed[inp.dataset.box]||'';
  });
  applyInteljetAutofill();
+ updateWashedTotalBadge();
 
  if(document.activeElement !== document.getElementById('rTds')){
    document.getElementById('rTds').value=report.tds||'';
@@ -567,13 +593,15 @@ function updateReport(){
  if(selVal!=='__custom__')report.author=selVal;
  else report.author=document.getElementById('rAuthorCustom').value;
  localStorage.setItem(lastAuthorKey(),report.author);
+ if(!report.washedAuto)report.washedAuto={};
  document.querySelectorAll('.washed-in').forEach(inp=>{
    report.washed[inp.dataset.box]=inp.value;
    if(document.activeElement === inp){
-     inp.dataset.autoFilled = '0';
+     delete report.washedAuto[inp.dataset.box]; // оператор правит вручную — больше не трогаем
    }
  });
  applyInteljetAutofill();
+ updateWashedTotalBadge();
  report.tds=document.getElementById('rTds').value;
  document.querySelectorAll('.pump-pressure-in').forEach(inp=>{report.pumpPressure[inp.dataset.pump]=inp.value});
  document.querySelectorAll('.hose-in').forEach(inp=>{
@@ -599,8 +627,18 @@ function clearReportForm(){
  toast('Форма очищена');
 }
 
-/* Сохранение отчёта строго под датой составления (сегодня) с сохранением смены */
-function saveReportToHistoryManual(){
+/* Снимок остатков химии на момент сохранения (относится к ДАТЕ ОТЧЁТА) */
+function buildStockSnapshot(){
+ return (data.items || []).filter(it => it.inReport).map(it => ({
+   name: it.name,
+   measures: (it.measures || []).map(m => ({ qty: Number(m.qty) || 0, unit: m.unit }))
+ }));
+}
+
+/* Сохранение отчёта:
+   - reportDate (дата отчёта) — TDS, рукава, расход химии, остатки, оператор
+   - shiftDate  (дата мойки = reportDate − 1) — только количество машин */
+function saveReportToHistoryManual(silent){
  const shiftDate = currentShiftDate || yesterdayISO();
  const text = buildDailyReportText(report);
  if(!text){toast('Отчёт пуст — заполните параметры');return}
@@ -614,24 +652,25 @@ function saveReportToHistoryManual(){
    author: report.author,
    text,
    report: JSON.parse(JSON.stringify(report)),
+   stock: buildStockSnapshot(),
    time: new Date().toISOString()
  };
 
- // Локально перезаписываем день
- reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e.id !== reportDate && e.reportDate !== reportDate && e.date !== shiftDate)];
+ // Один отчёт на одну дату отчёта. Старые записи с тем же reportDate, но другим ключом, удаляем и в Firebase
+ const stale = reportsHistoryCache.filter(e => e && e.id !== reportDate && getEntryReportDate(e) === reportDate);
+ stale.forEach(e => { if(e.id && reportsHistoryRef) reportsHistoryRef.child(e.id).remove().catch(()=>{}); });
+ reportsHistoryCache = [entry, ...reportsHistoryCache.filter(e => e && getEntryReportDate(e) !== reportDate)];
  localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
 
- // В Firebase сохраняем с ключом по дате отчёта
  reportsHistoryRef.child(reportDate).set(entry).then(()=>{
-   toast(`Отчёт за ${isoToRuDate(reportDate)} сохранён`);
+   if(!silent) toast(`Отчёт за ${isoToRuDate(reportDate)} сохранён`);
  }).catch(()=>{
-   toast('Сохранено локально');
+   if(!silent) toast('Сохранено локально');
  });
 
- // Обновляем дату в календаре аналитики на сохранённую дату отчёта
- const anPicker = document.getElementById('anDateSelect');
- if(anPicker) anPicker.value = reportDate;
-
+ // Переводим календарь аналитики на дату отчёта
+ calSelectedDate = reportDate;
+ if(typeof selectCalendarDate === 'function') selectCalendarDate(reportDate);
  renderAnalytics();
 }
 
@@ -639,9 +678,10 @@ function copyDailyReport(){
  const text=buildDailyReportText(report);
  if(!text){toast('Отчёт пуст — сначала настройте автомойку');return;}
  lastCopyText=text;
+ // Сохраняем в любом случае — даже если буфер обмена недоступен
+ saveReportToHistoryManual(true);
  copyToClipboard(text).then(()=>{
-   toast('Отчёт скопирован в буфер обмена');
-   saveReportToHistoryManual();
+   toast('Отчёт скопирован и сохранён');
  }).catch(()=>showCopyFallback(text));
 }
 
@@ -650,7 +690,7 @@ function deleteReportHistoryEntry(entryId, ev){
  if(ev) ev.stopPropagation();
  if(!confirm('Удалить этот отчёт из истории?')) return;
 
- reportsHistoryCache = reportsHistoryCache.filter(e => e.id !== entryId && e.date !== entryId && e.reportDate !== entryId);
+ reportsHistoryCache = reportsHistoryCache.filter(e => e && e.id !== entryId);
  localStorage.setItem(reportHistKey(), JSON.stringify(reportsHistoryCache));
  reportsHistoryRef.child(entryId).remove().catch(()=>{});
 
