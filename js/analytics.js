@@ -27,18 +27,14 @@ function getUniqueDailyReports(){
   const map = {};
   reportsHistoryCache.forEach(h => {
     if (!h) return;
-    const key = getEntryDisplayDate(h);
+    // Один отчёт = одна дата отчёта; при дублях берём самый свежий по времени сохранения
+    const key = getEntryReportDate(h);
     if (!key) return;
-    // Всегда берём запись с самой свежей меткой времени time
     if (!map[key] || new Date(h.time).getTime() >= new Date(map[key].time).getTime()) {
       map[key] = h;
     }
   });
-  return Object.values(map).sort((a,b) => {
-    const da = getEntryDisplayDate(a);
-    const db = getEntryDisplayDate(b);
-    return db.localeCompare(da);
-  });
+  return Object.values(map).sort((a,b) => getEntryReportDate(b).localeCompare(getEntryReportDate(a)));
 }
 
 /* ===== Состояние интерактивного календаря аналитики ===== */
@@ -79,7 +75,7 @@ function renderAnalytics(){
   if(!calSelectedDate){
     if(uniqueReports.length > 0){
       const latest = uniqueReports[0];
-      calSelectedDate = latest.shiftDate || latest.date || getEntryDisplayDate(latest) || todayISO();
+      calSelectedDate = getEntryReportDate(latest) || todayISO();
     } else {
       calSelectedDate = todayISO();
     }
@@ -117,9 +113,10 @@ function getDayStats(dateVal, uniqueReports){
   if(!uniqueReports) uniqueReports = getUniqueDailyReports();
   const boxCountNum = Number(settings.boxCount) || 0;
 
-  // 1. Ищем сохранённые отчёты:
-  const washedEntry = uniqueReports.find(e => (e.shiftDate || e.date) === dateVal || getEntryDisplayDate(e) === dateVal);
-  const metricsEntry = uniqueReports.find(e => (e.shiftDate || e.date) === dateVal || getEntryDisplayDate(e) === dateVal);
+  // 1. МАШИНЫ — из отчёта, у которого дата мойки (shiftDate) = выбранный день.
+  //    ЗАМЕРЫ (рукава, расход, TDS, остатки, оператор) — из отчёта, у которого дата отчёта (reportDate) = выбранный день.
+  const washedEntry = uniqueReports.find(e => getEntryShiftDate(e) === dateVal);
+  const metricsEntry = uniqueReports.find(e => getEntryReportDate(e) === dateVal);
 
   // 2. Ищем заказы INTELJET Live для этой даты
   const allInteljet = (typeof inteljetOrdersCache !== 'undefined' && inteljetOrdersCache) ? Object.values(inteljetOrdersCache) : [];
@@ -145,11 +142,12 @@ function getDayStats(dateVal, uniqueReports){
   }
 
   // 3. Замеры (рукава, расход, TDS, автор)
-  const metricsRep = (metricsEntry && metricsEntry.report) || (washedEntry && washedEntry.report) || {};
+  const metricsRep = (metricsEntry && metricsEntry.report) || {};
   const hoses = metricsRep.hoses || {};
   const consumption = metricsRep.consumption || {};
   const tdsValue = metricsRep.tds || '';
-  const metricsAuthor = (metricsEntry && metricsEntry.author) || (washedEntry && washedEntry.author) || (isFromInteljetLive ? 'INTELJET (онлайн)' : '');
+  const metricsAuthor = (metricsEntry && metricsEntry.author) || (isFromInteljetLive ? 'INTELJET (онлайн)' : '');
+  const stock = (metricsEntry && metricsEntry.stock) || [];
 
   const hasData = Boolean(washedEntry || metricsEntry || shiftInteljet.length > 0);
 
@@ -160,6 +158,7 @@ function getDayStats(dateVal, uniqueReports){
     hoses: hoses,
     consumption: consumption,
     tdsValue: tdsValue,
+    stock: stock,
     author: metricsAuthor,
     washedEntry: washedEntry,
     metricsEntry: metricsEntry,
@@ -177,10 +176,10 @@ function buildDailyStatsMap(uniqueReports){
   const datesSet = new Set();
 
   uniqueReports.forEach(h => {
-    if(h.shiftDate) datesSet.add(h.shiftDate);
-    if(h.date) datesSet.add(h.date);
-    const d = getEntryDisplayDate(h);
-    if(d) datesSet.add(d);
+    const sd = getEntryShiftDate(h);
+    const rd = getEntryReportDate(h);
+    if(sd) datesSet.add(sd);
+    if(rd) datesSet.add(rd);
   });
 
   if (typeof isCurrentSuperAdmin === 'function' && isCurrentSuperAdmin() && typeof inteljetOrdersCache !== 'undefined' && inteljetOrdersCache) {
@@ -388,12 +387,26 @@ function renderDayDetailCard(){
   let sourceHints = '';
   if(stat.isFromInteljetLive){
     sourceHints = `<div style="font-size:11.5px;color:var(--accent);margin-top:10px;display:flex;align-items:center;gap:5px">${getSvg('zap')} Данные о количестве машин получены напрямую из терминала INTELJET Live</div>`;
-  } else if(stat.washedEntry && stat.metricsEntry && stat.washedEntry !== stat.metricsEntry){
-    const washedDateStr = new Date(stat.washedEntry.date + 'T00:00:00').toLocaleDateString('ru-RU');
-    const metricsDateStr = stat.metricsEntry.reportDate
-      ? new Date(stat.metricsEntry.reportDate + 'T00:00:00').toLocaleDateString('ru-RU')
-      : new Date(stat.metricsEntry.date + 'T00:00:00').toLocaleDateString('ru-RU');
-    sourceHints = `<div style="font-size:11px;color:var(--muted);margin-top:10px">Машины: отчёт за ${washedDateStr} • Замеры: отчёт от ${metricsDateStr}</div>`;
+  } else if(stat.washedEntry && !stat.metricsEntry){
+    sourceHints = `<div style="font-size:11px;color:var(--muted);margin-top:10px">Машины учтены из отчёта от ${isoToRuDate(getEntryReportDate(stat.washedEntry))}. Отчёта с замерами за эту дату нет.</div>`;
+  } else if(!stat.washedEntry && stat.metricsEntry){
+    sourceHints = `<div style="font-size:11px;color:var(--muted);margin-top:10px">Замеры из отчёта за эту дату. Машины за этот день появятся с отчётом следующего дня.</div>`;
+  }
+
+  // Остаток химии на дату отчёта
+  let stockHtml = '';
+  if(stat.stock && stat.stock.length){
+    stockHtml = `
+      <div class="box-detail-card" style="margin-top:12px">
+        <div class="bd-section-label">Остаток химии</div>
+        <div class="bd-cons-list">
+          ${stat.stock.map(it => {
+            let shown = (it.measures || []).filter(m => Number(m.qty) !== 0);
+            if(!shown.length) shown = it.measures || [];
+            return `<div class="bd-cons-item"><span>${esc(it.name)}</span><b>${shown.map(m => fmt(m.qty) + esc(m.unit) + '.').join(' и ')}</b></div>`;
+          }).join('')}
+        </div>
+      </div>`;
   }
 
   const summaryHtml = `
@@ -427,6 +440,7 @@ function renderDayDetailCard(){
     <div class="day-boxes-grid">
       ${boxesHtml || '<div class="empty">Боксы не настроены</div>'}
     </div>
+    ${stockHtml}
     ${sourceHints}
     ${!stat.hasData ? `
       <div class="empty" style="margin-top:12px;padding:12px">
@@ -675,7 +689,7 @@ function renderInteljetAnalytics(){
 
   // Сверка с данными смены отчёта
   const uniqueReports = getUniqueDailyReports();
-  const washedEntry = uniqueReports.find(e => (e.shiftDate || e.date) === selectedDate);
+  const washedEntry = uniqueReports.find(e => getEntryShiftDate(e) === selectedDate);
   let operatorCars = 0;
   if(washedEntry && washedEntry.report && washedEntry.report.washed){
     Object.values(washedEntry.report.washed).forEach(v => {
