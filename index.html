@@ -476,6 +476,60 @@
       <div id="boxesMetricList"></div>
     </div>
   </div>
+
+  <!-- ПРОХОД РУКАВА: ТАБЛИЦА СЛЕВА + ГРАФИК СПРАВА (данные из ежедневных отчётов) -->
+  <div class="an-metric-grid">
+    <div class="chart-card metric-card">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><path d="M4 14a4 4 0 0 1 4-4h8a4 4 0 0 1 0 8H8"/><path d="M4 14v4"/></svg>
+          Проход рукава
+        </span>
+        <small>по датам отчёта</small>
+      </h3>
+      <div class="mt-tabs" id="anHoseTabs"></div>
+      <div id="anHoseTable"></div>
+    </div>
+    <div class="chart-card metric-card">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Динамика
+        </span>
+        <small>ищем расхождения по дням</small>
+      </h3>
+      <div id="anHoseControls"></div>
+      <div id="anHoseChart"></div>
+      <div id="anHoseAlerts"></div>
+    </div>
+  </div>
+
+  <!-- РАСХОД ХИМИИ: ТАБЛИЦА СЛЕВА + ГРАФИК СПРАВА (данные из ежедневных отчётов) -->
+  <div class="an-metric-grid">
+    <div class="chart-card metric-card">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><path d="M9 3h6M10 9l-6 11a2 2 0 0 0 1.7 3h12.6a2 2 0 0 0 1.7-3l-6-11V3h-4v6z"/></svg>
+          Расход химии
+        </span>
+        <small>по датам отчёта</small>
+      </h3>
+      <div class="mt-tabs" id="anConsTabs"></div>
+      <div id="anConsTable"></div>
+    </div>
+    <div class="chart-card metric-card">
+      <h3>
+        <span style="display:flex;align-items:center;gap:7px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:var(--accent)"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Динамика
+        </span>
+        <small>г за день, по боксам</small>
+      </h3>
+      <div id="anConsControls"></div>
+      <div id="anConsChart"></div>
+      <div id="anConsAlerts"></div>
+    </div>
+  </div>
 </section>
 
 </div>
