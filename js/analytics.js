@@ -103,6 +103,9 @@ function renderAnalytics(){
   if(typeof renderInteljetAnalytics === 'function'){
     renderInteljetAnalytics();
   }
+
+  // Проход рукава и расход химии (таблицы + графики)
+  renderMetricAnalytics();
 }
 
 /**
@@ -788,3 +791,471 @@ function renderInteljetAnalytics(){
 }
 
 
+
+
+/* ===== Аналитика: проход рукава и расход химии (данные из ежедневных отчётов) =====
+   Слева — таблица по выбранному боксу, справа — динамический график по тем же данным.
+   Дата строки = дата отчёта (reportDate), как и остальные замеры. */
+const MT_COLORS = ['#5856d6', '#ff5014', '#34c759', '#0a84ff', '#ff9500', '#ff2d92', '#00c7be', '#a2845e'];
+const MT_UP = '#ff3b30';    // значение выше нормы
+const MT_DOWN = '#0a84ff';  // значение ниже нормы
+const MT_HOSE_KEYS = [
+  { key: 'left', label: 'Слева' },
+  { key: 'back', label: 'Сзади' },
+  { key: 'right', label: 'Справа' }
+];
+const MT_CFG = {
+  hose: {
+    title: 'Проход рукава', unit: '', thr: 0.25, emptyText: 'Нет данных по проходу рукава. Они появятся после сохранения отчётов.',
+    ids: { tabs: 'anHoseTabs', table: 'anHoseTable', controls: 'anHoseControls', chart: 'anHoseChart', alerts: 'anHoseAlerts' }
+  },
+  cons: {
+    title: 'Расход химии', unit: ' г', thr: 0.4, emptyText: 'Нет данных по расходу химии. Они появятся после сохранения отчётов.',
+    ids: { tabs: 'anConsTabs', table: 'anConsTable', controls: 'anConsControls', chart: 'anConsChart', alerts: 'anConsAlerts' }
+  }
+};
+const anMetricState = {
+  hose: { box: 1, period: 30, mode: 'abs', hidden: {} },
+  cons: { box: 1, period: 30, mode: 'abs', hidden: {} }
+};
+const anMetricCache = { hose: null, cons: null };
+
+function mtNum(v) {
+  if (v == null || v === '') return null;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+function mtMedian(arr) {
+  const a = arr.filter(x => x != null).slice().sort((x, y) => x - y);
+  if (!a.length) return null;
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+function mtFmtVal(v) {
+  if (v == null) return '—';
+  return String(Number(v.toFixed(3)));
+}
+function mtShortDate(iso) {
+  if (!iso) return '';
+  const p = iso.split('-');
+  return `${p[2]}.${p[1]}`;
+}
+function mtLongDate(iso) {
+  if (!iso) return '';
+  const p = iso.split('-');
+  return `${p[2]}.${p[1]}.${p[0].slice(2)}`;
+}
+function mtPct(dev) {
+  const p = Math.round(dev * 100);
+  return (p > 0 ? '+' : '') + p + '%';
+}
+
+/* Набор данных для выбранного бокса и периода */
+function mtBuildDataset(kind) {
+  const st = anMetricState[kind];
+  const cfg = MT_CFG[kind];
+  const boxN = Number(settings.boxCount) || 0;
+  if (st.box > boxN || st.box < 1) st.box = 1;
+
+  const reports = getUniqueDailyReports().slice()
+    .sort((a, b) => getEntryReportDate(a).localeCompare(getEntryReportDate(b)));
+
+  const srcOf = (e) => {
+    const rep = e.report || {};
+    return kind === 'hose' ? (rep.hoses && rep.hoses[st.box]) : (rep.consumption && rep.consumption[st.box]);
+  };
+
+  let keys;
+  if (kind === 'hose') {
+    keys = MT_HOSE_KEYS.map(k => k.key);
+  } else {
+    keys = (settings.consumptionItems || []).slice();
+    // Позиции, которые были в старых отчётах, но убраны из настроек, тоже показываем
+    reports.forEach(e => {
+      const src = srcOf(e);
+      if (src) Object.keys(src).forEach(k => { if (!keys.includes(k)) keys.push(k); });
+    });
+  }
+  const labelOf = (k) => kind === 'hose' ? (MT_HOSE_KEYS.find(x => x.key === k) || {}).label || k : k;
+
+  const cutoff = st.period > 0 ? addDaysISO(todayISO(), -(st.period - 1)) : '';
+  const rows = [];
+  reports.forEach(e => {
+    const date = getEntryReportDate(e);
+    if (!date || (cutoff && date < cutoff)) return;
+    const src = srcOf(e);
+    if (!src) return;
+    const vals = {};
+    let any = false;
+    keys.forEach(k => {
+      const n = mtNum(src[k]);
+      vals[k] = n;
+      if (n != null) any = true;
+    });
+    if (any) rows.push({ date, vals, author: e.author || '' });
+  });
+
+  const series = keys.map((k, i) => {
+    const values = rows.map(r => r.vals[k]);
+    const nonNull = values.filter(v => v != null);
+    const median = mtMedian(values);
+    const enough = nonNull.length >= 4 && median;
+    const devs = values.map(v => (v != null && enough) ? (v - median) / median : null);
+    const flags = devs.map(d => (d != null && Math.abs(d) >= cfg.thr) ? (d > 0 ? 'up' : 'down') : null);
+    return { key: k, label: labelOf(k), color: MT_COLORS[i % MT_COLORS.length], values, median, enough: Boolean(enough), devs, flags };
+  }).filter(s => s.values.some(v => v != null));
+
+  return { rows, series };
+}
+
+/* ===== Отрисовка одного блока (таблица + график) ===== */
+function renderMetric(kind) {
+  const cfg = MT_CFG[kind];
+  const st = anMetricState[kind];
+  const ids = cfg.ids;
+  if (!document.getElementById(ids.table)) return;
+
+  const boxN = Number(settings.boxCount) || 0;
+  const tabsEl = document.getElementById(ids.tabs);
+  const controlsEl = document.getElementById(ids.controls);
+  const tableEl = document.getElementById(ids.table);
+  const chartEl = document.getElementById(ids.chart);
+  const alertsEl = document.getElementById(ids.alerts);
+
+  if (boxN <= 0) {
+    tabsEl.innerHTML = '';
+    controlsEl.innerHTML = '';
+    alertsEl.innerHTML = '';
+    tableEl.innerHTML = '<div class="empty">Боксы не настроены</div>';
+    chartEl.innerHTML = '';
+    return;
+  }
+
+  // Вкладки боксов
+  let tabs = '';
+  for (let b = 1; b <= boxN; b++) {
+    tabs += `<button type="button" class="mt-tab ${b === st.box ? 'active' : ''}" onclick="setMetricBox('${kind}',${b})">Бокс ${b}</button>`;
+  }
+  tabsEl.innerHTML = tabs;
+
+  const ds = mtBuildDataset(kind);
+  anMetricCache[kind] = { ds };
+
+  // Панель управления графиком: период, режим, легенда
+  const periods = [[7, '7 дн'], [30, '30 дн'], [90, '90 дн'], [0, 'Всё']];
+  const periodHtml = periods.map(([v, t]) =>
+    `<button type="button" class="mt-pill ${st.period === v ? 'active' : ''}" onclick="setMetricPeriod('${kind}',${v})">${t}</button>`).join('');
+  const modeHtml = [['abs', 'Значения'], ['pct', 'Отклонение, %']].map(([v, t]) =>
+    `<button type="button" class="mt-pill ${st.mode === v ? 'active' : ''}" onclick="setMetricMode('${kind}','${v}')">${t}</button>`).join('');
+  const legendHtml = ds.series.map((s, i) =>
+    `<button type="button" class="mt-chip ${st.hidden[s.key] ? 'off' : ''}" onclick="toggleMetricSeries('${kind}',${i})" title="Показать / скрыть линию">
+       <span class="mt-chip-dot" style="background:${s.color}"></span>${esc(s.label)}</button>`).join('');
+  controlsEl.innerHTML = `
+    <div class="mt-controls-row">
+      <div class="mt-pills">${periodHtml}</div>
+      <div class="mt-pills">${modeHtml}</div>
+    </div>
+    ${legendHtml ? `<div class="mt-legend">${legendHtml}</div>` : ''}`;
+
+  if (!ds.rows.length) {
+    const hint = st.period > 0 ? ' Попробуйте период «Всё».' : '';
+    tableEl.innerHTML = `<div class="empty">${cfg.emptyText}${hint}</div>`;
+    chartEl.innerHTML = '';
+    alertsEl.innerHTML = '';
+    return;
+  }
+
+  mtRenderTable(kind, ds);
+  mtRenderChart(kind, ds);
+  mtRenderAlerts(kind, ds);
+}
+
+function mtRenderTable(kind, ds) {
+  const el = document.getElementById(MT_CFG[kind].ids.table);
+  const head = ds.series.map(s => `<th><span class="mt-th-dot" style="background:${s.color}"></span>${esc(s.label)}</th>`).join('');
+  let body = '';
+  for (let i = ds.rows.length - 1; i >= 0; i--) {   // свежие даты сверху
+    const r = ds.rows[i];
+    const cells = ds.series.map(s => {
+      const v = s.values[i];
+      if (v == null) return '<td class="mt-empty">—</td>';
+      const f = s.flags[i];
+      if (!f) return `<td>${mtFmtVal(v)}</td>`;
+      const title = `${f === 'up' ? 'Выше' : 'Ниже'} нормы: ${mtPct(s.devs[i])} от медианы ${mtFmtVal(s.median)}`;
+      return `<td class="mt-${f}" title="${esc(title)}">${mtFmtVal(v)} <span class="mt-arrow">${f === 'up' ? '▲' : '▼'}</span></td>`;
+    }).join('');
+    body += `<tr data-i="${i}" onmouseenter="mtHoverRow('${kind}',${i})" onmouseleave="mtHoverRow('${kind}',-1)">
+      <td class="mt-date">${mtLongDate(r.date)}</td>${cells}</tr>`;
+  }
+  const foot = ds.series.map(s => `<td>${s.median != null ? mtFmtVal(s.median) : '—'}</td>`).join('');
+  el.innerHTML = `
+    <div class="mt-table-wrap">
+      <table class="mt-table">
+        <thead><tr><th>Дата отчёта</th>${head}</tr></thead>
+        <tbody>${body}</tbody>
+        <tfoot><tr><td class="mt-date">Медиана</td>${foot}</tr></tfoot>
+      </table>
+    </div>`;
+}
+
+/* Список отклонений под графиком */
+function mtRenderAlerts(kind, ds) {
+  const cfg = MT_CFG[kind];
+  const el = document.getElementById(cfg.ids.alerts);
+  const thrPct = Math.round(cfg.thr * 100);
+  const items = [];
+  ds.series.forEach(s => {
+    s.flags.forEach((f, i) => { if (f) items.push({ i, date: ds.rows[i].date, s, f, dev: s.devs[i], v: s.values[i] }); });
+  });
+  const anyEnough = ds.series.some(s => s.enough);
+  if (!anyEnough) {
+    el.innerHTML = `<div class="mt-alert neutral">Для оценки отклонений нужно минимум 4 отчёта с данными в выбранном периоде.</div>`;
+    return;
+  }
+  if (!items.length) {
+    el.innerHTML = `<div class="mt-alert ok">Отклонений не обнаружено (порог ±${thrPct}% от медианы)</div>`;
+    return;
+  }
+  items.sort((a, b) => b.date.localeCompare(a.date) || Math.abs(b.dev) - Math.abs(a.dev));
+  const shown = items.slice(0, 6).map(it => `
+    <div class="mt-alert-row" onclick="mtHoverRow('${kind}',${it.i})">
+      <span class="mt-alert-badge ${it.f}">${it.f === 'up' ? '▲' : '▼'} ${mtPct(it.dev)}</span>
+      <span class="mt-alert-text"><b>${mtShortDate(it.date)}</b> · ${esc(it.s.label)}: ${mtFmtVal(it.v)}${cfg.unit} <small>(норма ${mtFmtVal(it.s.median)})</small></span>
+    </div>`).join('');
+  const more = items.length > 6 ? `<div class="mt-alert-more">и ещё ${items.length - 6} в выбранном периоде</div>` : '';
+  el.innerHTML = `<div class="mt-alert warn"><div class="mt-alert-title">Отклонения от нормы (порог ±${thrPct}% от медианы): ${items.length}</div>${shown}${more}</div>`;
+}
+
+/* ===== График (SVG, без внешних библиотек) ===== */
+function mtRenderChart(kind, ds) {
+  const cfg = MT_CFG[kind];
+  const st = anMetricState[kind];
+  const el = document.getElementById(cfg.ids.chart);
+  if (!el) return;
+
+  const vis = ds.series.filter(s => !st.hidden[s.key]);
+  if (!vis.length) {
+    el.innerHTML = '<div class="empty">Все линии скрыты — включите нужные в легенде выше</div>';
+    anMetricCache[kind].geo = null;
+    return;
+  }
+
+  const W = Math.max(300, el.clientWidth || 520);
+  const H = 280, L = 46, R = 14, T = 14, B = 32;
+  const pw = W - L - R, ph = H - T - B;
+  const pct = st.mode === 'pct';
+  const thr = cfg.thr;
+
+  const val = (s, i) => {
+    const v = s.values[i];
+    if (v == null) return null;
+    if (!pct) return v;
+    return s.median ? (v - s.median) / s.median * 100 : null;
+  };
+
+  // Диапазон оси Y
+  let lo = Infinity, hi = -Infinity;
+  vis.forEach(s => s.values.forEach((_, i) => {
+    const v = val(s, i);
+    if (v != null) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  }));
+  if (!isFinite(lo)) { lo = 0; hi = 1; }
+  if (pct) {
+    lo = Math.min(lo, -thr * 100 * 1.25);
+    hi = Math.max(hi, thr * 100 * 1.25);
+  } else if (vis.length === 1 && vis[0].median) {
+    lo = Math.min(lo, vis[0].median * (1 - thr));
+    hi = Math.max(hi, vis[0].median * (1 + thr));
+  }
+  const allNonNeg = !pct && lo >= 0;
+  const pad = (hi - lo) * 0.12 || Math.abs(hi) * 0.1 || 1;
+  lo -= pad; hi += pad;
+  if (allNonNeg && lo < 0) lo = 0;
+  const y = (v) => T + (1 - (v - lo) / (hi - lo)) * ph;
+
+  // Ось X — по календарю (пропущенные дни видны как разрывы)
+  const t = (iso) => Date.parse(iso + 'T00:00:00');
+  const t0 = t(ds.rows[0].date), t1 = t(ds.rows[ds.rows.length - 1].date);
+  const xIn = 8, xw = pw - xIn * 2;
+  const xs = ds.rows.map(r => ds.rows.length === 1 || t1 === t0 ? L + pw / 2 : L + xIn + (t(r.date) - t0) / (t1 - t0) * xw);
+
+  const range = hi - lo;
+  const tickFmt = (v) => pct ? `${Math.round(v)}%` : (range < 2 ? v.toFixed(2) : range < 20 ? v.toFixed(1) : String(Math.round(v)));
+
+  let svg = '';
+  // Сетка и подписи оси Y
+  for (let k = 0; k <= 4; k++) {
+    const v = lo + (hi - lo) * k / 4;
+    const yy = y(v);
+    svg += `<line class="mt-grid" x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}"/>`;
+    svg += `<text class="mt-axis" x="${L - 6}" y="${yy + 3.5}" text-anchor="end">${tickFmt(v)}</text>`;
+  }
+  // Зона нормы и линии медианы
+  if (pct) {
+    svg += `<rect class="mt-band" x="${L}" y="${y(thr * 100)}" width="${pw}" height="${Math.max(0, y(-thr * 100) - y(thr * 100))}"/>`;
+    svg += `<line class="mt-zero" x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}"/>`;
+  } else if (vis.length === 1 && vis[0].median) {
+    const m = vis[0].median;
+    svg += `<rect class="mt-band" x="${L}" y="${y(m * (1 + thr))}" width="${pw}" height="${Math.max(0, y(m * (1 - thr)) - y(m * (1 + thr)))}"/>`;
+    svg += `<line class="mt-zero" x1="${L}" x2="${W - R}" y1="${y(m)}" y2="${y(m)}"/>`;
+  } else {
+    vis.forEach(s => {
+      if (s.median != null) svg += `<line class="mt-median" x1="${L}" x2="${W - R}" y1="${y(s.median)}" y2="${y(s.median)}" style="stroke:${s.color}"/>`;
+    });
+  }
+  // Подписи дат
+  const maxLabels = Math.max(2, Math.floor(pw / 62));
+  const n = ds.rows.length;
+  const step = Math.max(1, Math.ceil(n / maxLabels));
+  let lastLabelX = -999;
+  for (let i = 0; i < n; i += step) {
+    if (xs[i] - lastLabelX < 46) continue;
+    lastLabelX = xs[i];
+    svg += `<text class="mt-axis" x="${xs[i]}" y="${H - 10}" text-anchor="middle">${mtShortDate(ds.rows[i].date)}</text>`;
+  }
+  // Направляющая (двигается при наведении)
+  svg += `<line id="mtGuide_${kind}" class="mt-guide" x1="0" x2="0" y1="${T}" y2="${T + ph}" style="display:none"/>`;
+  // Линии
+  vis.forEach(s => {
+    let d = '', pen = false;
+    for (let i = 0; i < n; i++) {
+      const v = val(s, i);
+      if (v == null) { pen = false; continue; }
+      d += `${pen ? 'L' : 'M'}${xs[i].toFixed(1)} ${y(v).toFixed(1)} `;
+      pen = true;
+    }
+    if (d) svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  // Точки (отклонения — крупные, красные/синие)
+  vis.forEach(s => {
+    for (let i = 0; i < n; i++) {
+      const v = val(s, i);
+      if (v == null) continue;
+      const f = s.flags[i];
+      if (f) {
+        svg += `<circle cx="${xs[i].toFixed(1)}" cy="${y(v).toFixed(1)}" r="5.5" fill="${f === 'up' ? MT_UP : MT_DOWN}" class="mt-dot-flag"/>`;
+      } else {
+        svg += `<circle cx="${xs[i].toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="${s.color}" class="mt-dot"/>`;
+      }
+    }
+  });
+  // Прозрачный слой для мыши / касаний
+  svg += `<rect id="mtHit_${kind}" x="${L}" y="${T}" width="${pw}" height="${ph}" fill="transparent" style="touch-action:pan-y"/>`;
+
+  el.innerHTML = `<div class="mt-chart-wrap"><svg class="mt-svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(cfg.title)}">${svg}</svg><div class="mt-tip" id="mtTip_${kind}" style="display:none"></div></div>`;
+
+  anMetricCache[kind].geo = { W, H, L, R, T, ph, xs, vis, pct };
+
+  const hit = document.getElementById(`mtHit_${kind}`);
+  if (hit) {
+    const onMove = (ev) => {
+      const svgEl = hit.ownerSVGElement;
+      const rect = svgEl.getBoundingClientRect();
+      const px = (ev.clientX - rect.left) * (W / rect.width);
+      let best = 0, bd = Infinity;
+      xs.forEach((x, i) => { const d = Math.abs(x - px); if (d < bd) { bd = d; best = i; } });
+      mtShowAt(kind, best, true);
+    };
+    hit.addEventListener('pointermove', onMove);
+    hit.addEventListener('pointerdown', onMove);
+    hit.addEventListener('pointerleave', () => mtHoverRow(kind, -1));
+  }
+}
+
+/* Подсветка точки: направляющая + подсказка + строка таблицы */
+function mtShowAt(kind, idx, fromChart) {
+  const cache = anMetricCache[kind];
+  if (!cache || !cache.geo) return;
+  const { ds, geo } = cache;
+  const guide = document.getElementById(`mtGuide_${kind}`);
+  const tip = document.getElementById(`mtTip_${kind}`);
+  if (!guide || !tip) return;
+
+  const x = geo.xs[idx];
+  guide.setAttribute('x1', x);
+  guide.setAttribute('x2', x);
+  guide.style.display = '';
+
+  const cfg = MT_CFG[kind];
+  const lines = geo.vis.map(s => {
+    const v = s.values[idx];
+    if (v == null) return '';
+    const f = s.flags[idx];
+    const badge = f ? ` <span class="mt-tip-badge ${f}">${f === 'up' ? '▲' : '▼'} ${mtPct(s.devs[idx])}</span>` : '';
+    return `<div class="mt-tip-row"><span class="mt-chip-dot" style="background:${s.color}"></span>${esc(s.label)}: <b>${mtFmtVal(v)}${cfg.unit}</b>${badge}</div>`;
+  }).join('');
+  tip.innerHTML = `<div class="mt-tip-date">${isoToRuDate(ds.rows[idx].date)}</div>${lines}`;
+  tip.style.display = 'block';
+
+  const wrap = tip.parentElement;
+  const wrapW = wrap.clientWidth || geo.W;
+  const xpx = x * (wrapW / geo.W);
+  const tipW = tip.offsetWidth || 160;
+  let left = xpx + 12;
+  if (left + tipW > wrapW) left = Math.max(0, xpx - tipW - 12);
+  tip.style.left = left + 'px';
+  tip.style.top = '8px';
+
+  // Подсветка строки таблицы
+  const tableEl = document.getElementById(cfg.ids.table);
+  if (tableEl) {
+    tableEl.querySelectorAll('tr.mt-row-hl').forEach(r => r.classList.remove('mt-row-hl'));
+    const row = tableEl.querySelector(`tr[data-i="${idx}"]`);
+    if (row) {
+      row.classList.add('mt-row-hl');
+      if (fromChart) {
+        const wrapT = row.closest('.mt-table-wrap');
+        if (wrapT) {
+          const rt = row.offsetTop, h = row.offsetHeight;
+          if (rt < wrapT.scrollTop + 30 || rt + h > wrapT.scrollTop + wrapT.clientHeight) wrapT.scrollTop = Math.max(0, rt - 60);
+        }
+      }
+    }
+  }
+}
+
+/* Наведение на строку таблицы (idx = -1 — снять подсветку) */
+function mtHoverRow(kind, idx) {
+  const cfg = MT_CFG[kind];
+  if (idx < 0) {
+    const guide = document.getElementById(`mtGuide_${kind}`);
+    const tip = document.getElementById(`mtTip_${kind}`);
+    if (guide) guide.style.display = 'none';
+    if (tip) tip.style.display = 'none';
+    const tableEl = document.getElementById(cfg.ids.table);
+    if (tableEl) tableEl.querySelectorAll('tr.mt-row-hl').forEach(r => r.classList.remove('mt-row-hl'));
+    return;
+  }
+  mtShowAt(kind, idx, false);
+}
+
+/* Переключатели */
+function setMetricBox(kind, b) { anMetricState[kind].box = b; renderMetric(kind); }
+function setMetricPeriod(kind, p) { anMetricState[kind].period = p; renderMetric(kind); }
+function setMetricMode(kind, m) { anMetricState[kind].mode = m; renderMetric(kind); }
+function toggleMetricSeries(kind, i) {
+  const cache = anMetricCache[kind];
+  if (!cache || !cache.ds.series[i]) return;
+  const key = cache.ds.series[i].key;
+  anMetricState[kind].hidden[key] = !anMetricState[kind].hidden[key];
+  renderMetric(kind);
+}
+
+function renderMetricAnalytics() {
+  renderMetric('hose');
+  renderMetric('cons');
+}
+
+// График подгоняется под ширину карточки при изменении размера окна
+(function () {
+  let timer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      const view = document.getElementById('viewAnalytics');
+      if (view && view.classList.contains('active') && typeof isCurrentSuperAdmin === 'function' && isCurrentSuperAdmin()) {
+        renderMetricAnalytics();
+      }
+    }, 200);
+  });
+})();
