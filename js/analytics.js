@@ -631,6 +631,7 @@ function renderBoxesMetricList(boxCounts, totalCars, boxCountNum){
 
 /* ===== Аналитика INTELJET Live (только для Таганрогская 134Б) ===== */
 function renderInteljetAnalytics(){
+  renderHourlyStats();
   const container = document.getElementById('inteljetContainer');
   if(!container) return;
 
@@ -1259,3 +1260,105 @@ function renderMetricAnalytics() {
     }, 200);
   });
 })();
+
+
+/* ===== Аналитика: количество моек по часам (данные терминала INTELJET Live) ===== */
+let hourlyMode = 'day'; // 'day' — выбранная дата, 'week' — среднее по всем таким же дням недели
+const RU_WD_PLURAL = ['воскресенья','понедельники','вторники','среды','четверги','пятницы','субботы'];
+
+/* Достаём час мойки из заказа: поддерживает "14:35", ISO-строки и unix-время (сек/мс) */
+function ijOrderHour(o){
+  const keys = ['time','startTime','start','datetime','dateTime','timestamp','ts','createdAt','washTime','dt','hour'];
+  for(const k of keys){
+    const v = o[k];
+    if(v == null || v === '') continue;
+    if(k === 'hour' && Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) < 24) return Math.floor(Number(v));
+    if(typeof v === 'number' || /^\d{9,}$/.test(String(v))){
+      const n = Number(v);
+      const d = new Date(n < 1e12 ? n * 1000 : n);
+      if(!isNaN(d.getTime())) return d.getHours();
+      continue;
+    }
+    const str = String(v);
+    if(/\d{4}-\d{2}-\d{2}T.*(Z|[+-]\d{2}:?\d{2})$/.test(str)){
+      const d = new Date(str);
+      if(!isNaN(d.getTime())) return d.getHours();
+    }
+    const m = str.match(/(\d{1,2}):(\d{2})/);
+    if(m && Number(m[1]) < 24) return Number(m[1]);
+  }
+  return null;
+}
+
+function setHourlyMode(m){ hourlyMode = m; renderHourlyStats(); }
+
+function renderHourlyStats(){
+  const box = document.getElementById('hourlyStatsContainer');
+  if(!box) return;
+  if(typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()){
+    box.style.display = 'none'; box.innerHTML = ''; return;
+  }
+  box.style.display = 'block';
+
+  const date = calSelectedDate || todayISO();
+  const wd = new Date(date + 'T00:00:00').getDay();
+  const all = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).filter(o => o && o.date);
+  const isWeek = hourlyMode === 'week';
+  const orders = isWeek ? all.filter(o => new Date(o.date + 'T00:00:00').getDay() === wd) : all.filter(o => o.date === date);
+  const daysCnt = Math.max(1, new Set(orders.map(o => o.date)).size);
+  const div = isWeek ? daysCnt : 1;
+
+  const counts = Array(24).fill(0), rev = Array(24).fill(0);
+  let noTime = 0;
+  orders.forEach(o => {
+    const h = ijOrderHour(o);
+    if(h == null){ noTime++; return; }
+    counts[h]++; rev[h] += Number(o.amount) || 0;
+  });
+  const vals = counts.map(c => Math.round(c / div * 10) / 10);
+
+  const pills = [['day', 'Выбранный день'], ['week', 'Все ' + RU_WD_PLURAL[wd]]].map(([v, t]) =>
+    `<button type="button" class="mt-pill ${hourlyMode === v ? 'active' : ''}" onclick="setHourlyMode('${v}')">${t}</button>`).join('');
+  const head = `
+    <div class="inteljet-head">
+      <div class="inteljet-badge">${getSvg('zap')} Мойки по часам</div>
+      <span style="font-size:12px;color:var(--muted)">${isWeek ? 'Среднее за день по ' + daysCnt + ' дн. · ' + RU_WEEKDAYS[wd] : '<b>' + isoToRuDate(date) + '</b>, ' + RU_WEEKDAYS[wd]}</span>
+    </div>
+    <div class="mt-pills" style="margin-bottom:12px">${pills}</div>`;
+
+  const withTime = orders.length - noTime;
+  if(!orders.length){
+    box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">Нет заказов из терминала за ${isWeek ? 'этот день недели' : 'выбранную дату'}.</div></div>`;
+    return;
+  }
+  if(!withTime){
+    const keys = Object.keys(orders[0]).join(', ');
+    box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">В заказах не найдено время мойки. Поля заказа: <code>${esc(keys)}</code></div></div>`;
+    return;
+  }
+
+  let lo = 23, hi = 0, max = 0, peak = 0;
+  counts.forEach((c, h) => { if(c > 0){ lo = Math.min(lo, h); hi = Math.max(hi, h); } if(vals[h] > max){ max = vals[h]; peak = h; } });
+  const total = isWeek ? Math.round(withTime / daysCnt * 10) / 10 : withTime;
+
+  let cols = '';
+  for(let h = lo; h <= hi; h++){
+    const v = vals[h];
+    const pct = max > 0 ? Math.round(v / max * 100) : 0;
+    const tip = `${String(h).padStart(2,'0')}:00–${String(h).padStart(2,'0')}:59 · ${v} авто · ${fmt(Math.round(rev[h] / div))} ₽`;
+    cols += `<div class="hr-col ${h === peak ? 'peak' : ''}" title="${tip}">
+      <span class="hr-val">${v || ''}</span>
+      <div class="hr-bar-wrap"><div class="hr-bar" style="height:${v > 0 ? Math.max(pct, 3) : 0}%"></div></div>
+      <span class="hr-lbl">${h}</span>
+    </div>`;
+  }
+
+  box.innerHTML = `<div class="inteljet-card">${head}
+    <div class="hr-chart">${cols}</div>
+    <div class="hr-summary">
+      <span>Всего: <b>${total} авто</b>${isWeek ? ' в день' : ''}</span>
+      <span>Пик: <b>${String(peak).padStart(2,'0')}:00–${String(peak + 1).padStart(2,'0')}:00</b> (${max} авто)</span>
+      ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
+    </div>
+  </div>`;
+}
