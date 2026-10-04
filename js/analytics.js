@@ -629,6 +629,19 @@ function renderBoxesMetricList(boxCounts, totalCars, boxCountNum){
   el.innerHTML = boxHtml || '<div class="empty">Нет данных о помытых машинах</div>';
 }
 
+/* Режим мойки из заказа: "режим 4" -> "4"; подпись "(Режим 4)" / "(Режимы 3, 4)" рядом с программой */
+function ijModeNum(m){
+  if(m == null || m === '') return '';
+  const x = String(m).match(/\d+/);
+  return x ? x[0] : String(m).trim();
+}
+function ijModeLabel(set){
+  const arr = [...(set || [])].filter(Boolean).sort((a, b) => (Number(a) || 0) - (Number(b) || 0));
+  if(!arr.length) return '';
+  const lbl = arr.length > 1 ? 'Режимы ' + arr.join(', ') : 'Режим ' + arr[0];
+  return ` <small style="color:var(--muted);font-weight:600">(${esc(lbl)})</small>`;
+}
+
 /* ===== Аналитика INTELJET Live (только для Таганрогская 134Б) ===== */
 function renderInteljetAnalytics(){
   renderHourlyStats();
@@ -673,6 +686,8 @@ function renderInteljetAnalytics(){
   const washTypes = {};
   const boxStats = {};
   const boxWash = {};
+  const washModes = {};     // программа -> набор режимов
+  const boxWashModes = {};  // бокс -> программа -> набор режимов
 
   dayOrders.forEach(o => {
     const amt = Number(o.amount) || 0;
@@ -687,6 +702,14 @@ function renderInteljetAnalytics(){
     const b = o.box || 1;
     if(!boxWash[b]) boxWash[b] = {};
     boxWash[b][wt] = (boxWash[b][wt] || 0) + 1;
+    const wm = ijModeNum(o.washMode);
+    if(wm){
+      if(!washModes[wt]) washModes[wt] = new Set();
+      washModes[wt].add(wm);
+      if(!boxWashModes[b]) boxWashModes[b] = {};
+      if(!boxWashModes[b][wt]) boxWashModes[b][wt] = new Set();
+      boxWashModes[b][wt].add(wm);
+    }
     if(!boxStats[b]) boxStats[b] = { count: 0, revenue: 0 };
     boxStats[b].count += 1;
     boxStats[b].revenue += amt;
@@ -732,7 +755,7 @@ function renderInteljetAnalytics(){
 
   const washListHtml = Object.entries(washTypes).map(([wt, cnt]) => {
     const pct = totalOrders > 0 ? Math.round((cnt / totalOrders) * 100) : 0;
-    return `<tr><td><b>${esc(wt)}</b></td><td style="text-align:right"><b>${cnt} шт.</b> <small style="color:var(--muted)">(${pct}%)</small></td></tr>`;
+    return `<tr><td><b>${esc(wt)}</b>${ijModeLabel(washModes[wt])}</td><td style="text-align:right"><b>${cnt} шт.</b> <small style="color:var(--muted)">(${pct}%)</small></td></tr>`;
   }).join('');
 
   // Программы мойки по каждому боксу
@@ -743,7 +766,7 @@ function renderInteljetAnalytics(){
     const total = Object.values(types).reduce((x, y) => x + y, 0);
     const rows = Object.entries(types).sort((x, y) => y[1] - x[1]).map(([wt, cnt]) => {
       const pct = total > 0 ? Math.round(cnt / total * 100) : 0;
-      return `<tr><td><b>${esc(wt)}</b></td><td style="text-align:right"><b>${cnt} шт.</b> <small style="color:var(--muted)">(${pct}%)</small></td></tr>`;
+      return `<tr><td><b>${esc(wt)}</b>${ijModeLabel(boxWashModes[b] && boxWashModes[b][wt])}</td><td style="text-align:right"><b>${cnt} шт.</b> <small style="color:var(--muted)">(${pct}%)</small></td></tr>`;
     }).join('');
     return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
