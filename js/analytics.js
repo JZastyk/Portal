@@ -645,6 +645,7 @@ function ijModeLabel(set){
 /* ===== Аналитика INTELJET Live (только для Таганрогская 134Б) ===== */
 function renderInteljetAnalytics(){
   renderHourlyStats();
+  renderHeatmap();
   const container = document.getElementById('inteljetContainer');
   if(!container) return;
 
@@ -1411,6 +1412,99 @@ function renderHourlyStats(){
     <div class="hr-summary">
       <span>Всего: <b>${total} авто</b>${isWeek ? ' в день' : ''}</span>
       <span>Пик: <b>${String(peak).padStart(2,'0')}:00–${String(peak + 1).padStart(2,'0')}:00</b> (${max} авто)</span>
+      ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+
+/* ===== Тепловая карта: день недели × час (данные терминала INTELJET Live) ===== */
+let heatMetric = 'avg'; // 'avg' — среднее за день, 'sum' — всего моек
+let heatPeriod = 0;     // 0 — всё время, иначе число последних дней
+const HM_ROWS = [1, 2, 3, 4, 5, 6, 0]; // порядок Пн..Вс (значения Date.getDay())
+const HM_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+
+function setHeatMetric(m){ heatMetric = m; renderHeatmap(); }
+function setHeatPeriod(p){ heatPeriod = p; renderHeatmap(); }
+
+function renderHeatmap(){
+  const box = document.getElementById('heatmapContainer');
+  if(!box) return;
+  if(typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()){
+    box.style.display = 'none'; box.innerHTML = ''; return;
+  }
+  box.style.display = 'block';
+
+  const cutoff = heatPeriod > 0 ? addDaysISO(todayISO(), -(heatPeriod - 1)) : '';
+  const all = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {})
+    .filter(o => o && o.date && (!cutoff || o.date >= cutoff));
+
+  const sum = Array.from({ length: 7 }, () => Array(24).fill(0));
+  const dates = Array.from({ length: 7 }, () => new Set());
+  let noTime = 0, used = 0;
+  all.forEach(o => {
+    const h = ijOrderHour(o);
+    if(h == null){ noTime++; return; }
+    const wd = new Date(o.date + 'T00:00:00').getDay();
+    if(isNaN(wd)) return;
+    sum[wd][h]++; dates[wd].add(o.date); used++;
+  });
+
+  const val = (wd, h) => heatMetric === 'avg' ? sum[wd][h] / Math.max(1, dates[wd].size) : sum[wd][h];
+  const pill = (act, fn, arg, t) => `<button type="button" class="mt-pill ${act ? 'active' : ''}" onclick="${fn}(${arg})">${t}</button>`;
+  const controls = `
+    <div class="mt-controls-row" style="margin-bottom:12px">
+      <div class="mt-pills">${pill(heatMetric === 'avg', 'setHeatMetric', "'avg'", 'Среднее за день')}${pill(heatMetric === 'sum', 'setHeatMetric', "'sum'", 'Всего моек')}</div>
+      <div class="mt-pills">${[[30, '30 дн'], [90, '90 дн'], [0, 'Всё']].map(([v, t]) => pill(heatPeriod === v, 'setHeatPeriod', v, t)).join('')}</div>
+    </div>`;
+  const head = `
+    <div class="inteljet-head">
+      <div class="inteljet-badge">${getSvg('calendar')} Тепловая карта загрузки</div>
+      <span style="font-size:12px;color:var(--muted)">день недели × час</span>
+    </div>${controls}`;
+
+  if(!used){
+    box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">${all.length ? 'В заказах не найдено время мойки.' : 'Нет заказов из терминала за выбранный период.'}</div></div>`;
+    return;
+  }
+
+  let lo = 23, hi = 0, max = 0, peak = null;
+  HM_ROWS.forEach(wd => { for(let h = 0; h < 24; h++){
+    if(sum[wd][h] > 0){ lo = Math.min(lo, h); hi = Math.max(hi, h); }
+    const v = val(wd, h);
+    if(v > max){ max = v; peak = { wd, h, v }; }
+  }});
+
+  const n = hi - lo + 1;
+  const fmtV = v => heatMetric === 'avg' ? String(Math.round(v * 10) / 10) : String(v);
+  let grid = `<div></div>`;
+  for(let h = lo; h <= hi; h++) grid += `<div class="hm-hl">${h}</div>`;
+  HM_ROWS.forEach(wd => {
+    grid += `<div class="hm-wl">${HM_SHORT[wd]}</div>`;
+    for(let h = lo; h <= hi; h++){
+      const v = val(wd, h);
+      const a = v > 0 ? 0.14 + 0.86 * (v / max) : 0;
+      const tip = `${RU_WEEKDAYS[wd]}, ${String(h).padStart(2,'0')}:00–${String(h).padStart(2,'0')}:59 · ${fmtV(v)} авто` + (heatMetric === 'avg' ? ` (в среднем, ${dates[wd].size} дн.)` : '');
+      grid += v > 0
+        ? `<div class="hm-cell ${a > 0.55 ? 'on' : ''}" style="background:rgba(255,80,20,${a.toFixed(2)})" title="${tip}">${fmtV(v)}</div>`
+        : `<div class="hm-cell" title="${tip}"></div>`;
+    }
+  });
+
+  // Самый тихий час среди всех дней недели (в пределах рабочего диапазона)
+  let quietH = lo, quietV = Infinity;
+  for(let h = lo; h <= hi; h++){
+    const t = HM_ROWS.reduce((s2, wd) => s2 + val(wd, h), 0);
+    if(t < quietV){ quietV = t; quietH = h; }
+  }
+  const pad = x => String(x).padStart(2, '0');
+
+  box.innerHTML = `<div class="inteljet-card">${head}
+    <div class="hm-scroll"><div class="hm-grid" style="grid-template-columns:34px repeat(${n},minmax(22px,1fr));min-width:${34 + n * 25}px">${grid}</div></div>
+    <div class="hm-legend"><span>меньше</span><i></i><span>больше</span></div>
+    <div class="hr-summary">
+      <span>Пик: <b>${HM_SHORT[peak.wd]}, ${pad(peak.h)}:00–${pad(peak.h + 1)}:00</b> (${fmtV(peak.v)} авто)</span>
+      <span>Тише всего: <b>${pad(quietH)}:00–${pad(quietH + 1)}:00</b></span>
       ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
     </div>
   </div>`;
