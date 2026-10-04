@@ -672,6 +672,7 @@ function renderInteljetAnalytics(){
   const payMethods = {};
   const washTypes = {};
   const boxStats = {};
+  const boxWash = {};
 
   dayOrders.forEach(o => {
     const amt = Number(o.amount) || 0;
@@ -684,6 +685,8 @@ function renderInteljetAnalytics(){
     washTypes[wt] = (washTypes[wt] || 0) + 1;
 
     const b = o.box || 1;
+    if(!boxWash[b]) boxWash[b] = {};
+    boxWash[b][wt] = (boxWash[b][wt] || 0) + 1;
     if(!boxStats[b]) boxStats[b] = { count: 0, revenue: 0 };
     boxStats[b].count += 1;
     boxStats[b].revenue += amt;
@@ -732,6 +735,26 @@ function renderInteljetAnalytics(){
     return `<tr><td><b>${esc(wt)}</b></td><td style="text-align:right"><b>${cnt} шт.</b> <small style="color:var(--muted)">(${pct}%)</small></td></tr>`;
   }).join('');
 
+  // Программы мойки по каждому боксу
+  const boxNums = new Set(Object.keys(boxWash).map(Number));
+  for(let b = 1; b <= (Number(settings.boxCount) || 0); b++) boxNums.add(b);
+  const boxWashHtml = [...boxNums].sort((x, y) => x - y).map(b => {
+    const types = boxWash[b] || {};
+    const total = Object.values(types).reduce((x, y) => x + y, 0);
+    const rows = Object.entries(types).sort((x, y) => y[1] - x[1]).map(([wt, cnt]) => {
+      const pct = total > 0 ? Math.round(cnt / total * 100) : 0;
+      return `<tr><td><b>${esc(wt)}</b></td><td style="text-align:right"><b>${cnt} шт.</b> <small style="color:var(--muted)">(${pct}%)</small></td></tr>`;
+    }).join('');
+    return `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <b style="font-size:12.5px">Бокс ${b}</b>
+          <span style="font-size:11px;color:var(--muted);font-weight:700">${total} авто</span>
+        </div>
+        ${rows ? `<table class="ij-table">${rows}</table>` : '<div style="font-size:11.5px;color:var(--muted)">Моек не было</div>'}
+      </div>`;
+  }).join('');
+
   const boxCardsHtml = Object.entries(boxStats).sort(([a],[b])=>Number(a)-Number(b)).map(([b, st]) => {
     return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center">
@@ -776,6 +799,13 @@ function renderInteljetAnalytics(){
           <table class="ij-table">
             ${washListHtml}
           </table>
+        </div>
+      </div>
+
+      <div class="ij-subblock" style="margin-bottom:12px">
+        <h4>${getSvg('shower')} Программы мойки по боксам</h4>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
+          ${boxWashHtml}
         </div>
       </div>
 
