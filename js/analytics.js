@@ -646,6 +646,7 @@ function ijModeLabel(set){
 function renderInteljetAnalytics(){
   renderHourlyStats();
   renderHeatmap();
+  renderHistoryImport();
   const container = document.getElementById('inteljetContainer');
   if(!container) return;
 
@@ -1508,4 +1509,68 @@ function renderHeatmap(){
       ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
     </div>
   </div>`;
+}
+
+
+/* ===== Импорт истории моек (старые данные из Excel, подготовленные в history_import.json) ===== */
+let histImportStatus = '';
+
+function renderHistoryImport(){
+  const box = document.getElementById('historyImportContainer');
+  if(!box) return;
+  if(typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()){
+    box.style.display = 'none'; box.innerHTML = ''; return;
+  }
+  box.style.display = 'block';
+  const cnt = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).filter(o => o && o.imported).length;
+  box.innerHTML = `<div class="inteljet-card">
+    <div class="inteljet-head"><div class="inteljet-badge">${getSvg('fileText')} Импорт истории моек</div></div>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Выберите файл <b>history_import.json</b>: старые мойки добавятся в базу к текущим, мойки, которые уже есть от терминала, пропускаются. Уже импортировано: <b>${cnt}</b></div>
+    <label class="btn secondary" style="cursor:pointer">Выбрать файл<input type="file" accept=".json,application/json" style="display:none" onchange="importHistoryFile(this)"></label>
+    <div style="margin-top:8px;font-size:12.5px">${esc(histImportStatus)}</div>
+  </div>`;
+}
+
+async function importHistoryFile(inp){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  try{
+    if(typeof inteljetRef === 'undefined' || !inteljetRef){ toast('Нет доступа к базе INTELJET'); return; }
+    const parsed = JSON.parse(await f.text());
+    const cache = inteljetOrdersCache || {};
+    // ключи «живых» заказов терминала: дата|время|бокс — по ним отсекаем дубли
+    const live = new Set();
+    Object.values(cache).forEach(o => { if(o && !o.imported) live.add(o.date + '|' + o.time + '|' + o.box); });
+
+    const add = {};
+    let bad = 0, exist = 0, dup = 0, dmin = '9999-99-99', dmax = '';
+    Object.entries(parsed).forEach(([k, o]) => {
+      if(!o || !/^[A-Za-z0-9_-]+$/.test(k) || !/^\d{4}-\d{2}-\d{2}$/.test(o.date || '') || !/^\d{1,2}:\d{2}$/.test(o.time || '') || !o.box || !o.washType){ bad++; return; }
+      if(cache[k]){ exist++; return; }
+      if(live.has(o.date + '|' + o.time + '|' + o.box)){ dup++; return; }
+      add[k] = o;
+      if(o.date < dmin) dmin = o.date;
+      if(o.date > dmax) dmax = o.date;
+    });
+    const keys = Object.keys(add);
+    if(!keys.length){ histImportStatus = `Нечего добавлять: уже есть ${exist}, дублей терминала ${dup}, некорректных ${bad}.`; renderHistoryImport(); return; }
+
+    const msg = `Добавить в базу ${keys.length} моек (${isoToRuDate(dmin)} — ${isoToRuDate(dmax)})?\nПропущено: уже есть ${exist}, совпало с терминалом ${dup}, некорректных ${bad}.`;
+    if(!confirm(msg)) return;
+
+    histImportStatus = 'Идёт запись в базу…'; renderHistoryImport();
+    for(let i = 0; i < keys.length; i += 400){
+      const chunk = {};
+      keys.slice(i, i + 400).forEach(k => { chunk[k] = add[k]; });
+      await inteljetRef.update(chunk);
+    }
+    histImportStatus = `Готово: добавлено ${keys.length} моек (${isoToRuDate(dmin)} — ${isoToRuDate(dmax)}).`;
+    toast('Импорт завершён: ' + keys.length + ' моек');
+  }catch(e){
+    console.error('Ошибка импорта истории:', e);
+    histImportStatus = 'Ошибка импорта: ' + (e && e.message ? e.message : e);
+  }finally{
+    inp.value = '';
+    renderHistoryImport();
+  }
 }
