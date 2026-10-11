@@ -191,7 +191,7 @@ function renderForecast(){
   ].filter(Boolean);
 
   box.innerHTML = `<div class="inteljet-card">${head}
-    ${wxStatus ? `<div class="fc-warn">${wxStatus}</div>` : ''}
+    ${wxStatus ? `<div class="fc-warn">${wxStatus} <button type="button" class="btn secondary" style="padding:3px 10px;margin-left:6px" onclick="wxRetryAt=0;weatherSync(true)">Повторить</button></div>` : ''}
     <div class="hr-summary" style="margin:0 0 10px"><span>Всего за 7 дней: <b>≈ ${Math.round(week)} авто</b></span><span>В среднем: <b>≈ ${Math.round(week / 7)}</b> в день</span></div>
     <div class="fc-list">${rows}</div>
     <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по часам. Диапазон — вероятный разброс (≈80%).</div></div>
