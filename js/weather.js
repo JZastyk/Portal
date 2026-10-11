@@ -90,10 +90,32 @@ function wxBuildRecord(date, h, final){
   };
 }
 
+/* Маршруты запроса: напрямую, затем через публичные CORS-прокси (на случай, если сервис погоды недоступен из вашей сети).
+   Через прокси уходят только координаты района и даты. Рабочий маршрут запоминается на сессию. */
+const WX_ROUTES = [
+  { name: 'напрямую', f: u => u },
+  { name: 'прокси corsproxy.io', f: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
+  { name: 'прокси allorigins', f: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
+];
+let wxRoute = Number(sessionStorage.getItem('wx_route')) || 0;
+
+async function wxGet(url){
+  const tried = [];
+  for(let k = 0; k < WX_ROUTES.length; k++){
+    const i = (wxRoute + k) % WX_ROUTES.length;
+    try{
+      const r = await fetch(WX_ROUTES[i].f(url));
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if(i !== wxRoute){ wxRoute = i; try{ sessionStorage.setItem('wx_route', String(i)); }catch(e){} console.warn('Погода: рабочий маршрут —', WX_ROUTES[i].name); }
+      return j;
+    }catch(e){ tried.push(WX_ROUTES[i].name + ': ' + (e && e.message ? e.message : e)); }
+  }
+  throw new Error('нет связи с сервисом погоды (api.open-meteo.com) ни одним из путей. ' + tried.join('; ') + '. Проверьте доступ к сайту, VPN или блокировщик рекламы.');
+}
+
 async function wxFetch(url){
-  const r = await fetch(url);
-  if(!r.ok) throw new Error('HTTP ' + r.status);
-  const j = await r.json();
+  const j = await wxGet(url);
   if(!j.hourly || !j.hourly.time) throw new Error('пустой ответ сервиса погоды');
   const g = {};
   j.hourly.time.forEach((ts, i) => {
@@ -120,6 +142,7 @@ async function weatherSync(force){
   if(weatherSyncing || typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()) return;
   if(!force && Date.now() < wxRetryAt) return;
   weatherSyncing = true;
+  wxStatus = '';
   const upd = {};
   const keep = (d, rec) => {
     const old = weatherStore[d];
@@ -162,7 +185,6 @@ async function weatherSync(force){
     if(weatherRef && Object.keys(upd).length){
       try{ await weatherRef.update(upd); }catch(e){ wxStatus = 'Погода загружена, но не записана в базу: ' + e.message; }
     }
-    if(!wxStatus) wxStatus = '';
   }catch(e){
     console.error('Ошибка загрузки погоды:', e);
     wxStatus = 'Погода не загружена: ' + e.message;
