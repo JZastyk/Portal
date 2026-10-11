@@ -249,7 +249,7 @@ function renderCalendar(){
 
     html += `
       <button type="button" class="cal-cell other-month ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${hasCars ? 'has-cars' : ''}" onclick="selectCalendarDate('${isoStr}')" title="${hasCars ? stat.totalCars + ' авто' : ''}">
-        <span class="cal-cell-num">${d}</span>
+        <span class="cal-cell-num">${d}</span>${typeof calWxIcon === 'function' ? calWxIcon(isoStr) : ''}
         ${hasCars ? `<span class="cal-cell-badge">${stat.totalCars}</span>` : ''}
       </button>
     `;
@@ -266,7 +266,7 @@ function renderCalendar(){
 
     html += `
       <button type="button" class="cal-cell ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${hasCars ? 'has-cars' : ''}" onclick="selectCalendarDate('${isoStr}')" title="${hasCars ? stat.totalCars + ' авто' : ''}">
-        <span class="cal-cell-num">${d}</span>
+        <span class="cal-cell-num">${d}</span>${typeof calWxIcon === 'function' ? calWxIcon(isoStr) : ''}
         ${hasCars ? `<span class="cal-cell-badge">${stat.totalCars}</span>` : ''}
       </button>
     `;
@@ -287,7 +287,7 @@ function renderCalendar(){
 
     html += `
       <button type="button" class="cal-cell other-month ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${hasCars ? 'has-cars' : ''}" onclick="selectCalendarDate('${isoStr}')" title="${hasCars ? stat.totalCars + ' авто' : ''}">
-        <span class="cal-cell-num">${d}</span>
+        <span class="cal-cell-num">${d}</span>${typeof calWxIcon === 'function' ? calWxIcon(isoStr) : ''}
         ${hasCars ? `<span class="cal-cell-badge">${stat.totalCars}</span>` : ''}
       </button>
     `;
@@ -441,6 +441,7 @@ function renderDayDetailCard(){
         </span>
       </div>
     </div>
+    ${typeof weatherDayHtml === 'function' ? weatherDayHtml(dateVal) : ''}
 
     <div class="day-total-banner">
       <div class="day-total-label">
@@ -661,6 +662,7 @@ function ijModeLabel(set){
 function renderInteljetAnalytics(){
   renderHourlyStats();
   renderHeatmap();
+  if(typeof renderForecast === 'function') renderForecast();
   renderHistoryImport();
   const container = document.getElementById('inteljetContainer');
   if(!container) return;
