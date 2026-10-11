@@ -169,7 +169,7 @@ function renderForecast(){
           <span class="hr-lbl">${h}</span></div>`;
       }
       const pk = p.hours.indexOf(Math.max(...p.hours));
-      detail = `<div class="fc-detail"><div class="hr-chart" style="height:150px">${cols}</div>
+      detail = `<div class="fc-detail"><div class="hr-chart" style="height:150px">${cols}</div>${wxHoursHtml(p.rec)}
         <div class="hr-summary"><span>Пик: <b>${pad(pk)}:00–${pad(pk + 1)}:00</b> (≈${Math.round(p.hours[pk] * 10) / 10} авто)</span>${p.wet.some(Boolean) ? '<span>Синим отмечены часы с осадками</span>' : ''}</div></div>`;
     }
     rows += `<div class="fc-day ${opened ? 'open' : ''}">
