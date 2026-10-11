@@ -114,6 +114,7 @@ function startApp(id,name){
  });
 
  initInteljetSync();
+ if(typeof initWeatherSync === 'function') initWeatherSync();
 }
 
 let inteljetOrdersCache = {};
@@ -121,12 +122,13 @@ let inteljetRef = null;
 
 function initInteljetSync(){
  if(!isCurrentSuperAdmin()) return;
- inteljetOrdersCache = JSON.parse(localStorage.getItem('inteljet_orders_' + locId) || '{}');
+ try{ inteljetOrdersCache = JSON.parse(localStorage.getItem('inteljet_orders_' + locId) || '{}'); }catch(e){ inteljetOrdersCache = {}; }
  inteljetRef = firebase.database().ref('locations/' + locId + '/inteljet_orders');
  inteljetRef.on('value', snap => {
    const val = snap.val() || {};
    inteljetOrdersCache = val;
-   localStorage.setItem('inteljet_orders_' + locId, JSON.stringify(val));
+   try{ localStorage.setItem('inteljet_orders_' + locId, JSON.stringify(val)); }catch(e){ /* локальный кэш переполнен — данные всё равно берутся из базы */ }
+   if(typeof weatherSync === 'function') weatherSync();
    if(typeof renderInteljetAnalytics === 'function'){
      renderInteljetAnalytics();
    }
