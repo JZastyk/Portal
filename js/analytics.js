@@ -1334,6 +1334,13 @@ function renderMetricAnalytics() {
 })();
 
 
+/* Акционная мойка: оплачена менее чем 100 ₽ (промокод «1 рубль», оплата бонусами). Такие мойки искажают спрос. */
+const IJ_PROMO_MAX = 100;
+function ijIsPromoOrder(o){
+  const a = o ? o.amount : null;
+  return a != null && a !== '' && Number(a) < IJ_PROMO_MAX;
+}
+
 /* ===== Аналитика: количество моек по часам (данные терминала INTELJET Live) ===== */
 let hourlyMode = 'day'; // 'day' — выбранная дата, 'week' — среднее по всем таким же дням недели
 const RU_WD_PLURAL = ['воскресенья','понедельники','вторники','среды','четверги','пятницы','субботы'];
@@ -1439,11 +1446,13 @@ function renderHourlyStats(){
 /* ===== Тепловая карта: день недели × час (данные терминала INTELJET Live) ===== */
 let heatMetric = 'avg'; // 'avg' — среднее за день, 'sum' — всего моек
 let heatPeriod = 0;     // 0 — всё время, иначе число последних дней
+let heatPaid = false;   // true — не считать акционные мойки (< 100 ₽)
 const HM_ROWS = [1, 2, 3, 4, 5, 6, 0]; // порядок Пн..Вс (значения Date.getDay())
 const HM_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 function setHeatMetric(m){ heatMetric = m; renderHeatmap(); }
 function setHeatPeriod(p){ heatPeriod = p; renderHeatmap(); }
+function setHeatPaid(v){ heatPaid = v; renderHeatmap(); }
 
 function renderHeatmap(){
   const box = document.getElementById('heatmapContainer');
@@ -1455,7 +1464,7 @@ function renderHeatmap(){
 
   const cutoff = heatPeriod > 0 ? addDaysISO(todayISO(), -(heatPeriod - 1)) : '';
   const all = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {})
-    .filter(o => o && o.date && (!cutoff || o.date >= cutoff));
+    .filter(o => o && o.date && (!cutoff || o.date >= cutoff) && !(heatPaid && ijIsPromoOrder(o)));
 
   const sum = Array.from({ length: 7 }, () => Array(24).fill(0));
   const dates = Array.from({ length: 7 }, () => new Set());
@@ -1474,6 +1483,7 @@ function renderHeatmap(){
     <div class="mt-controls-row" style="margin-bottom:12px">
       <div class="mt-pills">${pill(heatMetric === 'avg', 'setHeatMetric', "'avg'", 'Среднее за день')}${pill(heatMetric === 'sum', 'setHeatMetric', "'sum'", 'Всего моек')}</div>
       <div class="mt-pills">${[[30, '30 дн'], [90, '90 дн'], [0, 'Всё']].map(([v, t]) => pill(heatPeriod === v, 'setHeatPeriod', v, t)).join('')}</div>
+      <div class="mt-pills">${pill(!heatPaid, 'setHeatPaid', 'false', 'Все мойки')}${pill(heatPaid, 'setHeatPaid', 'true', 'Только платные')}</div>
     </div>`;
   const head = `
     <div class="inteljet-head">
