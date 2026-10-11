@@ -1,32 +1,42 @@
 /* ===== Прогноз загрузки на 7 дней: день недели × погода × дождь накануне × праздник, плюс почасовой профиль ===== */
+/* Прогноз строится по ПЛАТНЫМ мойкам (≥ 100 ₽): акционные («1 рубль», бонусы) — отдельная составляющая, их спрос зависит от акции, а не от дня недели и погоды.
+   Акционные мойки добавляются к прогнозу текущим средним за последние 14 дней. */
+const FC_EXCLUDE_DATES = ['2026-10-06']; // неполные дни (например, выгрузка Excel обрывалась в 15:20) — уберите дату, если день полный
+const FC_WX_TRUST = [1, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.5]; // доверие к погодному прогнозу по дням вперёд (0 — факт)
 let fcWindow = 45;   // сколько последних дней истории берём для обучения
 let fcOpen = null;   // раскрытый день (почасовой прогноз)
-const FC_GROUPS = ['dry', 'light', 'rain', 'heavy', 'snow'];
-const FC_GROUP_RU = { dry: 'Без осадков', light: 'Небольшой дождь', rain: 'Дождь', heavy: 'Сильный дождь / гроза', snow: 'Снег' };
+/* Влияние погоды считаем по ЧИСЛУ ЧАСОВ С ОСАДКАМИ в светлое время (проверено на данных мойки: корреляция −0.72, сильнее, чем миллиметры −0.58 или облачность −0.5):
+   до 2 ч — как сухой день, 3–5 ч — примерно ×0.6, 6+ ч — примерно ×0.3. Снег считается так же, как дождь. */
+const FC_GROUPS = ['dry', 'mid', 'long'];
+const FC_GROUP_RU = { dry: 'Без дождя (до 2 ч)', mid: 'Осадки 3–5 ч', long: 'Осадки 6+ ч' };
+const FC_PRIOR = { dry: 1, mid: 0.7, long: 0.4 }; // разумные стартовые значения, пока в истории мало таких дней
 const FC_WD = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
 const fcWdOf = d => new Date(d + 'T00:00:00').getDay();
 const fcAge = (a, b) => Math.round((new Date(a + 'T00:00:00') - new Date(b + 'T00:00:00')) / 864e5);
 const fcClamp = (x, a, b) => Math.min(b, Math.max(a, x));
-const fcGroup = r => (r && WX_CATS[r.cat]) ? WX_CATS[r.cat].g : null;
-const fcWet = g => (g === 'rain' || g === 'heavy' || g === 'snow') ? 1 : 0;
+const fcGroup = r => { if(!r || r.rainHours == null) return null; const h = Number(r.rainHours) || 0; return h <= 2 ? 'dry' : (h <= 5 ? 'mid' : 'long'); };
+const fcWet = g => (g === 'mid' || g === 'long') ? 1 : 0;
 const fcPrev = d => fcWet(fcGroup(wxRec(addDaysISO(d, -1))));
 
 function setFcWindow(v){ const n = Math.round(Number(v)); if(n >= 7 && n <= 365){ fcWindow = n; renderForecast(); } }
 function toggleFcDay(d){ fcOpen = fcOpen === d ? null : d; renderForecast(); }
 
-/* Дни истории (по заказам терминала) с часовой раскладкой */
+/* Дни истории (по заказам терминала): платные мойки с часовой раскладкой + число акционных */
 function fcDays(upto, windowDays){
   const by = {};
   Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).forEach(o => {
-    if(!o || !o.date) return;
+    if(!o || !o.date || FC_EXCLUDE_DATES.includes(o.date)) return;
     const h = ijOrderHour(o); if(h == null) return;
-    const x = by[o.date] || (by[o.date] = { date: o.date, n: 0, h: Array(24).fill(0) });
+    const x = by[o.date] || (by[o.date] = { date: o.date, n: 0, promo: 0, h: Array(24).fill(0) });
+    if(ijIsPromoOrder(o)){ x.promo++; return; }
     x.n++; x.h[h]++;
   });
   return Object.values(by).filter(x => x.date < upto && fcAge(upto, x.date) <= windowDays)
     .map(x => Object.assign(x, { wd: fcWdOf(x.date), rec: wxRec(x.date) }));
 }
+
+const fcSmooth = (p, a) => { const q = p.slice(); for(let h = 0; h < 24; h++){ if(h > 0) q[h] += a * p[h - 1]; if(h < 23) q[h] += a * p[h + 1]; } const t = q.reduce((x, y) => x + y, 0) || 1; return q.map(v => v / t); };
 
 /* Мультипликативная модель: машины = base[день недели] × mg[погода] × mp[был дождь вчера]; веса — свежие дни важнее */
 function fcFit(days, ref, useWx, windowDays){
@@ -54,7 +64,7 @@ function fcFit(days, ref, useWx, windowDays){
       let num = 0, den = 0, neff = 0;
       days.forEach(d => { if(d.g === g){ num += d.w * d.n; den += d.w * base[d.wd] * mp[d.p] * (holN >= 2 && d.hol ? mh : 1); neff += d.w; } });
       const raw = den > 0 ? num / den : 1;
-      mg[g] = fcClamp((raw * neff + K) / (neff + K), 0.15, 1.6);
+      mg[g] = fcClamp((raw * neff + K * FC_PRIOR[g]) / (neff + K), 0.1, 1.6);
     });
     [0, 1].forEach(p => {
       let num = 0, den = 0, neff = 0;
@@ -76,8 +86,8 @@ function fcFit(days, ref, useWx, windowDays){
   const pooled = Array(24).fill(0), cnt = Array.from({ length: 8 }, () => Array(24).fill(0)), tot = Array(8).fill(0);
   let pt = 0;
   days.forEach(d => { for(let h = 0; h < 24; h++){ const r = (holN >= 2 && d.hol) ? 7 : d.wd; pooled[h] += d.w * d.h[h]; cnt[r][h] += d.w * d.h[h]; } pt += d.w * d.n; tot[(holN >= 2 && d.hol) ? 7 : d.wd] += d.w * d.n; });
-  const S = 15;
-  const prof = cnt.map((row, wd) => row.map((c, h) => (c + S * (pt > 0 ? pooled[h] / pt : 1 / 24)) / (tot[wd] + S)));
+  const S = 60; // на ~15 машинах в день профиль конкретного дня недели шумит — опираемся на общий
+  const prof = cnt.map((row, wd) => fcSmooth(row.map((c, h) => (c + S * (pt > 0 ? pooled[h] / pt : 1 / 24)) / (tot[wd] + S)), 0.25));
   // во сколько раз в «дождливые» часы машин меньше, чем в сухие
   let O = 0, E = 0;
   if(useWx) days.forEach(d => { const hp = wxHp(d.rec); if(!hp.length) return;
@@ -86,7 +96,7 @@ function fcFit(days, ref, useWx, windowDays){
   return { base, mg, mp, mh, holN, prof, rho, sigma, useWx, n: days.length, days };
 }
 
-function fcPredict(m, date, rec, prevWet){
+function fcPredict(m, date, rec, prevWet, off){
   const wd = fcWdOf(date), hol = holidayName(date);
   const g = (m.useWx && rec) ? (fcGroup(rec) || 'dry') : 'dry';
   let b = m.base[wd], pw = wd;
@@ -96,27 +106,38 @@ function fcPredict(m, date, rec, prevWet){
     if(m.holN >= 2){ hf = m.mh; pw = 7; }                       // есть свои данные по праздникам
     else { const we = (m.base[0] + m.base[6]) / 2; if(we > b) b = we; pw = 0; } // иначе — как выходной
   }
-  const total = b * hf * m.mg[g] * m.mp[m.useWx ? prevWet : 0];
+  const phi = FC_WX_TRUST[off || 0] == null ? 0.5 : FC_WX_TRUST[off || 0]; // дальний погодный прогноз менее надёжен
+  const paid = b * hf * Math.pow(m.mg[g], phi) * Math.pow(m.mp[m.useWx ? prevWet : 0], phi);
+  const total = paid + (m.promoRate || 0);
   const hp = wxHp(rec);
   const wts = m.prof[pw].map((s, h) => s * ((m.useWx && h >= WX_H1 && h <= WX_H2 && hp[h] >= 0.2) ? m.rho : 1));
   const ws = wts.reduce((a, b2) => a + b2, 0) || 1;
-  const k = Math.exp(1.28 * m.sigma);
-  return { date, wd, rec, g, hol, total, lo: total / k, hi: total * k, hours: wts.map(w => total * w / ws), wet: wts.map((_, h) => h >= WX_H1 && h <= WX_H2 && hp[h] >= 0.2) };
+  const k = Math.exp(1.28 * m.sigma * 1.3);
+  return { date, wd, rec, g, hol, total, paid, lo: total / k, hi: total * k, hours: wts.map(w => total * w / ws), wet: wts.map((_, h) => h >= WX_H1 && h <= WX_H2 && hp[h] >= 0.2) };
 }
 
-/* Проверка модели: обучаем без последних 7 дней и предсказываем их по фактической погоде */
-function fcBacktest(){
-  const today = todayISO(), cut = addDaysISO(today, -7);
-  const train = fcDays(cut, fcWindow);
-  if(train.length < 14) return null;
-  const useWx = train.filter(d => d.rec).length / train.length >= 0.6;
-  const m = fcFit(train, cut, useWx, fcWindow);
-  let err = 0, act = 0, n = 0;
-  fcDays(today, 8).filter(d => d.date >= cut).forEach(d => {
-    const p = fcPredict(m, d.date, d.rec, fcPrev(d.date));
-    err += Math.abs(p.total - d.n); act += d.n; n++;
-  });
-  return n >= 3 && act > 0 ? { wape: Math.round(err / act * 100), n } : null;
+/* Скользящая проверка: каждый день истории предсказываем по данным ДО него (по фактической погоде) и сравниваем с фактом.
+   Из прошлых ошибок берём честный диапазон (10–90%) и среднюю ошибку. */
+let fcRollCache = { key: '', val: null };
+const fcQuant = (a, q) => { const b = a.slice().sort((x, y) => x - y); return b[Math.min(b.length - 1, Math.max(0, Math.round(q * (b.length - 1))))]; };
+function fcRolling(){
+  const today = todayISO();
+  const key = [fcWindow, Object.keys(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).length, Object.keys(weatherStore).length].join('|');
+  if(fcRollCache.key === key) return fcRollCache.val;
+  const all = fcDays(today, 400).sort((a, b) => a.date < b.date ? -1 : 1);
+  const R = []; let err = 0, act = 0;
+  for(let i = 14; i < all.length; i++){
+    const T = all[i].date;
+    const train = all.filter(d => d.date < T && fcAge(T, d.date) <= fcWindow).map(d => Object.assign({}, d));
+    if(train.length < 10) continue;
+    const useWx = train.filter(d => d.rec).length / train.length >= 0.6;
+    const p = fcPredict(fcFit(train, T, useWx, fcWindow), T, all[i].rec, fcPrev(T), 0).total;
+    const a = all[i].n;
+    R.push(Math.log((a + 1) / (p + 1))); err += Math.abs(p - a); act += a;
+  }
+  const val = R.length >= 20 && act > 0 ? { n: R.length, wape: Math.round(err / act * 100), q10: fcQuant(R, 0.1), q90: fcQuant(R, 0.9) } : null;
+  fcRollCache = { key, val };
+  return val;
 }
 
 function fcRun(){
@@ -125,9 +146,19 @@ function fcRun(){
   if(days.length < 7) return { err: 'Мало данных: в выбранном окне только ' + days.length + ' дн. с заказами терминала (нужно минимум 7).' };
   const useWx = days.filter(d => d.rec).length / days.length >= 0.6;
   const m = fcFit(days, today, useWx, fcWindow);
+  const recent = fcDays(today, 14);
+  m.promoRate = recent.length ? recent.reduce((a, d) => a + d.promo, 0) / recent.length : 0;
+  const roll = fcRolling();
   const out = [];
-  for(let i = 1; i <= 7; i++){ const d = addDaysISO(today, i); out.push(fcPredict(m, d, wxRec(d), fcPrev(d))); }
-  return { m, out, bt: fcBacktest(), wxDays: days.filter(d => d.rec).length };
+  for(let i = 1; i <= 7; i++){
+    const d = addDaysISO(today, i), p = fcPredict(m, d, wxRec(d), fcPrev(d), i);
+    if(roll){ // диапазон — реальные 10–90% прошлых ошибок, а не формула
+      p.lo = Math.max(0, (p.paid + 1) * Math.exp(roll.q10) - 1) + m.promoRate;
+      p.hi = (p.paid + 1) * Math.exp(roll.q90) - 1 + m.promoRate;
+    }
+    out.push(p);
+  }
+  return { m, out, roll, wxDays: days.filter(d => d.rec).length };
 }
 
 function renderForecast(){
@@ -149,7 +180,7 @@ function renderForecast(){
   const R = fcRun();
   if(R.err){ box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">${R.err}</div></div>`; return; }
 
-  const { m, out, bt } = R;
+  const { m, out, roll } = R;
   const week = out.reduce((a, p) => a + p.total, 0);
   const pad = x => String(x).padStart(2, '0');
   let rows = '';
@@ -168,9 +199,10 @@ function renderForecast(){
           <div class="hr-bar-wrap"><div class="hr-bar" style="height:${mx > 0 && v > 0 ? Math.max(3, Math.round(v / mx * 100)) : 0}%"></div></div>
           <span class="hr-lbl">${h}</span></div>`;
       }
-      const pk = p.hours.indexOf(Math.max(...p.hours));
+      let bs = 0, bw = 0;
+      for(let h = 0; h < 22; h++){ const v = p.hours[h] + p.hours[h + 1] + p.hours[h + 2]; if(v > bs){ bs = v; bw = h; } }
       detail = `<div class="fc-detail"><div class="hr-chart" style="height:150px">${cols}</div>${wxHoursHtml(p.rec)}
-        <div class="hr-summary"><span>Пик: <b>${pad(pk)}:00–${pad(pk + 1)}:00</b> (≈${Math.round(p.hours[pk] * 10) / 10} авто)</span>${p.wet.some(Boolean) ? '<span>Синим отмечены часы с осадками</span>' : ''}</div></div>`;
+        <div class="hr-summary"><span>Самые загруженные 3 часа: <b>${pad(bw)}:00–${pad(bw + 3)}:00</b> (≈${Math.round(bs)} авто)</span><span>платных ≈ ${Math.round(p.paid)}, акционных ≈ ${Math.round(m.promoRate)}</span>${p.wet.some(Boolean) ? '<span>Синим отмечены часы с осадками</span>' : ''}</div></div>`;
     }
     rows += `<div class="fc-day ${opened ? 'open' : ''}">
       <div class="fc-row" onclick="toggleFcDay('${p.date}')">
@@ -184,8 +216,11 @@ function renderForecast(){
     .map(g => `${FC_GROUP_RU[g]} ×${m.mg[g].toFixed(2)} (${m.days.filter(d => d.g === g).length} дн.)`);
   if(m.days.filter(d => d.p === 1).length >= 2) eff.push(`на следующий день после дождя ×${m.mp[1].toFixed(2)}`);
   const notes = [
-    `Обучено на <b>${m.n}</b> дн.` + (m.useWx ? `, погода известна за ${R.wxDays}` : ', <b>погода не учитывается</b> (нет данных)'),
-    bt ? `Проверка на последних ${bt.n} дн.: ошибка по сумме ≈ <b>${bt.wape}%</b>` : 'Проверка точности: пока мало данных',
+    `Обучено на <b>${m.n}</b> дн. (платные мойки)` + (m.useWx ? `, погода известна за ${R.wxDays}` : ', <b>погода не учитывается</b> (нет данных)'),
+    roll ? `Проверка на истории (каждый день предсказан по данным до него, ${roll.n} дн.): средняя ошибка по дню ≈ <b>${roll.wape}%</b>. Диапазон — реальный разброс ошибок (80%).` : 'Проверка точности: пока мало данных',
+    `Акционные мойки (до ${IJ_PROMO_MAX} ₽) в обучение не входят; добавлены текущим средним ≈ <b>${Math.round(m.promoRate * 10) / 10}</b> в день за 14 дней.`,
+    'По отдельному часу прогноз грубый (в час в среднем меньше одной машины) — ориентируйтесь на блоки по 3 часа.',
+    'Доверие к погодному прогнозу снижается с каждым днём вперёд.',
     eff.length ? 'Влияние погоды: ' + eff.join('; ') : 'Влияние погоды: в истории мало дней с осадками — множители близки к 1',
     out.some(p => p.hol) ? (m.holN >= 2 ? `Праздничный день: по ${m.holN} прошлым праздничным дням ×${m.mh.toFixed(2)} к обычному дню недели.` : 'В истории мало праздничных дней (меньше 2): праздник оценён как выходной (Сб/Вс).') : ''
   ].filter(Boolean);
@@ -194,6 +229,6 @@ function renderForecast(){
     ${wxStatus ? `<div class="fc-warn">${wxStatus} <button type="button" class="btn secondary" style="padding:3px 10px;margin-left:6px" onclick="wxRetryAt=0;weatherSync(true)">Повторить</button></div>` : ''}
     <div class="hr-summary" style="margin:0 0 10px"><span>Всего за 7 дней: <b>≈ ${Math.round(week)} авто</b></span><span>В среднем: <b>≈ ${Math.round(week / 7)}</b> в день</span></div>
     <div class="fc-list">${rows}</div>
-    <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по часам. Диапазон — вероятный разброс (≈80%).</div></div>
+    <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по часам.</div></div>
   </div>`;
 }
