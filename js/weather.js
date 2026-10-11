@@ -55,6 +55,18 @@ function holidayName(d){
 function wxHp(r){ return r ? (Array.isArray(r.hp) ? r.hp : Object.values(r.hp || {})).map(Number) : []; }
 function wxRec(d){ return weatherStore[d] || weatherForecast[d] || null; }
 
+/* Тип погоды в конкретный час: s ясно, p переменная, c пасмурно, f туман, d морось, r дождь, h ливень, t гроза, n снег */
+function wxHourKind(h, i){
+  const n = v => Number(v) || 0, p = n(h.p[i]), c = n(h.c[i]), code = n(h.w[i]);
+  if(code >= 95) return 't';
+  if(n(h.s[i]) >= 0.2) return 'n';
+  if(p >= 4) return 'h';
+  if(p >= 0.8) return 'r';
+  if(p >= 0.1) return 'd';
+  if(code === 45 || code === 48 || (n(h.rh[i]) >= 98 && n(h.ws[i]) <= 6)) return 'f';
+  return c < 25 ? 's' : (c < 70 ? 'p' : 'c');
+}
+
 /* Часовые массивы одного дня -> суточная запись с категорией погоды */
 function wxBuildRecord(date, h, final){
   const okT = h.t.filter(v => v != null && !isNaN(v));
@@ -86,6 +98,8 @@ function wxBuildRecord(date, h, final){
     date, cat, tmax: Math.round(Math.max(...okT)), tmin: Math.round(Math.min(...okT)),
     precip: r1(precip), rainHours, snow: r1(snow), cloud: Math.round(cloud),
     hp: Array.from({ length: 24 }, (_, i) => r1(n(h.p[i]))),
+    ht: Array.from({ length: 24 }, (_, i) => Math.round(n(h.t[i]))),
+    hk: Array.from({ length: 24 }, (_, i) => wxHourKind(h, i)).join(''),
     final: !!final, upd: Date.now()
   };
 }
@@ -97,25 +111,36 @@ const WX_ROUTES = [
   { name: 'прокси corsproxy.io', f: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
   { name: 'прокси allorigins', f: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
 ];
-let wxRoute = Number(sessionStorage.getItem('wx_route')) || 0;
+let wxTimeoutMs = 8000; // долго не ждём недоступный путь
+/* Рабочий путь помним сутки: так приложение не тратит время на заблокированный прямой адрес при каждом запуске */
+function wxLoadRoute(){
+  try{ const o = JSON.parse(localStorage.getItem('wx_route') || 'null'); if(o && Date.now() - o.t < 24 * 3600 * 1000) return Number(o.i) || 0; }catch(e){}
+  return 0;
+}
+let wxRoute = wxLoadRoute();
+function wxFetchTimeout(u, ms){
+  const c = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const t = c ? setTimeout(() => c.abort(), ms || wxTimeoutMs) : null;
+  return fetch(u, c ? { signal: c.signal } : undefined).finally(() => { if(t) clearTimeout(t); });
+}
 
-async function wxGet(url){
+async function wxGet(url, ms){
   const tried = [];
   for(let k = 0; k < WX_ROUTES.length; k++){
     const i = (wxRoute + k) % WX_ROUTES.length;
     try{
-      const r = await fetch(WX_ROUTES[i].f(url));
+      const r = await wxFetchTimeout(WX_ROUTES[i].f(url), ms);
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const j = await r.json();
-      if(i !== wxRoute){ wxRoute = i; try{ sessionStorage.setItem('wx_route', String(i)); }catch(e){} console.warn('Погода: рабочий маршрут —', WX_ROUTES[i].name); }
+      if(i !== wxRoute){ wxRoute = i; try{ localStorage.setItem('wx_route', JSON.stringify({ i, t: Date.now() })); }catch(e){} console.warn('Погода: рабочий маршрут —', WX_ROUTES[i].name); }
       return j;
-    }catch(e){ tried.push(WX_ROUTES[i].name + ': ' + (e && e.message ? e.message : e)); }
+    }catch(e){ tried.push(WX_ROUTES[i].name + ': ' + (e && e.name === 'AbortError' ? 'нет ответа за ' + (ms || wxTimeoutMs) / 1000 + ' с' : (e && e.message ? e.message : e))); }
   }
   throw new Error('нет связи с сервисом погоды (api.open-meteo.com) ни одним из путей. ' + tried.join('; ') + '. Проверьте доступ к сайту, VPN или блокировщик рекламы.');
 }
 
-async function wxFetch(url){
-  const j = await wxGet(url);
+async function wxFetch(url, ms){
+  const j = await wxGet(url, ms);
   if(!j.hourly || !j.hourly.time) throw new Error('пустой ответ сервиса погоды');
   const g = {};
   j.hourly.time.forEach((ts, i) => {
@@ -154,7 +179,8 @@ async function weatherSync(force){
     const today = todayISO();
     const geo = `latitude=${WEATHER_LAT}&longitude=${WEATHER_LON}&hourly=${WX_VARS}&timezone=Europe%2FMoscow`;
     const last = Number(localStorage.getItem('wx_last_' + locId)) || 0;
-    if(force || Date.now() - last > 3 * 3600 * 1000 || !Object.keys(weatherForecast).length){
+    const stale = Object.values(weatherStore).some(r => r && !r.hk && r.date >= addDaysISO(today, -10));
+    if(force || stale || Date.now() - last > 3 * 3600 * 1000 || !Object.keys(weatherForecast).length){
       const g = await wxFetch(`https://api.open-meteo.com/v1/forecast?${geo}&past_days=10&forecast_days=10`);
       const fc = {};
       Object.keys(g).forEach(d => {
@@ -167,24 +193,53 @@ async function weatherSync(force){
     }
     const dates = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).map(o => o && o.date).filter(Boolean).sort();
     const limit = addDaysISO(today, -8); // архив ERA5 отстаёт на несколько дней
+    const flush = async () => {
+      wxPersistLocal();
+      const keys = Object.keys(upd);
+      if(weatherRef && keys.length){
+        const part = {}; keys.forEach(k => { part[k] = upd[k]; delete upd[k]; });
+        try{ await weatherRef.update(part); }catch(e){ wxStatus = 'Погода загружена, но не записана в базу: ' + e.message; }
+      }
+      wxRerender();
+    };
     if(dates.length){
       const need = [];
       for(let d = dates[0]; d <= limit; d = addDaysISO(d, 1)){
         const r = weatherStore[d];
-        if((!r || !r.final) && !wxSkip.has(d)) need.push(d);
+        if((!r || !r.final || !r.hk) && !wxSkip.has(d)) need.push(d);
       }
       if(need.length){
-        const g = await wxFetch(`https://archive-api.open-meteo.com/v1/archive?${geo}&start_date=${need[0]}&end_date=${need[need.length - 1]}`);
+        // историю грузим кусками по 20 дней: сначала архив, при неудаче — прогнозный сервис (он хранит последние ~90 дней)
+        const chunks = []; let cur = [];
         need.forEach(d => {
-          const rec = g[d] ? wxBuildRecord(d, g[d], true) : null;
-          if(rec) keep(d, rec); else wxSkip.add(d);
+          if(cur.length && (cur.length >= 20 || addDaysISO(cur[cur.length - 1], 1) !== d)){ chunks.push(cur); cur = []; }
+          cur.push(d);
         });
+        if(cur.length) chunks.push(cur);
+        let ok = 0, fail = 0, lastErr = '', archiveDown = false;
+        for(const ch of chunks){
+          const a = ch[0], b = ch[ch.length - 1];
+          let g = null;
+          try{
+            if(archiveDown && a >= addDaysISO(today, -90)) throw new Error('архив недоступен');
+            g = await wxFetch(`https://archive-api.open-meteo.com/v1/archive?${geo}&start_date=${a}&end_date=${b}`, 30000);
+          }catch(e){
+            lastErr = e.message; archiveDown = true;
+            if(a >= addDaysISO(today, -90)){
+              try{ g = await wxFetch(`https://api.open-meteo.com/v1/forecast?${geo}&start_date=${a}&end_date=${b}`, 30000); }catch(e2){ lastErr = e2.message; }
+            }
+          }
+          if(!g){ fail += ch.length; continue; }
+          ch.forEach(d => {
+            const rec = g[d] ? wxBuildRecord(d, g[d], true) : null;
+            if(rec){ keep(d, rec); ok++; } else wxSkip.add(d);
+          });
+          await flush();
+        }
+        if(fail){ wxStatus = `Погода за прошлые дни: загружено ${ok} из ${need.length}, не удалось ${fail}. ${lastErr}`; wxRetryAt = Date.now() + 5 * 60 * 1000; }
       }
     }
-    wxPersistLocal();
-    if(weatherRef && Object.keys(upd).length){
-      try{ await weatherRef.update(upd); }catch(e){ wxStatus = 'Погода загружена, но не записана в базу: ' + e.message; }
-    }
+    await flush();
   }catch(e){
     console.error('Ошибка загрузки погоды:', e);
     wxStatus = 'Погода не загружена: ' + e.message;
@@ -223,6 +278,20 @@ function calWxIcon(date){
   return h;
 }
 
+const WX_HK = { s: ['Ясно', '#f2b84b'], p: ['Переменная облачность', '#f6dc9b'], c: ['Пасмурно', '#aeb6c2'], f: ['Туман', '#d3d8de'],
+  d: ['Небольшой дождь', '#8ec1ee'], r: ['Дождь', '#3b82c4'], h: ['Сильный дождь', '#1d5a99'], t: ['Гроза', '#7a52c7'], n: ['Снег', '#e4eef8'] };
+
+/* Погода по часам: цветная полоса из 24 клеток + подписи часов + легенда только по встретившимся состояниям */
+function wxHoursHtml(r){
+  if(!r || typeof r.hk !== 'string' || r.hk.length !== 24) return '';
+  const hp = wxHp(r), ht = Array.isArray(r.ht) ? r.ht : Object.values(r.ht || {});
+  const pad = x => String(x).padStart(2, '0');
+  const cells = r.hk.split('').map((k, h) => `<i style="background:${WX_HK[k][1]}" title="${pad(h)}:00 · ${WX_HK[k][0]} · ${ht[h]}°C${hp[h] >= 0.1 ? ' · ' + hp[h] + ' мм' : ''}"></i>`).join('');
+  const lbl = Array.from({ length: 24 }, (_, h) => `<span>${h % 3 === 0 ? h : ''}</span>`).join('');
+  const kinds = [...new Set(r.hk.split(''))].map(k => `<span class="wx-leg"><i style="background:${WX_HK[k][1]}"></i>${WX_HK[k][0]}</span>`).join('');
+  return `<div class="wx-hours">${cells}</div><div class="wx-hours-lbl">${lbl}</div><div class="wx-legend">${kinds}</div>`;
+}
+
 /* Строка погоды в карточке выбранного дня */
 function weatherDayHtml(date){
   const r = wxRec(date), hol = holidayName(date);
@@ -234,5 +303,5 @@ function weatherDayHtml(date){
     if(r.precip >= 0.2) h += `<span class="wx-chip">Осадки: <b>${r.precip} мм</b> · ${r.rainHours} ч</span>`;
   }
   if(hol) h += `<span class="wx-chip wx-hol">${hol}</span>`;
-  return h + '</div>';
+  return h + '</div>' + (r ? wxHoursHtml(r) : '');
 }
