@@ -1405,38 +1405,56 @@ function renderHourlyStats(){
     </div>
     <div class="mt-pills" style="margin-bottom:12px">${pills}</div>`;
 
+  // Прогноз на выбранный день (по данным ДО этого дня) — рисуем фоном за фактом
+  const fc = (!isWeek && typeof fcForDate === 'function') ? fcForDate(date) : null;
   const withTime = orders.length - noTime;
-  if(!orders.length){
+  if(!orders.length && !fc){
     box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">Нет заказов из терминала за ${isWeek ? 'этот день недели' : 'выбранную дату'}.</div></div>`;
     return;
   }
-  if(!withTime){
+  if(orders.length && !withTime && !fc){
     const keys = Object.keys(orders[0]).join(', ');
     box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">В заказах не найдено время мойки. Поля заказа: <code>${esc(keys)}</code></div></div>`;
     return;
   }
 
-  let lo = 23, hi = 0, max = 0, peak = 0;
+  let lo = 23, hi = 0, max = 0, peak = -1;
   counts.forEach((c, h) => { if(c > 0){ lo = Math.min(lo, h); hi = Math.max(hi, h); } if(vals[h] > max){ max = vals[h]; peak = h; } });
+  if(fc) fc.hours.forEach((f, h) => { if(f >= 0.35){ lo = Math.min(lo, h); hi = Math.max(hi, h); } if(f > max) max = f; });
+  if(lo > hi){ lo = 8; hi = 20; }
   const total = isWeek ? Math.round(withTime / daysCnt * 10) / 10 : withTime;
+  const r1 = x => Math.round(x * 10) / 10;
 
   let cols = '';
   for(let h = lo; h <= hi; h++){
-    const v = vals[h];
+    const v = vals[h], f = fc ? fc.hours[h] : 0;
     const pct = max > 0 ? Math.round(v / max * 100) : 0;
-    const tip = `${String(h).padStart(2,'0')}:00–${String(h).padStart(2,'0')}:59 · ${v} авто · ${fmt(Math.round(rev[h] / div))} ₽`;
+    const fpct = max > 0 ? Math.round(f / max * 100) : 0;
+    const tip = `${String(h).padStart(2,'0')}:00–${String(h).padStart(2,'0')}:59 · факт ${v} авто · ${fmt(Math.round(rev[h] / div))} ₽` + (fc ? ` · прогноз ≈ ${r1(f)}` : '');
     cols += `<div class="hr-col ${h === peak ? 'peak' : ''}" title="${tip}">
       <span class="hr-val">${v || ''}</span>
-      <div class="hr-bar-wrap"><div class="hr-bar" style="height:${v > 0 ? Math.max(pct, 3) : 0}%"></div></div>
+      <div class="hr-bar-wrap ${fc ? 'ov' : ''}">${fc ? `<div class="hr-bar fc" style="height:${f > 0 ? Math.max(fpct, 3) : 0}%"></div>` : ''}<div class="hr-bar ${fc ? 'act' : ''}" style="height:${v > 0 ? Math.max(pct, 3) : 0}%"></div></div>
       <span class="hr-lbl">${h}</span>
     </div>`;
   }
 
+  let fcLine = '';
+  if(fc){
+    const diff = total - fc.total, past = date < todayISO();
+    fcLine = `
+      <div class="hr-legend"><span><i class="act"></i>Факт</span><span><i class="fc"></i>Прогноз</span></div>
+      <div class="hr-summary" style="margin-top:6px">
+        <span>Прогноз на день: <b>≈ ${Math.round(fc.total)} авто</b> (${Math.round(fc.lo)}–${Math.round(fc.hi)})</span>
+        <span>Факт${date === todayISO() ? ' на сейчас' : ''}: <b>${total}</b></span>
+        ${past ? `<span>Отклонение: <b>${diff >= 0 ? '+' : ''}${Math.round(diff)}</b> (${fc.total > 0 ? (diff >= 0 ? '+' : '') + Math.round(diff / fc.total * 100) : 0}%)</span>` : ''}
+      </div>`;
+  }
+
   box.innerHTML = `<div class="inteljet-card">${head}
-    <div class="hr-chart">${cols}</div>
+    <div class="hr-chart">${cols}</div>${fcLine}
     <div class="hr-summary">
       <span>Всего: <b>${total} авто</b>${isWeek ? ' в день' : ''}</span>
-      <span>Пик: <b>${String(peak).padStart(2,'0')}:00–${String(peak + 1).padStart(2,'0')}:00</b> (${max} авто)</span>
+      ${peak >= 0 ? `<span>Пик: <b>${String(peak).padStart(2,'0')}:00–${String(peak + 1).padStart(2,'0')}:00</b> (${vals[peak]} авто)</span>` : ''}
       ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
     </div>
   </div>`;
