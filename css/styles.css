@@ -3029,3 +3029,12 @@ input:focus, select:focus, textarea:focus {
 .wx-leg{display:inline-flex;align-items:center;gap:5px}
 .wx-leg i{display:inline-block;width:10px;height:10px;border-radius:3px}
 
+/* Факт поверх прогноза на графике «Мойки по часам» */
+.hr-bar-wrap.ov{position:relative}
+.hr-bar.fc{position:absolute;left:0;bottom:0;width:100%;background:#5b8def;opacity:.32;border-radius:4px 4px 0 0}
+.hr-bar.act{position:absolute;left:22%;bottom:0;width:56%;opacity:.95}
+.hr-legend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--muted)}
+.hr-legend span{display:inline-flex;align-items:center;gap:6px}
+.hr-legend i{display:inline-block;width:12px;height:10px;border-radius:3px}
+.hr-legend i.act{background:var(--accent)}
+.hr-legend i.fc{background:#5b8def;opacity:.45}
