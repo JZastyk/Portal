@@ -232,3 +232,22 @@ function renderForecast(){
     <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по часам.</div></div>
   </div>`;
 }
+
+
+/* Прогноз на любой день: обучение только на днях ДО него; для прошлых дней — «что мы бы предсказали», для будущих — обычный прогноз */
+function fcForDate(date){
+  const days = fcDays(date, fcWindow);
+  if(days.length < 7) return null;
+  const useWx = days.filter(d => d.rec).length / days.length >= 0.6;
+  const m = fcFit(days, date, useWx, fcWindow);
+  const recent = fcDays(date, 14);
+  m.promoRate = recent.length ? recent.reduce((a, d) => a + d.promo, 0) / recent.length : 0;
+  const off = Math.max(0, Math.min(7, fcAge(date, todayISO())));
+  const p = fcPredict(m, date, wxRec(date), fcPrev(date), off);
+  const roll = fcRolling();
+  if(roll){
+    p.lo = Math.max(0, (p.paid + 1) * Math.exp(roll.q10) - 1) + m.promoRate;
+    p.hi = (p.paid + 1) * Math.exp(roll.q90) - 1 + m.promoRate;
+  }
+  return p;
+}
