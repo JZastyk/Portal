@@ -17,7 +17,9 @@ const fcAge = (a, b) => Math.round((new Date(a + 'T00:00:00') - new Date(b + 'T0
 const fcClamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const fcGroup = r => { if(!r || r.rainHours == null) return null; const h = Number(r.rainHours) || 0; return h <= 2 ? 'dry' : (h <= 5 ? 'mid' : 'long'); };
 const fcWet = g => (g === 'mid' || g === 'long') ? 1 : 0;
-const fcPrev = d => fcWet(fcGroup(wxRec(addDaysISO(d, -1))));
+let fcWxSrc = null; // подмена источника погоды (использует замер точности); null — обычная погода приложения
+const fcRecOf = d => fcWxSrc ? fcWxSrc(d) : wxRec(d);
+const fcPrev = d => fcWet(fcGroup(fcRecOf(addDaysISO(d, -1))));
 
 function setFcWindow(v){ const n = Math.round(Number(v)); if(n >= 7 && n <= 365){ fcWindow = n; renderForecast(); } }
 function toggleFcDay(d){ fcOpen = fcOpen === d ? null : d; renderForecast(); }
@@ -33,7 +35,7 @@ function fcDays(upto, windowDays){
     x.n++; x.h[h]++;
   });
   return Object.values(by).filter(x => x.date < upto && fcAge(upto, x.date) <= windowDays)
-    .map(x => Object.assign(x, { wd: fcWdOf(x.date), rec: wxRec(x.date) }));
+    .map(x => Object.assign(x, { wd: fcWdOf(x.date), rec: fcRecOf(x.date) }));
 }
 
 const fcSmooth = (p, a) => { const q = p.slice(); for(let h = 0; h < 24; h++){ if(h > 0) q[h] += a * p[h - 1]; if(h < 23) q[h] += a * p[h + 1]; } const t = q.reduce((x, y) => x + y, 0) || 1; return q.map(v => v / t); };
@@ -43,13 +45,16 @@ function fcFit(days, ref, useWx, windowDays){
   const H = Math.max(14, Math.round(windowDays * 0.6));
   days.forEach(d => {
     d.w = Math.pow(0.5, fcAge(ref, d.date) / H);
+    d.nw = useWx && !fcGroup(d.rec); // погоды за этот день нет — раньше такой день считался «сухим» и портил оценку
     d.g = useWx ? (fcGroup(d.rec) || 'dry') : 'dry';
     d.p = useWx ? fcPrev(d.date) : 0;
     d.hol = holidayName(d.date) ? 1 : 0;
   });
   const holN = days.filter(d => d.hol).length;
-  const sw = days.reduce((a, d) => a + d.w, 0) || 1;
-  const overall = days.reduce((a, d) => a + d.w * d.n, 0) / sw;
+  const okDays = days.filter(d => !d.nw);
+  const fit = okDays.length >= 7 ? okDays : days; // по этим дням оцениваем базу и влияние погоды
+  const sw = fit.reduce((a, d) => a + d.w, 0) || 1;
+  const overall = fit.reduce((a, d) => a + d.w * d.n, 0) / sw;
   const base = Array(7).fill(overall), mg = {}, mp = [1, 1];
   let mh = 1; // множитель праздничного дня (обучается, когда в истории есть минимум 2 праздничных дня)
   FC_GROUPS.forEach(g => mg[g] = 1);
@@ -57,30 +62,30 @@ function fcFit(days, ref, useWx, windowDays){
   for(let it = 0; it < 10; it++){
     for(let wd = 0; wd < 7; wd++){
       let num = 0, den = 0;
-      days.forEach(d => { if(d.wd === wd && !(holN >= 2 && d.hol)){ num += d.w * d.n; den += d.w * mg[d.g] * mp[d.p]; } });
+      fit.forEach(d => { if(d.wd === wd && !(holN >= 2 && d.hol)){ num += d.w * d.n; den += d.w * mg[d.g] * mp[d.p]; } });
       base[wd] = den > 0 ? num / den : overall;
     }
     FC_GROUPS.forEach(g => {
       let num = 0, den = 0, neff = 0;
-      days.forEach(d => { if(d.g === g){ num += d.w * d.n; den += d.w * base[d.wd] * mp[d.p] * (holN >= 2 && d.hol ? mh : 1); neff += d.w; } });
+      fit.forEach(d => { if(d.g === g){ num += d.w * d.n; den += d.w * base[d.wd] * mp[d.p] * (holN >= 2 && d.hol ? mh : 1); neff += d.w; } });
       const raw = den > 0 ? num / den : 1;
       mg[g] = fcClamp((raw * neff + K * FC_PRIOR[g]) / (neff + K), 0.1, 1.6);
     });
     [0, 1].forEach(p => {
       let num = 0, den = 0, neff = 0;
-      days.forEach(d => { if(d.p === p){ num += d.w * d.n; den += d.w * base[d.wd] * mg[d.g] * (holN >= 2 && d.hol ? mh : 1); neff += d.w; } });
+      fit.forEach(d => { if(d.p === p){ num += d.w * d.n; den += d.w * base[d.wd] * mg[d.g] * (holN >= 2 && d.hol ? mh : 1); neff += d.w; } });
       const raw = den > 0 ? num / den : 1;
       mp[p] = fcClamp((raw * neff + K) / (neff + K), 0.7, 1.6);
     });
     if(holN >= 2){
       let num = 0, den = 0, neff = 0;
-      days.forEach(d => { if(d.hol){ num += d.w * d.n; den += d.w * base[d.wd] * mg[d.g] * mp[d.p]; neff += d.w; } });
+      fit.forEach(d => { if(d.hol){ num += d.w * d.n; den += d.w * base[d.wd] * mg[d.g] * mp[d.p]; neff += d.w; } });
       mh = fcClamp(((den > 0 ? num / den : 1) * neff + 0.5) / (neff + 0.5), 0.4, 3);
     }
   }
   // разброс (лог-ошибка) -> интервал
   let s2 = 0;
-  days.forEach(d => { const f = base[d.wd] * mg[d.g] * mp[d.p] * (holN >= 2 && d.hol ? mh : 1); const r = Math.log((d.n + 1) / (f + 1)); s2 += d.w * r * r; });
+  fit.forEach(d => { const f = base[d.wd] * mg[d.g] * mp[d.p] * (holN >= 2 && d.hol ? mh : 1); const r = Math.log((d.n + 1) / (f + 1)); s2 += d.w * r * r; });
   const sigma = Math.max(0.12, Math.sqrt(s2 / sw));
   // почасовой профиль по дням недели, сглаженный общим профилем
   const pooled = Array(24).fill(0), cnt = Array.from({ length: 8 }, () => Array(24).fill(0)), tot = Array(8).fill(0);
@@ -164,7 +169,7 @@ function fcRun(){
 function renderForecast(){
   const box = document.getElementById('forecastContainer');
   if(!box) return;
-  if(typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  if(typeof isCurrentSuperAdmin !== 'function' || !isCurrentSuperAdmin()){ box.style.display = 'none'; box.innerHTML = ''; if(typeof renderFcLab === 'function') renderFcLab(); return; }
   box.style.display = 'block';
   const pills = [14, 30, 45, 60, 90].map(v => `<button type="button" class="mt-pill ${fcWindow === v ? 'active' : ''}" onclick="setFcWindow(${v})">${v} дн</button>`).join('');
   const head = `
@@ -178,7 +183,7 @@ function renderForecast(){
         <input type="number" min="7" max="365" value="${fcWindow}" onchange="setFcWindow(this.value)" class="fc-input"></label>
     </div>`;
   const R = fcRun();
-  if(R.err){ box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">${R.err}</div></div>`; return; }
+  if(R.err){ box.innerHTML = `<div class="inteljet-card">${head}<div class="empty" style="padding:14px 0">${R.err}</div></div>`; if(typeof renderFcLab === 'function') renderFcLab(); return; }
 
   const { m, out, roll } = R;
   const week = out.reduce((a, p) => a + p.total, 0);
@@ -231,6 +236,7 @@ function renderForecast(){
     <div class="fc-list">${rows}</div>
     <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по часам.</div></div>
   </div>`;
+  if(typeof renderFcLab === 'function') renderFcLab();
 }
 
 
