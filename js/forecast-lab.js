@@ -1,9 +1,8 @@
-/* ===== Замер точности прогноза (на прогнозной погоде) и новая модель =====
+/* ===== Замер точности прогноза (на прогнозной погоде) и новая Пуассоновская модель =====
    Зачем. Приложение проверяет прогноз по ФАКТИЧЕСКОЙ погоде, а завтра у него будет только ПРОГНОЗ погоды —
    поэтому показанная ошибка получается лучше настоящей. Здесь каждый прошлый день предсказывается так, как это было бы в жизни:
    только по данным ДО него и по прогнозу погоды, который существовал за 1, 3 и 5 дней до этого дня.
-   Прогнозы прошлых дней берём из Open-Meteo Previous Runs API (хранит их с января 2024) и один раз кладём в базу.
-   Этот модуль ничего не меняет в основном прогнозе — он только измеряет и сравнивает. */
+   Прогнозы прошлых дней берём из Open-Meteo Previous Runs API (хранит их с января 2024) и один раз кладём в базу. */
 
 const WX_LEADS = [1, 3, 5];                   // за сколько дней до дня был сделан прогноз погоды
 let weatherPrev = { 1: {}, 3: {}, 5: {} };    // срок -> дата -> запись погоды (как её предсказывали за k дней)
@@ -34,7 +33,6 @@ async function wxFetchPrev(a, b){
   let j;
   try{ j = await wxGet(`${base}&start_date=${a}&end_date=${b}`, 30000); }
   catch(e1){
-    // сервис не принял диапазон дат — пробуем «последние N дней» (так сделан пример в документации)
     const back = fcAge(todayISO(), a);
     if(!/HTTP 4\d\d/.test(String(e1 && e1.message)) || back > 90) throw e1;
     j = await wxGet(`${base}&past_days=${Math.min(92, back + 1)}&forecast_days=1`, 30000);
@@ -108,21 +106,41 @@ async function wxPrevLoad(){
   }
 }
 
-/* ---------- Новая модель: плавная зависимость от дождя ----------
-   Вместо ступеней «до 2 / 3–5 / 6+ часов дождя» — одна непрерывная величина W: какая ДОЛЯ обычного суточного спроса
-   приходится на часы с осадками (час в пик весит больше, чем в 6 утра; морось — меньше ливня).
-   Ожидание за день:  L × s[день недели] × exp(β·W + γ1·W(вчера) + γ2·W(позавчера))
-     L — текущий уровень (свежие 2 недели), s — коэффициенты дней недели (длинная память, мягко сжаты к 1),
-     β — влияние дождя в этот день (ожидаем отрицательное), γ — «отложенный спрос» после дождя.
-   Параметры подбираются пуассоновской регрессией с мягким априором (чтобы на малом числе дождей не улетали). */
+/* ---------- Новая Пуассоновская модель (с взаимодействием признаков: дождь сегодня, сухой выход после дождей, отмена перед завтрашним дождём) ---------- */
 function fc2Slot(date, useHol){ return (useHol && holidayName(date)) ? 7 : fcWdOf(date); }
 
 function fc2Wet(rec, prof){
   const hp = wxHp(rec); if(!hp.length) return null;
   let w = 0;
-  for(let h = WX_H1; h <= WX_H2; h++) w += prof[h] * Math.min(1, Math.max(0, Number(hp[h]) || 0)); // 1 мм/ч и больше — «полностью мокрый» час
+  for(let h = WX_H1; h <= WX_H2; h++){
+    const mm = Math.max(0, Number(hp[h]) || 0);
+    const intensity = mm < 0.08 ? 0 : Math.min(1, Math.pow(mm / 1.1, 0.75));
+    w += prof[h] * intensity;
+  }
   return w;
 }
+
+/* Вектор из 3 признаков погоды для даты `date`:
+   x[0] — тяжесть осадков сегодня (w0)
+   x[1] — выход на сухую погоду после 1–3 дней дождей (активируется только когда сегодня сухо!)
+   x[2] — ожидание сильного дождя завтра в сухой день сегодня (эффект отмены мойки) */
+function fc2Features(date, rec0, prof, useHol, src){
+  const sl = fc2Slot(date, useHol);
+  const w0 = fc2Wet(rec0, prof[sl]);
+  if(w0 == null) return null;
+  const a1 = addDaysISO(date, -1), a2 = addDaysISO(date, -2), a3 = addDaysISO(date, -3), next1 = addDaysISO(date, 1);
+  const w1 = fc2Wet(src(a1), prof[fc2Slot(a1, useHol)]) || 0;
+  const w2 = fc2Wet(src(a2), prof[fc2Slot(a2, useHol)]) || 0;
+  const w3 = fc2Wet(src(a3), prof[fc2Slot(a3, useHol)]) || 0;
+  const wNext = fc2Wet(src(next1), prof[fc2Slot(next1, useHol)]) || 0;
+
+  const dryToday = Math.max(0, 1 - Math.min(1, w0 * 2.2)); // 1 если сегодня сухо, 0 если сегодня идут осадки
+  const dirtAccum = 0.62 * w1 + 0.26 * w2 + 0.12 * w3;
+  const afterRainFeature = dryToday * dirtAccum;
+  const preRainFeature = dryToday * (wNext >= 0.22 ? wNext : 0);
+  return [w0, afterRainFeature, preRainFeature];
+}
+
 function fc2Profile(days, useHol){
   const pooled = Array(24).fill(0), cnt = Array.from({ length: 8 }, () => Array(24).fill(0)), tot = Array(8).fill(0);
   let pt = 0;
@@ -130,6 +148,7 @@ function fc2Profile(days, useHol){
   const S = 60;
   return cnt.map((row, r) => fcSmooth(row.map((c, h) => (c + S * (pt > 0 ? pooled[h] / pt : 1 / 24)) / (tot[r] + S)), 0.25));
 }
+
 function fc2Solve(A, b){ // метод Гаусса с выбором ведущего элемента
   const n = b.length, M = A.map((r, i) => r.concat([b[i]]));
   for(let c = 0; c < n; c++){
@@ -141,7 +160,6 @@ function fc2Solve(A, b){ // метод Гаусса с выбором ведущ
   return M.map((r, i) => r[n] / r[i]);
 }
 
-/* days — как из fcDays (с полем rec = погода того же источника, что и для прогноза); src(date) — тот же источник для соседних дней */
 function fc2Fit(days, ref, windowDays, src){
   const Hl = Math.max(14, Math.round(windowDays * 0.6));
   days.forEach(d => { const a = fcAge(ref, d.date); d.wl = Math.pow(0.5, a / Hl); d.ws = Math.pow(0.5, a / 14); d.hol = holidayName(d.date) ? 1 : 0; });
@@ -149,36 +167,34 @@ function fc2Fit(days, ref, windowDays, src){
   const prof = fc2Profile(days, useHol);
   days.forEach(d => {
     d.sl = fc2Slot(d.date, useHol);
-    const w0 = fc2Wet(d.rec, prof[d.sl]);
-    d.x = null;
-    if(w0 != null){
-      const a1 = addDaysISO(d.date, -1), a2 = addDaysISO(d.date, -2);
-      d.x = [w0, fc2Wet(src(a1), prof[fc2Slot(a1, useHol)]) || 0, fc2Wet(src(a2), prof[fc2Slot(a2, useHol)]) || 0];
-    }
+    d.x = fc2Features(d.date, d.rec, prof, useHol, src);
   });
   const withWx = days.filter(d => d.x);
   const useWx = withWx.length >= 7 && withWx.length / days.length >= 0.6;
   const use = useWx ? withWx : days;
   const sw = use.reduce((a, d) => a + d.wl, 0) || 1;
   const lamBar = Math.max(0.1, use.reduce((a, d) => a + d.wl * d.n, 0) / sw);
-  const th0 = [-0.8, 0.15, 0.05], lo = [-3, -0.3, -0.3], hi = [0.3, 1, 0.8];
+
+  // Априоры для [w0 (дождь сегодня), afterRain (выход из дождя), preRain (перед завтрашним дождём)]
+  const th0 = [-1.15, 0.55, -0.35], lo = [-3.2, -0.1, -1.2], hi = [0.2, 1.5, 0.2];
   const th = useWx ? th0.slice() : [0, 0, 0];
-  const Lam = 2.5 * lamBar * 0.25, K = 1;       // сила априора: как несколько «обычных» дней
+  const Lam = 2.5 * lamBar * 0.25, K = 1;
   const s = Array(8).fill(1); let L = lamBar;
   const xv = d => useWx ? d.x : [0, 0, 0];
+
   for(let it = 0; it < 14; it++){
     use.forEach(d => { const x = xv(d); d.f = Math.exp(th[0] * x[0] + th[1] * x[1] + th[2] * x[2]); });
-    for(let r = 0; r < 8; r++){ // дни недели (и праздники) — мягко сжаты к 1
+    for(let r = 0; r < 8; r++){
       let num = 0, den = 0;
       use.forEach(d => { if(d.sl === r){ num += d.wl * d.n; den += d.wl * d.f; } });
       s[r] = (num + K * L) / (L * (den + K));
     }
     let mean = 0; for(let r = 0; r < 7; r++) mean += s[r] / 7;
     for(let r = 0; r < 8; r++) s[r] /= mean;
-    let a1 = 0, a2 = 0; // уровень — по свежим дням (полураспад 14 дн.)
+    let a1 = 0, a2 = 0;
     use.forEach(d => { a1 += d.ws * d.n; a2 += d.ws * s[d.sl] * d.f; });
     if(a2 > 0) L = a1 / a2;
-    if(useWx){ // шаг Ньютона для пуассоновской регрессии с мягким априором
+    if(useWx){
       const g = [0, 1, 2].map(j => -Lam * (th[j] - th0[j])), H = [[Lam, 0, 0], [0, Lam, 0], [0, 0, Lam]];
       use.forEach(d => {
         const mu = L * s[d.sl] * d.f, e = d.wl * (d.n - mu);
@@ -193,25 +209,23 @@ function fc2Fit(days, ref, windowDays, src){
 
 function fc2Predict(m, date, src){
   const hol = holidayName(date), wd = fcWdOf(date);
-  let sv = m.s[wd], sl = wd;
+  let sv = m.s[wd];
   if(hol){
-    if(m.useHol){ sl = 7; sv = m.s[7]; }
-    else { sl = 0; sv = Math.max(m.s[wd], (m.s[0] + m.s[6]) / 2); } // праздник без своей истории — как выходной
+    if(m.useHol){ sv = m.s[7]; }
+    else { sv = Math.max(m.s[wd], (m.s[0] + m.s[6]) / 2); }
   }
   let f = 1;
   if(m.useWx){
-    const a1 = addDaysISO(date, -1), a2 = addDaysISO(date, -2);
-    const w0 = fc2Wet(src(date), m.prof[sl]) || 0;
-    const w1 = fc2Wet(src(a1), m.prof[fc2Slot(a1, m.useHol)]) || 0, w2 = fc2Wet(src(a2), m.prof[fc2Slot(a2, m.useHol)]) || 0;
-    f = Math.exp(m.th[0] * w0 + m.th[1] * w1 + m.th[2] * w2);
+    const x = fc2Features(date, src(date), m.prof, m.useHol, src) || [0, 0, 0];
+    f = Math.exp(m.th[0] * x[0] + m.th[1] * x[1] + m.th[2] * x[2]);
   }
   return m.L * sv * f;
 }
 
 /* ---------- Замер ---------- */
-const fcLabWk = d => addDaysISO(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7)); // понедельник недели
+const fcLabWk = d => addDaysISO(d, -((new Date(d + 'T00:00:00').getDay() + 6) % 7));
 
-function fcLabMad(lam){ // E|X − λ| для Пуассона: ошибка, которую не уберёт никакая модель
+function fcLabMad(lam){
   if(!(lam > 0)) return 0;
   let s = 0, lp = -lam;
   const top = Math.ceil(lam + 10 * Math.sqrt(lam) + 20);
@@ -219,7 +233,7 @@ function fcLabMad(lam){ // E|X − λ| для Пуассона: ошибка, к
   return s;
 }
 
-function fcLabBase(all, i){ // простая база: среднее за 4 последних таких же дня недели (не старше 5 недель)
+function fcLabBase(all, i){
   const T = all[i].date, wd = all[i].wd, xs = [];
   for(let j = i - 1; j >= 0 && xs.length < 4; j--){ if(fcAge(T, all[j].date) > 35) break; if(all[j].wd === wd) xs.push(all[j].n); }
   if(xs.length) return xs.reduce((a, b) => a + b, 0) / xs.length;
@@ -270,9 +284,9 @@ function fcLabCompute(opts){
       add('cur:0', T, p0, a); lam.push(p0);
       add('new:0', T, fc2Predict(fc2Fit(trainWith(hist, SRC[0]), T, fcWindow, SRC[0]), T, SRC[0]), a);
       leads.forEach(k => {
-        add('cur:' + k, T, predV1(m0, T, SRC[k], k), a);                                   // как в приложении: обучено на факте, прогноз по прогнозу погоды
-        add('curM:' + k, T, predV1(fitV1(hist, T, SRC[k]), T, SRC[k], 0), a);              // то же, но обучено на прогнозах того же срока
-        add('new:' + k, T, fc2Predict(fc2Fit(trainWith(hist, SRC[k]), T, fcWindow, SRC[k]), T, SRC[k]), a); // новая модель, обучена на прогнозах
+        add('cur:' + k, T, predV1(m0, T, SRC[k], k), a);
+        add('curM:' + k, T, predV1(fitV1(hist, T, SRC[k]), T, SRC[k], 0), a);
+        add('new:' + k, T, fc2Predict(fc2Fit(trainWith(hist, SRC[k]), T, fcWindow, SRC[k]), T, SRC[k]), a);
       });
     });
     if(used < 15) return { err: 'Мало дней для замера после отбора (' + used + ').' };
@@ -284,7 +298,7 @@ function fcLabCompute(opts){
       return { wape: Math.round(o.ae / o.a * 100), bias: Math.round(o.e / o.a * 100), week: wa > 0 ? Math.round(we / wa * 100) : null };
     };
     const cells = {}; Object.keys(acc).forEach(k => { cells[k] = cell(acc[k]); });
-    const diff = (A, B) => { // насколько A хуже B по WAPE (п.п.) и погрешность этой разницы
+    const diff = (A, B) => {
       if(!acc[A] || !acc[B]) return null;
       const d = acc[A].errs.map((e, i) => e - acc[B].errs[i]), n = d.length, m = d.reduce((x, y) => x + y, 0) / n;
       const sd = Math.sqrt(d.reduce((x, y) => x + (y - m) * (y - m), 0) / Math.max(1, n - 1));
@@ -301,7 +315,7 @@ function fcLabCompute(opts){
 function fcLabVerdict(r){
   const c = r.cells, D = r.diffs || {}, out = [], k = r.leads[0];
   const f = x => x == null ? null : x.wape;
-  const sig = x => x && Math.abs(x.d) >= 2 * x.se;                 // разница заметно больше случайного шума
+  const sig = x => x && Math.abs(x.d) >= 2 * x.se;
   const say = (x, better, worse, same) => !x ? '' : (!sig(x) ? same : (x.d < 0 ? better : worse)).replace('{d}', Math.abs(x.d).toFixed(1));
   if(k != null && c['cur:0'] && c['cur:' + k]){
     const o = D['opt:' + k];
@@ -312,18 +326,18 @@ function fcLabVerdict(r){
     out.push(`Простая база даёт ${f(c.base)}%. ` + say(D['cur-base:' + k], 'Погода в текущем виде помогает: выигрыш {d} п.п.', 'Погода в текущем виде ХУЖЕ простой базы на {d} п.п. — усложнение не окупается.', 'Выигрыша от погоды в текущем виде пока не видно (разница в пределах случайности).'));
   }
   if(k != null && c['new:' + k]){
-    out.push(`Новая модель: ${f(c['new:' + k])}%. ` + say(D['new-cur:' + k], 'Лучше «модели сейчас» на {d} п.п. — стоит перейти.', 'Хуже «модели сейчас» на {d} п.п. — оставляем текущую.', 'От «модели сейчас» статистически не отличается.'));
+    out.push(`Пуассоновская регрессия: ${f(c['new:' + k])}%. ` + say(D['new-cur:' + k], 'Лучше основной модели на {d} п.п.', 'Хуже основной модели на {d} п.п.', 'От основной модели статистически не отличается.'));
     if(c['curM:' + k]) out.push(`Обучение на прогнозах погоды: ${f(c['curM:' + k])}%. ` + say(D['curM-cur:' + k], 'Помогает на {d} п.п.', 'Не помогает: хуже на {d} п.п.', 'Заметной разницы нет.'));
   }
   if(r.floor != null) out.push(`Ориентир предела: при ≈${r.meanA.toFixed(0)} платных авто в день одна лишь случайность даёт ≈${r.floor}% — ниже не опустится никакая модель. Разница меньше ≈2–3 п.п. на ${r.n} днях — шум.`);
   const bs = ['cur', 'new'].map(p => k != null && c[p + ':' + k] ? c[p + ':' + k].bias : null);
-  if(bs[0] != null) out.push(`Смещение (прогноз минус факт) за ${k} дн.: сейчас ${bs[0] > 0 ? '+' : ''}${bs[0]}%, новая ${bs[1] > 0 ? '+' : ''}${bs[1]}%. Около нуля — хорошо; заметно выше нуля — завышает.`);
+  if(bs[0] != null) out.push(`Смещение (прогноз минус факт) за ${k} дн.: сейчас ${bs[0] > 0 ? '+' : ''}${bs[0]}%, регрессия ${bs[1] > 0 ? '+' : ''}${bs[1]}%. Около нуля — хорошо; заметно выше нуля — завышает.`);
   return out.filter(Boolean);
 }
 
 function fcLabText(r){
   const L = ['Замер точности прогноза: ' + r.n + ' дн., ' + r.from + ' … ' + r.to + ', окно обучения ' + r.win + ' дн.', 'Ошибка по дню (WAPE), в скобках по неделе, смещение:'];
-  const name = { base: 'База (среднее 4 таких дней недели)', cur: 'Модель сейчас', curM: 'Сейчас + обучение на прогнозах', new: 'Новая модель' };
+  const name = { base: 'База (среднее 4 таких дней недели)', cur: 'Модель 3.0 (основная)', curM: 'Модель 3.0 + обучение на прогнозах', new: 'Пуассоновская регрессия (плавный дождь)' };
   const cols = [['0', 'факт']].concat(r.leads.map(k => [String(k), '+' + k + 'д']));
   Object.keys(name).forEach(row => {
     const cells = cols.map(([k, t]) => { const x = row === 'base' ? r.cells.base : r.cells[row + ':' + k]; return t + ' ' + (x ? x.wape + '% (' + (x.week == null ? '–' : x.week + '%') + ', ' + (x.bias > 0 ? '+' : '') + x.bias + '%)' : '–'); });
@@ -357,7 +371,7 @@ function fcLabCss(){
 function fcLabRun(){
   if(fcLabState.running) return;
   fcLabState.running = true; fcLabState.err = ''; fcLabState.status = 'Считаю…'; renderFcLab();
-  setTimeout(() => { // даём экрану обновиться перед расчётом
+  setTimeout(() => {
     try{
       const r = fcLabCompute({});
       if(r.err){ fcLabState.err = r.err; fcLabState.res = null; } else { fcLabState.res = r; fcLabState.err = ''; }
@@ -378,7 +392,7 @@ function renderFcLab(){
   const admin = typeof isCurrentSuperAdmin === 'function' && isCurrentSuperAdmin();
   if(!f || !admin){ if(box){ box.style.display = 'none'; box.innerHTML = ''; } return; }
   if(!box){ box = document.createElement('div'); box.id = 'fcLabContainer'; f.insertAdjacentElement('afterend', box); }
-  if(fcLabState.loc !== locId){ // другая мойка/вход — начинаем заново
+  if(fcLabState.loc !== locId){
     fcLabState = { loc: locId, loading: false, running: false, res: null, status: '', err: '' };
     weatherPrev = { 1: {}, 3: {}, 5: {} }; wxPrevSkip.clear(); wxPrevInit();
   }
@@ -390,7 +404,7 @@ function renderFcLab(){
   let table = '', ver = '';
   if(r){
     const cols = [['0', 'Факт']].concat(r.leads.map(k => [String(k), '+' + k + ' дн']));
-    const nm = { base: 'Простая база (среднее 4 таких же дня недели)', cur: 'Модель сейчас', curM: 'Сейчас + обучение на прогнозах', new: 'Новая модель (плавный дождь)' };
+    const nm = { base: 'Простая база (среднее 4 таких же дня недели)', cur: 'Модель 3.0 (основная)', curM: 'Модель 3.0 + обучение на прогнозах', new: 'Пуассоновская регрессия (плавный дождь)' };
     const get = (row, k) => row === 'base' ? r.cells.base : (row === 'curM' && k === '0' ? null : r.cells[row + ':' + k]);
     const best = {}; cols.forEach(([k]) => { let b = 1e9; Object.keys(nm).forEach(row => { const x = get(row, k); if(x && x.wape < b) b = x.wape; }); best[k] = b; });
     let body = '';
