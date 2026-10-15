@@ -36,8 +36,16 @@ function wxIcon(name){
   return `<svg class="svg-inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${WX_ICONS[name] || ''}</svg>`;
 }
 
-/* Нерабочие праздничные дни РФ (по производственному календарю). Таблицу нужно дополнять на следующие годы. */
+/* Нерабочие праздничные дни РФ (по производственному календарю 2025–2027) */
 const HOLIDAY_RANGES = [
+  ['2025-01-01', '2025-01-08', 'Новогодние каникулы'],
+  ['2025-02-22', '2025-02-23', 'День защитника Отечества'],
+  ['2025-03-08', '2025-03-09', 'Международный женский день'],
+  ['2025-05-01', '2025-05-04', 'Праздник Весны и Труда'],
+  ['2025-05-08', '2025-05-11', 'День Победы'],
+  ['2025-06-12', '2025-06-15', 'День России'],
+  ['2025-11-02', '2025-11-04', 'День народного единства'],
+  ['2025-12-31', '2025-12-31', 'Выходной (перенос)'],
   ['2026-01-01', '2026-01-11', 'Новогодние каникулы'],
   ['2026-02-21', '2026-02-23', 'День защитника Отечества'],
   ['2026-03-07', '2026-03-09', 'Международный женский день'],
@@ -45,14 +53,30 @@ const HOLIDAY_RANGES = [
   ['2026-05-09', '2026-05-11', 'День Победы'],
   ['2026-06-12', '2026-06-14', 'День России'],
   ['2026-11-04', '2026-11-04', 'День народного единства'],
-  ['2026-12-31', '2026-12-31', 'Выходной (перенос)']
+  ['2026-12-31', '2026-12-31', 'Выходной (перенос)'],
+  ['2027-01-01', '2027-01-10', 'Новогодние каникулы'],
+  ['2027-02-23', '2027-02-23', 'День защитника Отечества'],
+  ['2027-03-08', '2027-03-08', 'Международный женский день'],
+  ['2027-05-01', '2027-05-03', 'Праздник Весны и Труда'],
+  ['2027-05-09', '2027-05-10', 'День Победы'],
+  ['2027-06-12', '2027-06-14', 'День России'],
+  ['2027-11-04', '2027-11-04', 'День народного единства']
 ];
+
 function holidayName(d){
   for(const r of HOLIDAY_RANGES){ if(d >= r[0] && d <= r[1]) return r[2]; }
   return '';
 }
 
+/* Предпраздничный рабочий день: сегодня будний не-праздник, а завтра — начало праздника */
+function isPreHoliday(d){
+  if(!d || holidayName(d)) return false;
+  const nextD = typeof addDaysISO === 'function' ? addDaysISO(d, 1) : '';
+  return Boolean(nextD && holidayName(nextD));
+}
+
 function wxHp(r){ return r ? (Array.isArray(r.hp) ? r.hp : Object.values(r.hp || {})).map(Number) : []; }
+function wxHt(r){ return r ? (Array.isArray(r.ht) ? r.ht : Object.values(r.ht || {})).map(Number) : []; }
 function wxRec(d){ return weatherStore[d] || weatherForecast[d] || null; }
 
 /* Тип погоды в конкретный час: s ясно, p переменная, c пасмурно, f туман, d морось, r дождь, h ливень, t гроза, n снег */
@@ -67,18 +91,20 @@ function wxHourKind(h, i){
   return c < 25 ? 's' : (c < 70 ? 'p' : 'c');
 }
 
-/* Часовые массивы одного дня -> суточная запись с категорией погоды */
+/* Часовые массивы одного дня -> суточная запись с категорией погоды, влажностью и ветром */
 function wxBuildRecord(date, h, final){
   const okT = h.t.filter(v => v != null && !isNaN(v));
   if(okT.length < 20) return null; // неполный день
   const n = v => Number(v) || 0;
-  const rng = (a, f, t) => { const o = []; for(let i = f; i <= t; i++) o.push(n(a[i])); return o; };
+  const rng = (a, f, t) => { const o = []; for(let i = f; i <= t; i++) o.push(n(a && a[i])); return o; };
   const p = rng(h.p, WX_H1, WX_H2);
   const precip = p.reduce((a, b) => a + b, 0);
   const snow = rng(h.s, WX_H1, WX_H2).reduce((a, b) => a + b, 0);
   const rainHours = p.filter(v => v >= 0.2).length;
   const maxHour = Math.max(...p);
   const cl = rng(h.c, 8, 20); const cloud = cl.reduce((a, b) => a + b, 0) / cl.length;
+  const rhArr = rng(h.rh, 8, 20); const rh = rhArr.length ? Math.round(rhArr.reduce((a, b) => a + b, 0) / rhArr.length) : 70;
+  const wsArr = rng(h.ws, 8, 20); const wind = wsArr.length ? Math.round((wsArr.reduce((a, b) => a + b, 0) / wsArr.length) * 10) / 10 : 3;
   const codes = rng(h.w, WX_H1, WX_H2);
   const storm = codes.some(c => c >= 95);
   let fogH = 0;
@@ -97,6 +123,7 @@ function wxBuildRecord(date, h, final){
   return {
     date, cat, tmax: Math.round(Math.max(...okT)), tmin: Math.round(Math.min(...okT)),
     precip: r1(precip), rainHours, snow: r1(snow), cloud: Math.round(cloud),
+    rh, wind,
     hp: Array.from({ length: 24 }, (_, i) => r1(n(h.p[i]))),
     ht: Array.from({ length: 24 }, (_, i) => Math.round(n(h.t[i]))),
     hk: Array.from({ length: 24 }, (_, i) => wxHourKind(h, i)).join(''),
@@ -104,15 +131,13 @@ function wxBuildRecord(date, h, final){
   };
 }
 
-/* Маршруты запроса: напрямую, затем через публичные CORS-прокси (на случай, если сервис погоды недоступен из вашей сети).
-   Через прокси уходят только координаты района и даты. Рабочий маршрут запоминается на сессию. */
+/* Маршруты запроса: напрямую, затем через публичные CORS-прокси */
 const WX_ROUTES = [
   { name: 'напрямую', f: u => u },
   { name: 'прокси corsproxy.io', f: u => 'https://corsproxy.io/?url=' + encodeURIComponent(u) },
   { name: 'прокси allorigins', f: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) }
 ];
-let wxTimeoutMs = 8000; // долго не ждём недоступный путь
-/* Рабочий путь помним сутки: так приложение не тратит время на заблокированный прямой адрес при каждом запуске */
+let wxTimeoutMs = 8000;
 function wxLoadRoute(){
   try{ const o = JSON.parse(localStorage.getItem('wx_route') || 'null'); if(o && Date.now() - o.t < 24 * 3600 * 1000) return Number(o.i) || 0; }catch(e){}
   return 0;
@@ -209,7 +234,6 @@ async function weatherSync(force){
         if((!r || !r.final || !r.hk) && !wxSkip.has(d)) need.push(d);
       }
       if(need.length){
-        // историю грузим кусками по 20 дней: сначала архив, при неудаче — прогнозный сервис (он хранит последние ~90 дней)
         const chunks = []; let cur = [];
         need.forEach(d => {
           if(cur.length && (cur.length >= 20 || addDaysISO(cur[cur.length - 1], 1) !== d)){ chunks.push(cur); cur = []; }
@@ -301,6 +325,7 @@ function weatherDayHtml(date){
     const c = WX_CATS[r.cat];
     h += `<span class="wx-chip">${wxIcon(c.i)} <b>${c.t}</b> · ${r.tmin}…${r.tmax}°C</span>`;
     if(r.precip >= 0.2) h += `<span class="wx-chip">Осадки: <b>${r.precip} мм</b> · ${r.rainHours} ч</span>`;
+    if(r.rh != null) h += `<span class="wx-chip">Влажность: <b>${r.rh}%</b></span>`;
   }
   if(hol) h += `<span class="wx-chip wx-hol">${hol}</span>`;
   return h + '</div>' + (r ? wxHoursHtml(r) : '');
