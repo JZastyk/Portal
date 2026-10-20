@@ -664,6 +664,7 @@ function renderInteljetAnalytics(){
   renderHeatmap();
   if(typeof renderForecast === 'function') renderForecast();
   renderHistoryImport();
+  if(typeof renderClients === 'function') renderClients();
   const container = document.getElementById('inteljetContainer');
   if(!container) return;
 
