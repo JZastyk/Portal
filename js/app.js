@@ -140,6 +140,8 @@ function initInteljetSync(){
      if(typeof renderReportPreview === 'function') renderReportPreview();
    }
  });
+
+ if(typeof initClientsSync === 'function') initClientsSync();
 }
 
 // Sync theme toggle UI on startup
