@@ -294,6 +294,9 @@ function renderCalendar(){
   }
 
   gridEl.innerHTML = html;
+
+  // Блок «Машин за месяц» в карточке рекордов следует за выбранным месяцем
+  if(typeof renderRecordMonth === 'function') renderRecordMonth(dailyStatsMap);
 }
 
 function prevCalMonth(){
@@ -555,7 +558,76 @@ function renderBusiestDaysRanking(uniqueReports){
 }
 
 /**
- * Карточка 2 внизу: Рекордное число машин за день
+ * Платные мойки дня. Акционные мойки (оплата менее 100 ₽) вычитаются по заказам терминала INTELJET.
+ * Если у дня нет заказов терминала (есть только отчёт оператора), цены неизвестны — число берётся как есть.
+ */
+function getPaidDayStats(stat){
+  const boxCountNum = Number(settings.boxCount) || 0;
+  const promoByBox = {};
+  (stat.shiftInteljet || []).forEach(o => {
+    if(!ijIsPromoOrder(o)) return;
+    const b = Number(o.box) || 0;
+    promoByBox[b] = (promoByBox[b] || 0) + 1;
+  });
+  const boxPaid = {};
+  let paid = 0;
+  for(let b = 1; b <= boxCountNum; b++){
+    boxPaid[b] = Math.max(0, (Number((stat.boxCars || {})[b]) || 0) - (promoByBox[b] || 0));
+    paid += boxPaid[b];
+  }
+  return { paid, promo: Math.max(0, (Number(stat.totalCars) || 0) - paid), boxPaid };
+}
+
+/** Рекорд за 3 часа: больше всего платных моек в одном блоке (00–03, 03–06 … 21–24) за все дни */
+function getRecord3h(){
+  const cache = (typeof inteljetOrdersCache !== 'undefined' && inteljetOrdersCache) ? inteljetOrdersCache : {};
+  const byDate = {};
+  Object.values(cache).forEach(o => {
+    if(!o || !o.date || ijIsPromoOrder(o)) return;
+    const h = ijOrderHour(o);
+    if(h == null) return;
+    const arr = byDate[o.date] || (byDate[o.date] = Array(HR_BLOCKS).fill(0));
+    arr[hrBlockOf(h)]++;
+  });
+  let best = null;
+  Object.keys(byDate).sort().forEach(date => {   // от старых к новым: при равенстве рекорд остаётся за более ранним днём
+    byDate[date].forEach((cars, k) => {
+      if(cars > (best ? best.cars : 0)) best = { cars, date, block: k };
+    });
+  });
+  return best;
+}
+
+/** Блок «Машин за месяц» — по месяцу, который открыт в календаре */
+function recordMonthHtml(dailyStatsMap){
+  const prefix = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-`;
+  let total = 0, paid = 0, daysN = 0;
+  Object.values(dailyStatsMap || {}).forEach(st => {
+    if(!st || !st.date || st.date.indexOf(prefix) !== 0 || !(st.totalCars > 0)) return;
+    total += st.totalCars;
+    paid += getPaidDayStats(st).paid;
+    daysN++;
+  });
+  const promo = Math.max(0, total - paid);
+  return `
+    <div class="record-sec">
+      <div class="record-sec-title">${getSvg('car')} Машин за месяц · ${RU_MONTHS[calMonth]} ${calYear}</div>
+      <div class="record-val sm">${fmt(total)} <span>авто</span></div>
+      <div class="record-sub">${total > 0
+        ? `за ${daysN} дн.${promo > 0 ? ` · платных ${fmt(paid)}, акционных (до ${IJ_PROMO_MAX} ₽) ${fmt(promo)}` : ''}`
+        : 'В этом месяце моек пока нет'}</div>
+    </div>`;
+}
+
+/** Обновляется при листании календаря: пересчитывает только блок месяца */
+function renderRecordMonth(dailyStatsMap){
+  const el = document.getElementById('recordMonthBlock');
+  if(!el) return;
+  el.innerHTML = recordMonthHtml(dailyStatsMap || buildDailyStatsMap(getUniqueDailyReports()));
+}
+
+/**
+ * Карточка рекордов: рекорд за смену (без акционных моек < 100 ₽), рекорд за 3 часа, итог за выбранный месяц
  */
 function renderRecordDayCard(uniqueReports){
   const el = document.getElementById('recordDayContent');
@@ -564,61 +636,72 @@ function renderRecordDayCard(uniqueReports){
   const boxCountNum = Number(settings.boxCount) || 0;
   const dailyStatsMap = buildDailyStatsMap(uniqueReports);
 
-  let recordDate = '';
-  let recordCars = 0;
-  let recordBoxCars = {};
-  let recordStats = null;
+  // Рекорд смены — по платным мойкам; дни перебираем от старых к новым, чтобы при равенстве рекорд остался за более ранним
+  let rec = null;
+  Object.values(dailyStatsMap).filter(Boolean)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .forEach(stat => {
+      const p = getPaidDayStats(stat);
+      if(p.paid > (rec ? rec.cars : 0)) rec = { cars: p.paid, date: stat.date, boxCars: p.boxPaid, promo: p.promo };
+    });
 
-  Object.values(dailyStatsMap).forEach(stat => {
-    if(stat && stat.totalCars > recordCars){
-      recordCars = stat.totalCars;
-      recordDate = stat.date;
-      recordBoxCars = stat.boxCars || {};
-      recordStats = stat;
+  let shiftHtml;
+  if(!rec){
+    shiftHtml = `<div class="empty" style="padding:16px 0">Данных для рекорда пока недостаточно. Сохраните первый отчёт смены.</div>`;
+  } else {
+    const dObj = new Date(rec.date + 'T00:00:00');
+    const weekdayName = RU_WEEKDAYS[dObj.getDay()] || '';
+    let pillsHtml = '';
+    for(let b = 1; b <= boxCountNum; b++){
+      pillsHtml += `<span class="record-box-pill">Бокс ${b}: <b>${rec.boxCars[b] || 0}</b></span>`;
     }
-  });
-
-  if(!recordStats || recordCars === 0){
-    el.innerHTML = `
-      <div class="record-box">
-        <div class="empty" style="padding:16px 0">Данных для рекорда пока недостаточно. Сохраните первый отчёт смены.</div>
+    shiftHtml = `
+      <div class="record-top-meta">
+        <span class="record-badge">${getSvg('zap')} Абсолютный максимум</span>
+        <span style="font-size:11.5px;color:var(--muted)">за всю историю · без моек до ${IJ_PROMO_MAX} ₽</span>
       </div>
-    `;
-    return;
+      <div class="record-val">
+        ${rec.cars} <span>машин за смену</span>
+      </div>
+      <div class="record-date-row">
+        ${getSvg('calendar')}
+        <span>${formatRuFullDate(rec.date)}${weekdayName ? ', ' + weekdayName : ''}</span>
+      </div>
+      ${rec.promo > 0 ? `<div class="record-sub">В этот день ещё ${rec.promo} акционных моек — в рекорд не вошли</div>` : ''}
+      <div class="record-boxes-pills">${pillsHtml}</div>
+      <button type="button" class="record-jump-btn" onclick="selectCalendarDate('${rec.date}')">
+        ${getSvg('play')} Открыть этот день в календаре
+      </button>`;
   }
 
-  const dObj = new Date(recordDate + 'T00:00:00');
-  const weekdayName = RU_WEEKDAYS[dObj.getDay()] || '';
-  const formattedDate = formatRuFullDate(recordDate);
-
-  let pillsHtml = '';
-  for(let b = 1; b <= boxCountNum; b++){
-    pillsHtml += `<span class="record-box-pill">Бокс ${b}: <b>${recordBoxCars[b] || 0}</b></span>`;
+  // Рекорд за 3 часа
+  const r3 = getRecord3h();
+  let h3Html;
+  if(!r3){
+    h3Html = `
+      <div class="record-sec-title">${getSvg('zap')} Рекорд за 3 часа</div>
+      <div class="record-sub">Нет заказов терминала со временем мойки</div>`;
+  } else {
+    const wd3 = RU_WEEKDAYS[new Date(r3.date + 'T00:00:00').getDay()] || '';
+    h3Html = `
+      <div class="record-sec-title">${getSvg('zap')} Рекорд за 3 часа</div>
+      <div class="record-val sm">${r3.cars} <span>машин · ${hrBlockRange(r3.block)}</span></div>
+      <div class="record-date-row">
+        ${getSvg('calendar')}
+        <span>${formatRuFullDate(r3.date)}${wd3 ? ', ' + wd3 : ''}</span>
+      </div>
+      <button type="button" class="record-jump-btn" onclick="selectCalendarDate('${r3.date}')">
+        ${getSvg('play')} Открыть этот день в календаре
+      </button>`;
   }
 
   el.innerHTML = `
     <div class="record-box">
-      <div class="record-top-meta">
-        <span class="record-badge">${getSvg('zap')} Абсолютный максимум</span>
-        <span style="font-size:11.5px;color:var(--muted)">за всю историю</span>
-      </div>
-
-      <div class="record-val">
-        ${recordCars} <span>машин за смену</span>
-      </div>
-
-      <div class="record-date-row">
-        ${getSvg('calendar')}
-        <span>${formattedDate}${weekdayName ? ', ' + weekdayName : ''}</span>
-      </div>
-
-      <div class="record-boxes-pills">
-        ${pillsHtml}
-      </div>
-
-      <button type="button" class="record-jump-btn" onclick="selectCalendarDate('${recordDate}')">
-        ${getSvg('play')} Открыть этот день в календаре
-      </button>
+      <div class="record-sec">${shiftHtml}</div>
+      <div class="record-sep"></div>
+      <div class="record-sec">${h3Html}</div>
+      <div class="record-sep"></div>
+      <div id="recordMonthBlock">${recordMonthHtml(dailyStatsMap)}</div>
     </div>
   `;
 }
@@ -1370,6 +1453,20 @@ function ijOrderHour(o){
   return null;
 }
 
+/* ===== Блоки по 3 часа (00–03, 03–06 … 21–24): общая раскладка для графиков, тепловой карты, прогноза и рекорда ===== */
+const HR_STEP = 3;
+const HR_BLOCKS = 24 / HR_STEP;
+const hrPad = x => String(x).padStart(2, '0');
+function hrBlockOf(h){ return Math.floor(h / HR_STEP); }
+function hrBlockRange(k){ return `${hrPad(k * HR_STEP)}:00–${hrPad(k * HR_STEP + HR_STEP)}:00`; }
+function hrBlockLbl(k){ return `${hrPad(k * HR_STEP)}–${hrPad(k * HR_STEP + HR_STEP)}`; }
+/* Массив из 24 значений по часам -> массив из 8 сумм по блокам */
+function hrToBlocks(arr){
+  const out = Array(HR_BLOCKS).fill(0);
+  for(let h = 0; h < 24; h++) out[hrBlockOf(h)] += Number(arr && arr[h]) || 0;
+  return out;
+}
+
 function setHourlyMode(m){ hourlyMode = m; renderHourlyStats(); }
 
 function renderHourlyStats(){
@@ -1388,12 +1485,13 @@ function renderHourlyStats(){
   const daysCnt = Math.max(1, new Set(orders.map(o => o.date)).size);
   const div = isWeek ? daysCnt : 1;
 
-  const counts = Array(24).fill(0), rev = Array(24).fill(0);
+  const counts = Array(HR_BLOCKS).fill(0), rev = Array(HR_BLOCKS).fill(0);
   let noTime = 0;
   orders.forEach(o => {
     const h = ijOrderHour(o);
     if(h == null){ noTime++; return; }
-    counts[h]++; rev[h] += Number(o.amount) || 0;
+    const k = hrBlockOf(h);
+    counts[k]++; rev[k] += Number(o.amount) || 0;
   });
   const vals = counts.map(c => Math.round(c / div * 10) / 10);
 
@@ -1401,7 +1499,7 @@ function renderHourlyStats(){
     `<button type="button" class="mt-pill ${hourlyMode === v ? 'active' : ''}" onclick="setHourlyMode('${v}')">${t}</button>`).join('');
   const head = `
     <div class="inteljet-head">
-      <div class="inteljet-badge">${getSvg('zap')} Мойки по часам</div>
+      <div class="inteljet-badge">${getSvg('zap')} Мойки по 3 часа</div>
       <span style="font-size:12px;color:var(--muted)">${isWeek ? 'Среднее за день по ' + daysCnt + ' дн. · ' + RU_WEEKDAYS[wd] : '<b>' + isoToRuDate(date) + '</b>, ' + RU_WEEKDAYS[wd]}</span>
     </div>
     <div class="mt-pills" style="margin-bottom:12px">${pills}</div>`;
@@ -1419,23 +1517,26 @@ function renderHourlyStats(){
     return;
   }
 
-  let lo = 23, hi = 0, max = 0, peak = -1;
-  counts.forEach((c, h) => { if(c > 0){ lo = Math.min(lo, h); hi = Math.max(hi, h); } if(vals[h] > max){ max = vals[h]; peak = h; } });
-  if(fc) fc.hours.forEach((f, h) => { if(f >= 0.35){ lo = Math.min(lo, h); hi = Math.max(hi, h); } if(f > max) max = f; });
-  if(lo > hi){ lo = 8; hi = 20; }
+  // Прогноз по часам сворачиваем в те же блоки по 3 часа
+  const fcB = fc ? hrToBlocks(fc.hours) : null;
+
+  let lo = HR_BLOCKS - 1, hi = 0, max = 0, peak = -1;
+  counts.forEach((c, k) => { if(c > 0){ lo = Math.min(lo, k); hi = Math.max(hi, k); } if(vals[k] > max){ max = vals[k]; peak = k; } });
+  if(fcB) fcB.forEach((f, k) => { if(f >= 0.5){ lo = Math.min(lo, k); hi = Math.max(hi, k); } if(f > max) max = f; });
+  if(lo > hi){ lo = 2; hi = 6; } // 06:00–21:00
   const total = isWeek ? Math.round(withTime / daysCnt * 10) / 10 : withTime;
   const r1 = x => Math.round(x * 10) / 10;
 
   let cols = '';
-  for(let h = lo; h <= hi; h++){
-    const v = vals[h], f = fc ? fc.hours[h] : 0;
+  for(let k = lo; k <= hi; k++){
+    const v = vals[k], f = fcB ? fcB[k] : 0;
     const pct = max > 0 ? Math.round(v / max * 100) : 0;
     const fpct = max > 0 ? Math.round(f / max * 100) : 0;
-    const tip = `${String(h).padStart(2,'0')}:00–${String(h).padStart(2,'0')}:59 · факт ${v} авто · ${fmt(Math.round(rev[h] / div))} ₽` + (fc ? ` · прогноз ≈ ${r1(f)}` : '');
-    cols += `<div class="hr-col ${h === peak ? 'peak' : ''}" title="${tip}">
+    const tip = `${hrBlockRange(k)} · факт ${v} авто · ${fmt(Math.round(rev[k] / div))} ₽` + (fcB ? ` · прогноз ≈ ${r1(f)}` : '');
+    cols += `<div class="hr-col ${k === peak ? 'peak' : ''}" title="${tip}">
       <span class="hr-val">${v || ''}</span>
-      <div class="hr-bar-wrap ${fc ? 'ov' : ''}">${fc ? `<div class="hr-bar fc" style="height:${f > 0 ? Math.max(fpct, 3) : 0}%"></div>` : ''}<div class="hr-bar ${fc ? 'act' : ''}" style="height:${v > 0 ? Math.max(pct, 3) : 0}%"></div></div>
-      <span class="hr-lbl">${h}</span>
+      <div class="hr-bar-wrap ${fcB ? 'ov' : ''}">${fcB ? `<div class="hr-bar fc" style="height:${f > 0 ? Math.max(fpct, 3) : 0}%"></div>` : ''}<div class="hr-bar ${fcB ? 'act' : ''}" style="height:${v > 0 ? Math.max(pct, 3) : 0}%"></div></div>
+      <span class="hr-lbl">${hrBlockLbl(k)}</span>
     </div>`;
   }
 
@@ -1455,7 +1556,7 @@ function renderHourlyStats(){
     <div class="hr-chart">${cols}</div>${fcLine}
     <div class="hr-summary">
       <span>Всего: <b>${total} авто</b>${isWeek ? ' в день' : ''}</span>
-      ${peak >= 0 ? `<span>Пик: <b>${String(peak).padStart(2,'0')}:00–${String(peak + 1).padStart(2,'0')}:00</b> (${vals[peak]} авто)</span>` : ''}
+      ${peak >= 0 ? `<span>Пик: <b>${hrBlockRange(peak)}</b> (${vals[peak]} авто)</span>` : ''}
       ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
     </div>
   </div>`;
@@ -1485,7 +1586,7 @@ function renderHeatmap(){
   const all = Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {})
     .filter(o => o && o.date && (!cutoff || o.date >= cutoff) && !(heatPaid && ijIsPromoOrder(o)));
 
-  const sum = Array.from({ length: 7 }, () => Array(24).fill(0));
+  const sum = Array.from({ length: 7 }, () => Array(HR_BLOCKS).fill(0));
   const dates = Array.from({ length: 7 }, () => new Set());
   let noTime = 0, used = 0;
   all.forEach(o => {
@@ -1493,7 +1594,7 @@ function renderHeatmap(){
     if(h == null){ noTime++; return; }
     const wd = new Date(o.date + 'T00:00:00').getDay();
     if(isNaN(wd)) return;
-    sum[wd][h]++; dates[wd].add(o.date); used++;
+    sum[wd][hrBlockOf(h)]++; dates[wd].add(o.date); used++;
   });
 
   const val = (wd, h) => heatMetric === 'avg' ? sum[wd][h] / Math.max(1, dates[wd].size) : sum[wd][h];
@@ -1507,7 +1608,7 @@ function renderHeatmap(){
   const head = `
     <div class="inteljet-head">
       <div class="inteljet-badge">${getSvg('calendar')} Тепловая карта загрузки</div>
-      <span style="font-size:12px;color:var(--muted)">день недели × час</span>
+      <span style="font-size:12px;color:var(--muted)">день недели × 3 часа</span>
     </div>${controls}`;
 
   if(!used){
@@ -1515,43 +1616,42 @@ function renderHeatmap(){
     return;
   }
 
-  let lo = 23, hi = 0, max = 0, peak = null;
-  HM_ROWS.forEach(wd => { for(let h = 0; h < 24; h++){
-    if(sum[wd][h] > 0){ lo = Math.min(lo, h); hi = Math.max(hi, h); }
-    const v = val(wd, h);
-    if(v > max){ max = v; peak = { wd, h, v }; }
+  let lo = HR_BLOCKS - 1, hi = 0, max = 0, peak = null;
+  HM_ROWS.forEach(wd => { for(let k = 0; k < HR_BLOCKS; k++){
+    if(sum[wd][k] > 0){ lo = Math.min(lo, k); hi = Math.max(hi, k); }
+    const v = val(wd, k);
+    if(v > max){ max = v; peak = { wd, h: k, v }; }
   }});
 
   const n = hi - lo + 1;
   const fmtV = v => heatMetric === 'avg' ? String(Math.round(v * 10) / 10) : String(v);
   let grid = `<div></div>`;
-  for(let h = lo; h <= hi; h++) grid += `<div class="hm-hl">${h}</div>`;
+  for(let k = lo; k <= hi; k++) grid += `<div class="hm-hl">${hrBlockLbl(k)}</div>`;
   HM_ROWS.forEach(wd => {
     grid += `<div class="hm-wl">${HM_SHORT[wd]}</div>`;
-    for(let h = lo; h <= hi; h++){
-      const v = val(wd, h);
+    for(let k = lo; k <= hi; k++){
+      const v = val(wd, k);
       const a = v > 0 ? 0.14 + 0.86 * (v / max) : 0;
-      const tip = `${RU_WEEKDAYS[wd]}, ${String(h).padStart(2,'0')}:00–${String(h).padStart(2,'0')}:59 · ${fmtV(v)} авто` + (heatMetric === 'avg' ? ` (в среднем, ${dates[wd].size} дн.)` : '');
+      const tip = `${RU_WEEKDAYS[wd]}, ${hrBlockRange(k)} · ${fmtV(v)} авто` + (heatMetric === 'avg' ? ` (в среднем, ${dates[wd].size} дн.)` : '');
       grid += v > 0
         ? `<div class="hm-cell ${a > 0.55 ? 'on' : ''}" style="background:rgba(255,80,20,${a.toFixed(2)})" title="${tip}">${fmtV(v)}</div>`
         : `<div class="hm-cell" title="${tip}"></div>`;
     }
   });
 
-  // Самый тихий час среди всех дней недели (в пределах рабочего диапазона)
+  // Самый тихий блок среди всех дней недели (в пределах рабочего диапазона)
   let quietH = lo, quietV = Infinity;
-  for(let h = lo; h <= hi; h++){
-    const t = HM_ROWS.reduce((s2, wd) => s2 + val(wd, h), 0);
-    if(t < quietV){ quietV = t; quietH = h; }
+  for(let k = lo; k <= hi; k++){
+    const t = HM_ROWS.reduce((s2, wd) => s2 + val(wd, k), 0);
+    if(t < quietV){ quietV = t; quietH = k; }
   }
-  const pad = x => String(x).padStart(2, '0');
 
   box.innerHTML = `<div class="inteljet-card">${head}
-    <div class="hm-scroll"><div class="hm-grid" style="grid-template-columns:34px repeat(${n},minmax(22px,1fr));min-width:${34 + n * 25}px">${grid}</div></div>
+    <div class="hm-scroll"><div class="hm-grid" style="grid-template-columns:34px repeat(${n},minmax(38px,1fr));min-width:${34 + n * 41}px">${grid}</div></div>
     <div class="hm-legend"><span>меньше</span><i></i><span>больше</span></div>
     <div class="hr-summary">
-      <span>Пик: <b>${HM_SHORT[peak.wd]}, ${pad(peak.h)}:00–${pad(peak.h + 1)}:00</b> (${fmtV(peak.v)} авто)</span>
-      <span>Тише всего: <b>${pad(quietH)}:00–${pad(quietH + 1)}:00</b></span>
+      <span>Пик: <b>${HM_SHORT[peak.wd]}, ${hrBlockRange(peak.h)}</b> (${fmtV(peak.v)} авто)</span>
+      <span>Тише всего: <b>${hrBlockRange(quietH)}</b></span>
       ${noTime ? `<span style="color:var(--muted)">без времени: ${noTime}</span>` : ''}
     </div>
   </div>`;
