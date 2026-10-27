@@ -3038,3 +3038,11 @@ input:focus, select:focus, textarea:focus {
 .hr-legend i{display:inline-block;width:12px;height:10px;border-radius:3px}
 .hr-legend i.act{background:var(--accent)}
 .hr-legend i.fc{background:#5b8def;opacity:.45}
+
+/* Карточка рекордов: секции (смена / 3 часа / месяц) */
+.record-sec{display:flex;flex-direction:column;gap:8px}
+.record-sep{height:1px;background:rgba(245,158,11,.28);margin:2px 0}
+.record-sec-title{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.record-sec-title svg{width:14px;height:14px;color:#f59e0b;flex:none}
+.record-val.sm{font-size:26px}
+.record-sub{font-size:11.5px;color:var(--muted);line-height:1.35}
