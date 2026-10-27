@@ -513,20 +513,24 @@ function renderForecast(){
 
     let detail = '';
     if(opened){
-      let lo = 23, hi = 0, mx = 0;
-      p.hours.forEach((v, h) => { if(v >= 0.15){ lo = Math.min(lo, h); hi = Math.max(hi, h); } mx = Math.max(mx, v); });
+      // Прогноз по часам сворачиваем в блоки по 3 часа
+      const hb = hrToBlocks(p.hours);
+      const wetB = Array.from({ length: HR_BLOCKS }, (_, k) => p.wet.slice(k * HR_STEP, k * HR_STEP + HR_STEP).some(Boolean));
+      let lo = HR_BLOCKS - 1, hi = 0, mx = 0;
+      hb.forEach((v, k) => { if(v >= 0.5){ lo = Math.min(lo, k); hi = Math.max(hi, k); } mx = Math.max(mx, v); });
+      if(lo > hi){ lo = 2; hi = 6; }
       let cols = '';
-      for(let h = lo; h <= hi; h++){
-        const v = p.hours[h];
-        cols += `<div class="hr-col ${p.wet[h] ? 'wet' : ''}" title="${pad(h)}:00 · ≈${v.toFixed(1)} авто${p.wet[h] ? ' · ожидаются осадки' : ''}">
+      for(let k = lo; k <= hi; k++){
+        const v = hb[k];
+        cols += `<div class="hr-col ${wetB[k] ? 'wet' : ''}" title="${hrBlockRange(k)} · ≈${v.toFixed(1)} авто${wetB[k] ? ' · ожидаются осадки' : ''}">
           <span class="hr-val">${v >= 0.05 ? (Math.round(v * 10) / 10) : ''}</span>
           <div class="hr-bar-wrap"><div class="hr-bar" style="height:${mx > 0 && v > 0 ? Math.max(3, Math.round(v / mx * 100)) : 0}%"></div></div>
-          <span class="hr-lbl">${h}</span></div>`;
+          <span class="hr-lbl">${hrBlockLbl(k)}</span></div>`;
       }
       let bs = 0, bw = 0;
-      for(let h = 0; h < 22; h++){ const v = p.hours[h] + p.hours[h + 1] + p.hours[h + 2]; if(v > bs){ bs = v; bw = h; } }
+      hb.forEach((v, k) => { if(v > bs){ bs = v; bw = k; } });
       detail = `<div class="fc-detail"><div class="hr-chart" style="height:150px">${cols}</div>${wxHoursHtml(p.rec)}
-        <div class="hr-summary"><span>Самые загруженные 3 часа: <b>${pad(bw)}:00–${pad(bw + 3)}:00</b> (≈${Math.round(bs)} авто)</span><span>платных ≈ ${Math.round(p.paid)}, акционных ≈ ${Math.round(m.promoRate)}</span>${p.wet.some(Boolean) ? '<span>Синим отмечены часы с осадками</span>' : ''}</div></div>`;
+        <div class="hr-summary"><span>Самые загруженные 3 часа: <b>${hrBlockRange(bw)}</b> (≈${Math.round(bs)} авто)</span><span>платных ≈ ${Math.round(p.paid)}, акционных ≈ ${Math.round(m.promoRate)}</span>${p.wet.some(Boolean) ? '<span>Синим отмечены блоки с осадками</span>' : ''}</div></div>`;
     }
     rows += `<div class="fc-day ${opened ? 'open' : ''}">
       <div class="fc-row" onclick="toggleFcDay('${p.date}')">
@@ -549,7 +553,7 @@ function renderForecast(){
     `Обучено на <b>${m.n}</b> дн. (платные мойки ≥ ${IJ_PROMO_MAX} ₽)` + (m.useWx ? `, погода известна за ${R.wxDays}` : ', <b>погода не учитывается</b> (нет данных)'),
     roll ? `Проверка на истории (каждый день предсказан по данным до него, ${roll.n} дн.): средняя ошибка по дню ≈ <b>${roll.wape}%</b>. Диапазон — реальный разброс ошибок (80%).` : 'Проверка точности: пока мало данных',
     `Акционные мойки (до ${IJ_PROMO_MAX} ₽) в обучение не входят; добавлены текущим средним ≈ <b>${Math.round(m.promoRate * 10) / 10}</b> в день за 14 дней.`,
-    'По отдельному часу прогноз грубый (в час в среднем меньше одной машины) — ориентируйтесь на блоки по 3 часа.',
+    'Внутри дня прогноз показан блоками по 3 часа: по отдельному часу он слишком грубый (в час в среднем меньше одной машины).',
     'Доверие к погодному прогнозу снижается с каждым днём вперёд.',
     eff.length ? 'Влияние погоды: ' + eff.join('; ') : 'Влияние погоды: в истории мало дней с осадками — множители близки к 1',
     out.some(p => p.hol) ? (m.holN >= 2 ? `Праздничный день: по ${m.holN} прошлым праздничным дням ×${m.mh.toFixed(2)} к обычному дню недели.` : 'В истории мало праздничных дней (меньше 2): праздник оценён как выходной (Сб/Вс).') : ''
@@ -559,7 +563,7 @@ function renderForecast(){
     ${wxStatus ? `<div class="fc-warn">${wxStatus} <button type="button" class="btn secondary" style="padding:3px 10px;margin-left:6px" onclick="wxRetryAt=0;weatherSync(true)">Повторить</button></div>` : ''}
     <div class="hr-summary" style="margin:0 0 10px"><span>Всего за 7 дней: <b>≈ ${Math.round(week)} авто</b></span><span>В среднем: <b>≈ ${Math.round(week / 7)}</b> в день</span></div>
     <div class="fc-list">${rows}</div>
-    <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по часам.</div></div>
+    <div class="fc-notes">${notes.map(n => '<div>' + n + '</div>').join('')}<div>Нажмите на день, чтобы увидеть прогноз по 3 часа.</div></div>
   </div>`;
   if(typeof renderFcLab === 'function') renderFcLab();
 }
