@@ -164,17 +164,57 @@ function toArray(v){
  if(v&&typeof v==='object')return Object.keys(v).sort((a,b)=>Number(a)-Number(b)).map(k=>v[k]);
  return [];
 }
+/* ===== Авторасчёт остатка: ввод в одной единице (л, кг…) -> пересчёт в основную (шт) ===== */
+const AUTO_ROUNDS = { down: 'Вниз до 0,5', near: 'К ближайшему 0,5', up: 'Вверх до 0,5' };
+function normalizeAuto(a){
+ if(!a || !a.on) return null;
+ const factor = Number(a.factor), srcQty = Number(a.srcQty);
+ if(!(factor > 0)) return null;
+ return {
+   on: true,
+   srcUnit: String(a.srcUnit || '').trim() || 'л',
+   srcQty: srcQty >= 0 ? srcQty : 0,
+   factor: factor,
+   round: AUTO_ROUNDS[a.round] ? a.round : 'down'
+ };
+}
+/* Результат всегда кратен 0,5: 15 / 15,5 / 16. По умолчанию — вниз, чтобы не завышать остаток */
+function autoCalcQty(a){
+ const f = Number(a && a.factor), s = Number(a && a.srcQty);
+ if(!(f > 0) || !(s >= 0)) return 0;
+ const x = (s / f) * 2, EPS = 1e-9;
+ const r = a.round === 'up' ? Math.ceil(x - EPS) : a.round === 'near' ? Math.round(x + EPS) : Math.floor(x + EPS);
+ return r / 2;
+}
+/* Дополнительные мелкие единицы для удобного ввода объёма одной штуки: л -> мл, кг -> г */
+function autoSubOptions(srcUnit){
+ const u = String(srcUnit || '').trim().toLowerCase().replace(/\.$/, '');
+ if(['л','l','литр','литра','литров','литры'].includes(u)) return [{ label: 'мл', mult: 0.001 }];
+ if(['кг','kg','килограмм','килограмма','килограммов'].includes(u)) return [{ label: 'г', mult: 0.001 }];
+ return [];
+}
+function autoFactorText(a){
+ const sub = autoSubOptions(a.srcUnit)[0];
+ if(sub && a.factor < 1) return `${Math.round(a.factor / sub.mult * 1e6) / 1e6} ${sub.label}`;
+ return `${Math.round(a.factor * 1e6) / 1e6} ${a.srcUnit}`;
+}
+
 function sanitizeData(d){
  const items=toArray(d&&d.items).filter(Boolean).map(it=>({
    id:(it&&it.id)||crypto.randomUUID(),
    name:(it&&it.name)||'',
    inReport:Boolean(it&&it.inReport),
-   measures:toArray(it&&it.measures).filter(Boolean).map((m, idx)=>({
-     unit:(m&&m.unit)||'',
-     qty:Number(m&&m.qty)||0,
-     min:Number(m&&m.min)||0,
-     trackMin:typeof m.trackMin!=='undefined'?Boolean(m.trackMin):(idx===0)
-   }))
+   measures:toArray(it&&it.measures).filter(Boolean).map((m, idx)=>{
+     const mm={
+       unit:(m&&m.unit)||'',
+       qty:Number(m&&m.qty)||0,
+       min:Number(m&&m.min)||0,
+       trackMin:typeof m.trackMin!=='undefined'?Boolean(m.trackMin):(idx===0)
+     };
+     const auto=normalizeAuto(m&&m.auto);
+     if(auto){ mm.auto=auto; mm.qty=autoCalcQty(auto); }
+     return mm;
+   })
  }));
  const history=toArray(d&&d.history).filter(Boolean);
  return {items, history};
