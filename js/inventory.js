@@ -75,6 +75,7 @@ function card(x){
 }
 function measureHtml(x,i){
  const m=x.measures[i];
+ if(m.auto&&m.auto.on) return measureAutoHtml(x,i);
  const track=m.trackMin!==false;
  const low=track&&Number(m.qty)<=Number(m.min);
  return `<div class="measure ${low?'is-low':''}" title="${track?('Минимальный остаток: '+fmt(m.min)+' '+esc(m.unit)):'Минимальный остаток не отслеживается'}">
@@ -92,6 +93,57 @@ function measureHtml(x,i){
      <button onclick="change('${x.id}',${i},5)">+5</button>
    </div>
  </div>`;
+}
+/* Единица с авторасчётом: основное число — в штуках (считается), вводится же количество в исходной единице (л, кг…) */
+function measureAutoHtml(x,i){
+ const m=x.measures[i], a=m.auto;
+ const track=m.trackMin!==false;
+ const low=track&&Number(m.qty)<=Number(m.min);
+ const su=esc(a.srcUnit);
+ return `<div class="measure is-auto ${low?'is-low':''}" title="${track?('Минимальный остаток: '+fmt(m.min)+' '+esc(m.unit)):'Минимальный остаток не отслеживается'}">
+   <div class="measure-row">
+     <div class="measure-main"><span class="unit-label">${esc(m.unit)}:</span><strong>${fmt(m.qty)}</strong><span class="auto-chip">авто</span></div>
+     <div class="measure-actions">
+       <button class="mminus" onclick="changeAuto('${x.id}',${i},-1)" aria-label="Уменьшить на 1 ${su}" title="−1 ${su}">−</button>
+       <button class="mplus" onclick="changeAuto('${x.id}',${i},1)" aria-label="Увеличить на 1 ${su}" title="+1 ${su}">+</button>
+     </div>
+   </div>
+   <div class="auto-src">
+     <span class="auto-src-lbl">Есть</span>
+     <input class="auto-src-input" type="number" inputmode="decimal" step="any" min="0" value="${a.srcQty}" aria-label="Количество в ${su}" onchange="setAutoSrc('${x.id}',${i},this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+     <span class="auto-src-unit">${su}</span>
+     <span class="auto-note">1 ${esc(m.unit)} = ${esc(autoFactorText(a))}</span>
+   </div>
+   <div class="quick">
+     <button onclick="changeAuto('${x.id}',${i},-5)">−5 ${su}</button>
+     <button onclick="changeAuto('${x.id}',${i},-0.5)">−0,5 ${su}</button>
+     <button onclick="changeAuto('${x.id}',${i},0.5)">+0,5 ${su}</button>
+     <button onclick="changeAuto('${x.id}',${i},5)">+5 ${su}</button>
+   </div>
+ </div>`;
+}
+function applyAutoSrc(x,m,nextSrc){
+ const a=m.auto, oldSrc=Number(a.srcQty), oldQty=Number(m.qty);
+ const next=Math.max(0,Math.round(nextSrc*1000)/1000);
+ if(next===oldSrc){render();return}
+ a.srcQty=next;
+ m.qty=autoCalcQty(a);
+ const msg=`${x.name}: ${fmt(oldSrc)} → ${fmt(next)} ${a.srcUnit} (${fmt(oldQty)} → ${fmt(m.qty)} ${m.unit})`;
+ logInvHistory('Изменение остатка', msg);
+ persist();render();
+ toast(`${x.name}: ${fmt(next)} ${a.srcUnit} = ${fmt(m.qty)} ${m.unit}`);
+}
+function changeAuto(id,mi,delta){
+ const x=data.items.find(i=>i.id===id); if(!x)return;
+ const m=x.measures[mi]; if(!m||!m.auto)return;
+ applyAutoSrc(x,m,Number(m.auto.srcQty)+delta);
+}
+function setAutoSrc(id,mi,val){
+ const x=data.items.find(i=>i.id===id); if(!x)return;
+ const m=x.measures[mi]; if(!m||!m.auto)return;
+ const n=Number(String(val).replace(',','.'));
+ if(val===''||!isFinite(n)){render();return}
+ applyAutoSrc(x,m,n);
 }
 function change(id,mi,delta){
  const x=data.items.find(i=>i.id===id); if(!x)return;
@@ -139,12 +191,45 @@ function addMeasureRow(m=null, isFirst=null){
  const min = m ? (m.min != null ? m.min : 1) : 1;
  const trackMin = m ? (m.trackMin !== false) : isFirstRow;
 
+ // Авторасчёт
+ const au = (m && m.auto && m.auto.on) ? m.auto : null;
+ const autoOn = Boolean(au);
+ const aSrcUnit = au ? au.srcUnit : 'л';
+ const aSrcQty = au ? au.srcQty : '';
+ const aRound = au ? au.round : 'down';
+ const subs = autoSubOptions(aSrcUnit);
+ const useSub = au && subs.length && au.factor < 1;
+ const aFactorShown = au ? (useSub ? Math.round(au.factor / subs[0].mult * 1e6) / 1e6 : au.factor) : '';
+ const aFactorOpts = autoFactorOptionsHtml(aSrcUnit, useSub ? subs[0].mult : (subs.length && !au ? subs[0].mult : 1));
+
  const wrap=document.createElement('div');
  wrap.className='measure-config';
  wrap.innerHTML=`<div class="measure-config-head"><span>Единица измерения</span><button type="button" class="remove-measure" onclick="this.closest('.measure-config').remove()">Удалить</button></div>
  <div class="measure-config-grid">
-   <div><label>Единица</label><input class="m-unit" required placeholder="кан, кг, л, шт..." value="${esc(unit)}"></div>
+   <div><label>Единица</label><input class="m-unit" required placeholder="кан, кг, л, шт..." value="${esc(unit)}" oninput="autoRecalc(this)"></div>
    <div><label>Количество</label><input class="m-qty" type="number" step="0.01" min="0" required value="${qty}"></div>
+   <div class="auto-box" style="grid-column:1/-1">
+     <label class="auto-toggle">
+       <input type="checkbox" class="m-auto" ${autoOn?'checked':''} onchange="toggleAuto(this)">
+       Авторасчёт из другой единицы
+     </label>
+     <div class="auto-fields" style="display:${autoOn?'grid':'none'}">
+       <div><label>Вводить в</label><input class="a-src-unit" placeholder="л, кг..." value="${esc(aSrcUnit)}" oninput="autoUnitChanged(this)"></div>
+       <div><label>Сколько есть</label><input class="a-src-qty" type="number" step="any" min="0" value="${aSrcQty}" oninput="autoRecalc(this)"></div>
+       <div style="grid-column:1/-1">
+         <label class="a-factor-lbl">В одной ${esc(unit||'шт')} содержится</label>
+         <div class="auto-factor-row">
+           <input class="a-factor" type="number" step="any" min="0" placeholder="напр. 700" value="${aFactorShown}" oninput="autoRecalc(this)">
+           <select class="a-factor-unit" onchange="autoRecalc(this)">${aFactorOpts}</select>
+         </div>
+       </div>
+       <div style="grid-column:1/-1">
+         <label>Округление результата</label>
+         <select class="a-round" onchange="autoRecalc(this)">${Object.keys(AUTO_ROUNDS).map(k=>`<option value="${k}" ${k===aRound?'selected':''}>${AUTO_ROUNDS[k]}</option>`).join('')}</select>
+       </div>
+       <div class="auto-preview" style="grid-column:1/-1"></div>
+     </div>
+   </div>
    <div style="grid-column:1/-1">
      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
        <label style="margin:0">Минимальный остаток</label>
@@ -157,6 +242,60 @@ function addMeasureRow(m=null, isFirst=null){
    </div>
  </div>`;
  measureConfig.appendChild(wrap);
+ if(autoOn){
+   const q=wrap.querySelector('.m-qty');
+   q.readOnly=true; q.classList.add('auto-ro');
+   autoRecalc(q);
+ }
+}
+/* ===== Авторасчёт в форме ===== */
+function autoFactorOptionsHtml(srcUnit, selectedMult){
+ const opts=[...autoSubOptions(srcUnit), { label: String(srcUnit||'').trim()||'ед.', mult: 1 }];
+ return opts.map(o=>`<option value="${o.mult}" ${o.mult===selectedMult?'selected':''}>${esc(o.label)}</option>`).join('');
+}
+function readAutoRow(wrap){
+ const num=sel=>{ const v=wrap.querySelector(sel).value; return v===''?NaN:Number(v); };
+ const mult=Number(wrap.querySelector('.a-factor-unit').value)||1;
+ return {
+   on:true,
+   unit:wrap.querySelector('.m-unit').value.trim(),
+   srcUnit:wrap.querySelector('.a-src-unit').value.trim(),
+   srcQty:num('.a-src-qty'),
+   factor:Math.round(num('.a-factor')*mult*1e6)/1e6,
+   round:wrap.querySelector('.a-round').value
+ };
+}
+function autoRecalc(el){
+ const wrap=el.closest('.measure-config'); if(!wrap)return;
+ const cb=wrap.querySelector('.m-auto');
+ const qtyInp=wrap.querySelector('.m-qty'), prev=wrap.querySelector('.auto-preview');
+ const lbl=wrap.querySelector('.a-factor-lbl');
+ if(lbl) lbl.textContent='В одной '+(wrap.querySelector('.m-unit').value.trim()||'шт')+' содержится';
+ if(!cb.checked) return;
+ const a=readAutoRow(wrap);
+ if(!(a.factor>0)||!(a.srcQty>=0)){
+   prev.textContent='Укажите, сколько в одной '+(a.unit||'шт')+' и сколько всего есть — остаток посчитается сам.';
+   prev.classList.remove('ok');
+   return;
+ }
+ const raw=a.srcQty/a.factor, q=autoCalcQty(a);
+ qtyInp.value=q;
+ prev.classList.add('ok');
+ prev.textContent=`${fmt(a.srcQty)} ${a.srcUnit} ÷ ${fmt(a.factor)} ${a.srcUnit} = ${fmt(raw)} → ${fmt(q)} ${a.unit||'шт'}`;
+}
+function autoUnitChanged(inp){
+ const wrap=inp.closest('.measure-config'); if(!wrap)return;
+ const subs=autoSubOptions(inp.value);
+ wrap.querySelector('.a-factor-unit').innerHTML=autoFactorOptionsHtml(inp.value, subs.length?subs[0].mult:1);
+ autoRecalc(inp);
+}
+function toggleAuto(cb){
+ const wrap=cb.closest('.measure-config'); if(!wrap)return;
+ wrap.querySelector('.auto-fields').style.display=cb.checked?'grid':'none';
+ const qtyInp=wrap.querySelector('.m-qty');
+ qtyInp.readOnly=cb.checked;
+ qtyInp.classList.toggle('auto-ro',cb.checked);
+ autoRecalc(cb);
 }
 function toggleTrackMin(cb){
  const wrap=cb.closest('.measure-config');
@@ -176,14 +315,25 @@ function saveItem(e){
  const measures=rows.map(r=>{
    const cb=r.querySelector('.m-track-min');
    const trackMin=cb ? cb.checked : true;
-   return {
+   const mm={
      unit:r.querySelector('.m-unit').value.trim(),
      qty:Number(r.querySelector('.m-qty').value),
      min:Number(r.querySelector('.m-min').value),
      trackMin:trackMin
    };
+   const autoCb=r.querySelector('.m-auto');
+   if(autoCb&&autoCb.checked){
+     const a=readAutoRow(r);
+     mm.auto={on:true,srcUnit:a.srcUnit,srcQty:a.srcQty,factor:a.factor,round:a.round};
+     mm._autoOk=a.factor>0&&a.srcQty>=0&&Boolean(a.srcUnit);
+   }
+   return mm;
  });
  if(measures.some(m=>!m.unit)){toast('Укажите единицу измерения');return}
+ if(measures.some(m=>m.auto&&!m._autoOk)){toast('Авторасчёт: заполните единицу ввода, объём одной штуки и количество');return}
+ measures.forEach(m=>{
+   if(m.auto){ delete m._autoOk; m.qty=autoCalcQty(m.auto); }
+ });
 
  if(editId){
    const x=data.items.find(i=>i.id===editId);
@@ -193,11 +343,19 @@ function saveItem(e){
    const maxLen=Math.max(oldM.length,measures.length);
    for(let i=0;i<maxLen;i++){
      const om=oldM[i], nm=measures[i];
-     if(!om&&nm){changes.push(`+ ${nm.qty} ${nm.unit} (мин. ${nm.trackMin ? nm.min : 'не отсл.'})`);continue}
+     if(!om&&nm){changes.push(`+ ${nm.qty} ${nm.unit} (мин. ${nm.trackMin ? nm.min : 'не отсл.'})${nm.auto?`, авторасчёт: ${fmt(nm.auto.srcQty)} ${nm.auto.srcUnit}`:''}`);continue}
      if(om&&!nm){changes.push(`− ${om.qty} ${om.unit}`);continue}
      const parts=[];
      if(om.unit!==nm.unit) parts.push(`ед: ${om.unit} → ${nm.unit}`);
      if(Number(om.qty)!==Number(nm.qty)) parts.push(`кол-во: ${fmt(om.qty)} → ${fmt(nm.qty)}`);
+     const oa=om.auto&&om.auto.on?om.auto:null, na=nm.auto||null;
+     if(!oa&&na) parts.push(`авторасчёт вкл (1 ${nm.unit} = ${autoFactorText(na)})`);
+     else if(oa&&!na) parts.push('авторасчёт выкл');
+     else if(oa&&na){
+       if(Number(oa.factor)!==Number(na.factor)||oa.srcUnit!==na.srcUnit) parts.push(`1 ${nm.unit}: ${autoFactorText(oa)} → ${autoFactorText(na)}`);
+       if(Number(oa.srcQty)!==Number(na.srcQty)) parts.push(`${fmt(oa.srcQty)} → ${fmt(na.srcQty)} ${na.srcUnit}`);
+       if(oa.round!==na.round) parts.push(`округление: ${AUTO_ROUNDS[na.round]}`);
+     }
      if(Boolean(om.trackMin)!==Boolean(nm.trackMin)) parts.push(`отслеживание: ${nm.trackMin?'вкл':'выкл'}`);
      if(Number(om.min)!==Number(nm.min) && nm.trackMin) parts.push(`мин: ${fmt(om.min)} → ${fmt(nm.min)}`);
      if(parts.length) changes.push(`${nm.unit||om.unit}: ${parts.join(', ')}`);
