@@ -1,0 +1,467 @@
+﻿/* ===== Прогноз загрузки на 7 дней (Модель 3.1 — откалибрована на реальной базе INTELJET Таганрогская 134Б):
+   Двухконтурная адаптация уровня (быстрая реакция на окончание промо-акций и смену сезона)
+   × День недели × Взвешенные по часам осадки × Накопленная грязь за 4 дня (включая перенос спроса с дождливых будней на Пт–Вс)
+   × Ожидание дождя на завтра (эффект «перед дождём») × Высыхание дорог (влажность/ветер) × Температура × Праздники ===== */
+
+const FC_EXCLUDE_DATES = []; // 2026-10-06 теперь полный (16 авто до 21:47), неполные дни определяются автоматически
+const FC_WX_TRUST = [1, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.5]; // доверие к погодному прогнозу по дням вперёд (0 — факт)
+let fcWindow = 45;   // сколько последних дней истории берём для обучения структуры недели и погоды
+let fcOpen = null;   // раскрытый день (почасовой прогноз)
+
+const FC_GROUPS = ['dry', 'mid', 'long'];
+const FC_GROUP_RU = {
+  dry: 'Без дождя (до 2 ч)',
+  mid: 'Осадки 3–5 ч',
+  long: 'Осадки 6+ ч'
+};
+// Стартовые априоры, откалиброванные на реальной статистике мойки (платные мойки ≥ 100 ₽)
+const FC_PRIOR = {
+  dry: 1.0,
+  mid: 0.58,        // умеренный дождь (3–5 ч) снижает поток платных моек примерно до 55–60%
+  long: 0.28,       // затяжной дождь (6+ ч, как 14.09, 24.09, 30.09) снижает поток до 25–30% (2–5 авто)
+  after1: 1.24,     // 1-й сухой день после обычного дождя
+  afterHeavy: 1.48, // пиковый выход после затяжных дождей (или в первый сухой выходной после дождливых будней)
+  after2: 1.20,     // 2-й сухой день после дождей (шлейф спроса, как 02.10 = 24 авто и 28.09 = 18 авто)
+  preRain: 0.76     // сухой день ПЕРЕД сильным дождём завтра
+};
+const FC_WD = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+
+const fcWdOf = d => new Date(d + 'T00:00:00').getDay();
+const fcAge = (a, b) => Math.round((new Date(a + 'T00:00:00') - new Date(b + 'T00:00:00')) / 864e5);
+const fcClamp = (x, a, b) => Math.min(b, Math.max(a, x));
+
+let fcWxSrc = null; // подмена источника погоды (использует замер точности); null — обычная погода приложения
+const fcRecOf = d => fcWxSrc ? fcWxSrc(d) : wxRec(d);
+
+/* Определение базовой группы осадков */
+const fcGroup = r => {
+  if(!r || r.rainHours == null) return null;
+  const h = Number(r.rainHours) || 0;
+  return h <= 2 ? 'dry' : (h <= 5 ? 'mid' : 'long');
+};
+const fcWet = g => (g === 'mid' || g === 'long') ? 1 : 0;
+const fcPrev = d => fcWet(fcGroup(fcRecOf(addDaysISO(d, -1))));
+
+/* Непрерывная оценка тяжести осадков за день с учётом почасового профиля мойки (0.0 — сухо, 1.0 — ливень в часы пик) */
+function fcDayWetScore(rec, prof){
+  if(!rec) return 0;
+  const hp = typeof wxHp === 'function' ? wxHp(rec) : [];
+  if(hp && hp.length){
+    let w = 0, wSum = 0;
+    const h1 = typeof WX_H1 !== 'undefined' ? WX_H1 : 6;
+    const h2 = typeof WX_H2 !== 'undefined' ? WX_H2 : 22;
+    for(let h = h1; h <= h2; h++){
+      const pWeight = (prof && prof[h]) ? prof[h] : (1 / (h2 - h1 + 1));
+      const mm = Math.max(0, Number(hp[h]) || 0);
+      const intensity = mm < 0.08 ? 0 : Math.min(1, Math.pow(mm / 1.1, 0.75));
+      w += pWeight * intensity;
+      wSum += pWeight;
+    }
+    return wSum > 0 ? fcClamp(w / wSum, 0, 1) : 0;
+  }
+  const rh = Number(rec.rainHours) || 0;
+  return fcClamp(rh / 9, 0, 1);
+}
+
+/* Многодневный контекст погоды вокруг даты `date`:
+   - что было за 1..4 дня ДО (индекс накопленной грязи и перенос спроса с дождливых будней на выходные)
+   - что будет ЗАВТРА (эффект отмены мойки перед дождём)
+   - индекс скорости высыхания асфальта (влажность + облачность + температура) */
+function fcContextOf(date, rec, prof){
+  const r0 = rec !== undefined ? rec : fcRecOf(date);
+  const r1 = fcRecOf(addDaysISO(date, -1));
+  const r2 = fcRecOf(addDaysISO(date, -2));
+  const r3 = fcRecOf(addDaysISO(date, -3));
+  const r4 = fcRecOf(addDaysISO(date, -4));
+  const rNext = fcRecOf(addDaysISO(date, 1));
+
+  const w0 = fcDayWetScore(r0, prof);
+  const w1 = fcDayWetScore(r1, prof);
+  const w2 = fcDayWetScore(r2, prof);
+  const w3 = fcDayWetScore(r3, prof);
+  const w4 = fcDayWetScore(r4, prof);
+  const wNext = fcDayWetScore(rNext, prof);
+
+  const g0 = fcGroup(r0) || 'dry';
+  const g1 = fcGroup(r1) || 'dry';
+  const g2 = fcGroup(r2) || 'dry';
+  const g3 = fcGroup(r3) || 'dry';
+
+  // Индекс накопленной на дорогах грязи за предыдущие 4 дня
+  const dirtMemory = (0.50 * w1) + (0.25 * w2) + (0.15 * w3) + (0.10 * w4);
+  const wd = fcWdOf(date);
+  const isFriOrWeekend = (wd === 5 || wd === 6 || wd === 0);
+
+  // Категория «После дождя»:
+  // 0 — обычный день (или сегодня сам идёт дождь)
+  // 1 — первый сухой день после 1 дня дождя
+  // 2 — мощный выброс отложенного спроса (после 2+ дней непогоды ИЛИ первый сухой выходной/Пт после сильных дождей на неделе)
+  // 3 — второй/третий сухой день после непогоды (шлейф очереди, как 02.10 или 28.09)
+  let afterState = 0;
+  if(g0 === 'dry'){
+    if((fcWet(g1) && fcWet(g2)) || (fcWet(g1) && w1 >= 0.45)){
+      afterState = 2;
+    } else if(isFriOrWeekend && (fcWet(g2) || fcWet(g3)) && dirtMemory >= 0.22){
+      // Синергия: дожди шли в будни (Ср/Чт), а в Пт/Сб/Вс вышло солнце (пример 27.09 = 32 авто, 02.10 = 24 авто)
+      afterState = 2;
+    } else if(fcWet(g1)){
+      afterState = 1;
+    } else if(!fcWet(g1) && (fcWet(g2) || fcWet(g3)) && dirtMemory >= 0.16){
+      afterState = 3;
+    }
+  }
+
+  // Эффект «Перед дождём»: сегодня сухо, но завтра ожидаются серьёзные осадки (3+ часа или wNext >= 0.28)
+  const isPreRain = (g0 === 'dry' && (fcWet(fcGroup(rNext)) || wNext >= 0.28)) ? 1 : 0;
+
+  // Температурно-дорожный режим + скорость высыхания луж
+  let tempMod = 1.0;
+  let tempTag = '';
+  if(r0 && r0.tmax != null && r0.tmin != null){
+    const tmax = Number(r0.tmax), tmin = Number(r0.tmin), tavg = (tmax + tmin) / 2;
+    const rh = Number(r0.rh) || 70;
+    const cloud = Number(r0.cloud) || 50;
+
+    if(tmax <= -12){
+      tempMod = fcClamp(0.82 + (tmax + 12) * 0.03, 0.50, 0.82);
+      tempTag = 'мороз ↓';
+    } else if(tavg >= -3.5 && tavg <= 3.5 && (w0 > 0.1 || w1 > 0.15)){
+      tempMod = 1.12;
+      tempTag = 'слякоть/реагенты';
+    } else if(g0 === 'dry' && tmax >= 16 && tmax <= 30 && cloud < 45){
+      tempMod = 1.05;
+    }
+
+    // Если это первый день после дождя, но влажность >= 88% и пасмурно — дороги ещё мокрые, пик сдвигается на следующий день
+    if(afterState > 0 && rh >= 88 && cloud >= 85 && tmax < 14){
+      tempMod *= 0.90;
+      if(!tempTag) tempTag = 'сырой асфальт';
+    } else if(afterState > 0 && rh <= 65 && cloud <= 40){
+      tempMod *= 1.07;
+    }
+  }
+
+  if(typeof isPreHoliday === 'function' && isPreHoliday(date) && g0 === 'dry'){
+    tempMod *= 1.08;
+    if(!tempTag) tempTag = 'предпраздничный ↑';
+  }
+
+  return {
+    g: g0,
+    w0, w1, w2, wNext,
+    dirtMemory,
+    afterState,
+    isPreRain,
+    tempMod,
+    tempTag
+  };
+}
+
+/* Дни истории (по заказам терминала): строго платные мойки (≥ 100 ₽) с часовой раскладкой + отдельно число акционных.
+   Также автоматически отсекает незавершённый последний день выгрузки, если данные оборвались днём. */
+function fcDays(upto, windowDays){
+  const by = {};
+  let maxDateInCache = '';
+  Object.values(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).forEach(o => {
+    if(!o || !o.date || FC_EXCLUDE_DATES.includes(o.date)) return;
+    if(o.date > maxDateInCache) maxDateInCache = o.date;
+    const h = ijOrderHour(o); if(h == null) return;
+    const x = by[o.date] || (by[o.date] = { date: o.date, n: 0, promo: 0, maxH: 0, h: Array(24).fill(0) });
+    if(h > x.maxH) x.maxH = h;
+    x.n++; x.h[h]++;
+  });
+
+  return Object.values(by).filter(x => {
+    if(x.date >= upto || fcAge(upto, x.date) > windowDays) return false;
+    // Если самый последний день в базе оборвался до 16:00 (например, выгрузка снята в обед 12.10 в 14:20) — не учимся на неполном дне
+    if(x.date === maxDateInCache && x.maxH < 16 && x.n <= 12) return false;
+    return true;
+  }).map(x => Object.assign(x, { wd: fcWdOf(x.date), rec: fcRecOf(x.date) }));
+}
+
+const fcSmooth = (p, a) => {
+  const q = p.slice();
+  for(let h = 0; h < 24; h++){
+    if(h > 0) q[h] += a * p[h - 1];
+    if(h < 23) q[h] += a * p[h + 1];
+  }
+  const t = q.reduce((x, y) => x + y, 0) || 1;
+  return q.map(v => v / t);
+};
+
+/* Мультипликативная самообучающаяся модель с двухконтурной памятью (Dual-Horizon):
+   1) Структура дней недели и погодные эластичности учатся на длинном окне `windowDays`
+   2) Текущий базовый уровень платного потока дотягивается по свежим 10–14 дням (`levelCorrection`),
+      чтобы мгновенно адаптироваться, когда заканчиваются акции «1 рубль» и клиенты переходят в платные мойки! */
+function fcFit(days, ref, useWx, windowDays){
+  const H = Math.max(14, Math.round(windowDays * 0.55));
+
+  const pooled = Array(24).fill(0), cnt = Array.from({ length: 8 }, () => Array(24).fill(0)), tot = Array(8).fill(0);
+  let pt = 0;
+  days.forEach(d => {
+    const age = fcAge(ref, d.date);
+    d.w = Math.pow(0.5, age / H);
+    d.wShort = Math.pow(0.5, age / 8.5); // быстрая память (полураспад 8.5 дней) для захвата текущего уровня спроса
+    d.hol = holidayName(d.date) ? 1 : 0;
+  });
+  const holN = days.filter(d => d.hol).length;
+  days.forEach(d => {
+    const r = (holN >= 2 && d.hol) ? 7 : d.wd;
+    for(let h = 0; h < 24; h++){
+      pooled[h] += d.w * d.h[h];
+      cnt[r][h] += d.w * d.h[h];
+    }
+    pt += d.w * d.n;
+    tot[r] += d.w * d.n;
+  });
+  const S = 60;
+  const prof = cnt.map((row, wd) => fcSmooth(row.map((c, h) => (c + S * (pt > 0 ? pooled[h] / pt : 1 / 24)) / (tot[wd] + S)), 0.25));
+  const avgProf = fcSmooth(pooled.map(v => pt > 0 ? v / pt : 1 / 24), 0.2);
+
+  days.forEach(d => {
+    d.nw = useWx && !fcGroup(d.rec);
+    const ctx = useWx ? fcContextOf(d.date, d.rec, prof[d.wd] || avgProf) : {
+      g: 'dry', w0: 0, w1: 0, dirtMemory: 0, afterState: 0, isPreRain: 0, tempMod: 1
+    };
+    d.g = ctx.g;
+    d.ctx = ctx;
+    d.p = (ctx.afterState === 1 || ctx.afterState === 2) ? 1 : 0;
+  });
+
+  const okDays = days.filter(d => !d.nw);
+  const fit = okDays.length >= 7 ? okDays : days;
+  const sw = fit.reduce((a, d) => a + d.w, 0) || 1;
+  const overall = fit.reduce((a, d) => a + d.w * d.n, 0) / sw;
+
+  const base = Array(7).fill(overall);
+  const mg = { dry: 1, mid: FC_PRIOR.mid, long: FC_PRIOR.long };
+  const mAfter = [1, FC_PRIOR.after1, FC_PRIOR.afterHeavy, FC_PRIOR.after2];
+  const mAfterPriors = [1, FC_PRIOR.after1, FC_PRIOR.afterHeavy, FC_PRIOR.after2];
+  const mPre = [1, FC_PRIOR.preRain];
+  let mh = 1;
+
+  const K = 2.6;
+  for(let it = 0; it < 12; it++){
+    for(let wd = 0; wd < 7; wd++){
+      let num = 0, den = 0;
+      fit.forEach(d => {
+        if(d.wd === wd && !(holN >= 2 && d.hol)){
+          const wxEff = mg[d.g] * mAfter[d.ctx.afterState] * mPre[d.ctx.isPreRain] * d.ctx.tempMod;
+          num += d.w * d.n;
+          den += d.w * wxEff;
+        }
+      });
+      base[wd] = den > 0 ? (num + 1.2 * overall) / (den + 1.2) : overall;
+    }
+
+    FC_GROUPS.forEach(g => {
+      let num = 0, den = 0, neff = 0;
+      fit.forEach(d => {
+        if(d.g === g){
+          const other = base[d.wd] * mAfter[d.ctx.afterState] * mPre[d.ctx.isPreRain] * d.ctx.tempMod * (holN >= 2 && d.hol ? mh : 1);
+          num += d.w * d.n;
+          den += d.w * other;
+          neff += d.w;
+        }
+      });
+      const raw = den > 0 ? num / den : FC_PRIOR[g];
+      mg[g] = fcClamp((raw * neff + K * FC_PRIOR[g]) / (neff + K), 0.12, 1.5);
+    });
+
+    [1, 2, 3].forEach(st => {
+      let num = 0, den = 0, neff = 0;
+      fit.forEach(d => {
+        if(d.ctx.afterState === st){
+          const other = base[d.wd] * mg[d.g] * mPre[d.ctx.isPreRain] * d.ctx.tempMod * (holN >= 2 && d.hol ? mh : 1);
+          num += d.w * d.n;
+          den += d.w * other;
+          neff += d.w;
+        }
+      });
+      const prior = mAfterPriors[st];
+      const raw = den > 0 ? num / den : prior;
+      mAfter[st] = fcClamp((raw * neff + K * prior) / (neff + K), 0.90, 1.85);
+    });
+
+    {
+      let num = 0, den = 0, neff = 0;
+      fit.forEach(d => {
+        if(d.ctx.isPreRain === 1){
+          const other = base[d.wd] * mg[d.g] * mAfter[d.ctx.afterState] * d.ctx.tempMod * (holN >= 2 && d.hol ? mh : 1);
+          num += d.w * d.n;
+          den += d.w * other;
+          neff += d.w;
+        }
+      });
+      const raw = den > 0 ? num / den : FC_PRIOR.preRain;
+      mPre[1] = fcClamp((raw * neff + K * FC_PRIOR.preRain) / (neff + K), 0.55, 1.05);
+    }
+
+    if(holN >= 2){
+      let num = 0, den = 0, neff = 0;
+      fit.forEach(d => {
+        if(d.hol){
+          const other = base[d.wd] * mg[d.g] * mAfter[d.ctx.afterState] * mPre[d.ctx.isPreRain] * d.ctx.tempMod;
+          num += d.w * d.n;
+          den += d.w * other;
+          neff += d.w;
+        }
+      });
+      mh = fcClamp(((den > 0 ? num / den : 1) * neff + 0.5) / (neff + 0.5), 0.4, 3.0);
+    }
+  }
+
+  // Двухконтурная калибровка: вычисляем коэффициент смещения уровня за последние ~10–14 дней (short-term momentum)
+  let shortNum = 0, shortDen = 0;
+  fit.forEach(d => {
+    const predBase = base[d.wd] * mg[d.g] * mAfter[d.ctx.afterState] * mPre[d.ctx.isPreRain] * d.ctx.tempMod * (holN >= 2 && d.hol ? mh : 1);
+    shortNum += d.wShort * d.n;
+    shortDen += d.wShort * predBase;
+  });
+  const rawShortRatio = shortDen > 0 ? (shortNum / shortDen) : 1.0;
+  // Мягко подтягиваем базу дней недели к актуальному уровню последних 2 недель
+  const levelCorrection = fcClamp((rawShortRatio * 3.5 + 1.0) / 4.5, 0.72, 1.45);
+  for(let wd = 0; wd < 7; wd++){
+    base[wd] *= levelCorrection;
+  }
+
+  const mp = [1, mAfter[1]];
+
+  let s2 = 0;
+  fit.forEach(d => {
+    const f = base[d.wd] * mg[d.g] * mAfter[d.ctx.afterState] * mPre[d.ctx.isPreRain] * d.ctx.tempMod * (holN >= 2 && d.hol ? mh : 1);
+    const r = Math.log((d.n + 1) / (f + 1));
+    s2 += d.w * r * r;
+  });
+  const sigma = Math.max(0.12, Math.sqrt(s2 / sw));
+
+  let O = 0, E = 0;
+  if(useWx) days.forEach(d => {
+    const hp = wxHp(d.rec); if(!hp.length) return;
+    for(let h = WX_H1; h <= WX_H2; h++){
+      if(hp[h] >= 0.2){
+        O += d.w * d.h[h];
+        E += d.w * d.n * prof[(holN >= 2 && d.hol) ? 7 : d.wd][h];
+      }
+    }
+  });
+  const rho = fcClamp((E > 0 ? (O / E) * E + 6 : 6) / (E + 6), 0.15, 1.2);
+
+  return { base, mg, mp, mAfter, mPre, mh, holN, prof, avgProf, rho, sigma, useWx, n: days.length, days, levelCorrection };
+}
+
+function fcPredict(m, date, rec, prevWet, off){
+  const wd = fcWdOf(date), hol = holidayName(date);
+  let b = m.base[wd], pw = wd;
+
+  let hf = 1;
+  if(hol){
+    if(m.holN >= 2){ hf = m.mh; pw = 7; }
+    else { const we = (m.base[0] + m.base[6]) / 2; if(we > b) b = we; pw = 0; }
+  }
+
+  const dayProf = m.prof[pw] || m.avgProf;
+  const ctx = m.useWx ? fcContextOf(date, rec, dayProf) : {
+    g: 'dry', w0: 0, w1: 0, dirtMemory: 0, afterState: 0, isPreRain: 0, tempMod: 1, tempTag: ''
+  };
+
+  if(m.useWx && prevWet === 1 && ctx.afterState === 0 && ctx.g === 'dry'){
+    ctx.afterState = 1;
+  }
+
+  const phi = FC_WX_TRUST[off || 0] == null ? 0.5 : FC_WX_TRUST[off || 0];
+
+  let weatherMult = m.mg[ctx.g];
+  if(m.useWx && rec){
+    if(ctx.g === 'dry' && ctx.w0 > 0.08){
+      weatherMult = m.mg.dry * (1 - 0.18 * (ctx.w0 / 0.25));
+    } else if(ctx.g === 'mid'){
+      const t = fcClamp((ctx.w0 - 0.20) / 0.35, -0.5, 0.5);
+      weatherMult = m.mg.mid * (1 - 0.15 * t);
+    }
+  }
+
+  const afterMult = m.useWx ? m.mAfter[ctx.afterState] : 1;
+  const preRainMult = m.useWx ? m.mPre[ctx.isPreRain] : 1;
+  const tempMult = m.useWx ? ctx.tempMod : 1;
+
+  const combinedWx = weatherMult * afterMult * preRainMult * tempMult;
+  const paid = b * hf * Math.pow(combinedWx, phi);
+  const total = paid;
+
+  const hp = wxHp(rec);
+  const wts = dayProf.map((s, h) => {
+    if(!m.useWx || h < WX_H1 || h > WX_H2 || !hp.length) return s;
+    const mm = Number(hp[h]) || 0;
+    if(mm >= 0.2){
+      const intensity = fcClamp(mm / 1.5, 0.4, 1.3);
+      return s * Math.pow(m.rho, intensity);
+    }
+    const prevMm1 = h > WX_H1 ? (Number(hp[h - 1]) || 0) : 0;
+    const prevMm2 = h > WX_H1 + 1 ? (Number(hp[h - 2]) || 0) : 0;
+    if(mm < 0.1 && (prevMm1 >= 0.3 || prevMm2 >= 0.4)){
+      return s * 1.22;
+    }
+    return s;
+  });
+
+  const ws = wts.reduce((a, b2) => a + b2, 0) || 1;
+  const k = Math.exp(1.28 * m.sigma * 1.3);
+
+  return {
+    date,
+    wd,
+    rec,
+    g: ctx.g,
+    ctx,
+    hol,
+    total,
+    paid,
+    lo: total / k,
+    hi: total * k,
+    hours: wts.map(w => total * w / ws),
+    wet: wts.map((_, h) => h >= WX_H1 && h <= WX_H2 && hp[h] >= 0.2)
+  };
+}
+
+/* Скользящая проверка: каждый день истории предсказываем по данным ДО него (по фактической погоде) и сравниваем с фактом */
+let fcRollCache = { key: '', val: null };
+const fcQuant = (a, q) => {
+  const b = a.slice().sort((x, y) => x - y);
+  return b[Math.min(b.length - 1, Math.max(0, Math.round(q * (b.length - 1))))];
+};
+function fcRolling(){
+  const today = todayISO();
+  const key = [fcWindow, Object.keys(typeof inteljetOrdersCache !== 'undefined' ? inteljetOrdersCache : {}).length, Object.keys(weatherStore).length, 'v3.1'].join('|');
+  if(fcRollCache.key === key) return fcRollCache.val;
+  const all = fcDays(today, 400).sort((a, b) => a.date < b.date ? -1 : 1);
+  const R = []; let err = 0, act = 0;
+  for(let i = 14; i < all.length; i++){
+    const T = all[i].date;
+    const train = all.filter(d => d.date < T && fcAge(T, d.date) <= fcWindow).map(d => Object.assign({}, d));
+    if(train.length < 10) continue;
+    const useWx = train.filter(d => d.rec).length / train.length >= 0.6;
+    const p = fcPredict(fcFit(train, T, useWx, fcWindow), T, all[i].rec, fcPrev(T), 0).total;
+    const a = all[i].n;
+    R.push(Math.log((a + 1) / (p + 1))); err += Math.abs(p - a); act += a;
+  }
+  const val = R.length >= 20 && act > 0 ? { n: R.length, wape: Math.round(err / act * 100), q10: fcQuant(R, 0.1), q90: fcQuant(R, 0.9) } : null;
+  fcRollCache = { key, val };
+  return val;
+}
+
+/* Прогноз на любой день: обучение только на днях ДО него; для прошлых дней — «что мы бы предсказали», для будущих — обычный прогноз */
+function fcForDate(date){
+  const days = fcDays(date, fcWindow);
+  if(days.length < 7) return null;
+  const useWx = days.filter(d => d.rec).length / days.length >= 0.6;
+  const m = fcFit(days, date, useWx, fcWindow);
+  const off = Math.max(0, Math.min(7, fcAge(date, todayISO())));
+  const p = fcPredict(m, date, wxRec(date), fcPrev(date), off);
+  const roll = fcRolling();
+  if(roll){
+    p.lo = Math.max(0, (p.total + 1) * Math.exp(roll.q10) - 1);
+    p.hi = (p.total + 1) * Math.exp(roll.q90) - 1;
+  }
+  return p;
+}
