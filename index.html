@@ -388,9 +388,15 @@
       <span>Среднесуточный поток</span>
       <b id="anAvgCars">0</b>
     </div>
-    <div class="hero-card success">
-      <span>Исправность (Uptime)</span>
-      <b id="anUptime">100%</b>
+    <div class="hero-card">
+      <span>Рекорд смены (всё время)</span>
+      <b id="anHeroRecordShift">0</b>
+      <div class="hero-sub" id="anHeroRecordShiftDate">—</div>
+    </div>
+    <div class="hero-card">
+      <span>Рекорд за 3 часа (всё время)</span>
+      <b id="anHeroRecord3h">0</b>
+      <div class="hero-sub" id="anHeroRecord3hDate">—</div>
     </div>
   </div>
 
@@ -421,14 +427,14 @@
       </div>
     </div>
 
-    <!-- Правая колонка: Рекорд смены (на одном уровне с календарем) -->
+    <!-- Правая колонка: Показатели за выбранный месяц (на одном уровне с календарем) -->
     <div class="chart-card record-card" id="recordDayCard">
       <h3>
         <span style="display:flex;align-items:center;gap:7px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;color:#f59e0b"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          Рекорд смены
+          <span id="recordMonthCardTitle">Показатели</span>
         </span>
-        <small>рекорды и итог месяца</small>
+        <small id="recordMonthSubtitle">итоги выбранного месяца</small>
       </h3>
       <div id="recordDayContent"></div>
     </div>
@@ -450,20 +456,11 @@
   <!-- БЛОК INTELJET: ДАННЫЕ ТЕРМИНАЛА (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
   <div id="inteljetContainer" style="display:none"></div>
 
-  <!-- КЛИЕНТЫ И ПРИЛОЖЕНИЕ: номера из терминала и отметки (только суперадмин) -->
-  <div id="clientsContainer" style="display:none"></div>
-
   <!-- МОЙКИ ПО ЧАСАМ (INTELJET Live, только суперадмин) -->
   <div id="hourlyStatsContainer" style="display:none"></div>
 
   <!-- ТЕПЛОВАЯ КАРТА: ДЕНЬ НЕДЕЛИ × ЧАС (INTELJET Live, только суперадмин) -->
   <div id="heatmapContainer" style="display:none"></div>
-
-  <!-- ПРОГНОЗ ЗАГРУЗКИ НА 7 ДНЕЙ (погода, праздники, почасовой профиль; только суперадмин) -->
-  <div id="forecastContainer" style="display:none"></div>
-
-  <!-- ИМПОРТ ИСТОРИИ МОЕК ИЗ JSON (только суперадмин) -->
-  <div id="historyImportContainer" style="display:none"></div>
 
   <!-- НИЖНИЕ КАРТОЧКИ АНАЛИТИКИ (2 В РЯДУ НА 50% / 50%) -->
   <div class="an-bottom-grid">
@@ -674,10 +671,8 @@
 <script src="js/inventory.js"></script>
 <script src="js/report.js"></script>
 <script src="js/analytics.js"></script>
-<script src="js/clients.js"></script>
 <script src="js/weather.js"></script>
 <script src="js/forecast.js"></script>
-<script src="js/forecast-lab.js"></script>
 <script src="js/guide.js"></script>
 <script src="js/app.js"></script>
 <script src="js/auth.js"></script>
