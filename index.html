@@ -144,13 +144,19 @@
 
 <!-- ВКЛАДКА 1: СКЛАД -->
 <section id="viewInventory" class="view active">
-  <section class="report-bar">
+  <div class="inventory-subtabs" role="tablist" aria-label="Раздел склада">
+    <button type="button" class="inventory-subtab active" id="inventoryMainTab" role="tab" aria-selected="true" onclick="switchInventoryGroup('main')">Основной</button>
+    <button type="button" class="inventory-subtab" id="inventoryOtherTab" role="tab" aria-selected="false" onclick="switchInventoryGroup('other')">Прочее</button>
+  </div>
+
+  <section class="report-bar" id="inventoryReportBar">
     <div class="report-text">Остаток химии на <b id="reportDate"></b></div>
     <button class="btn copy-btn" id="copyBtn" onclick="copyReport()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       <span>Копировать</span>
     </button>
   </section>
+  <div id="otherInventoryNote" class="other-stock-note" style="display:none">Прочие позиции хранятся отдельно и не попадают в «Остатки химии».</div>
 
   <section class="stats">
     <div class="stat"><b id="itemsCount">0</b><span>позиций</span></div>
@@ -165,6 +171,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
+    <button type="button" class="btn delivery-btn" onclick="openDelivery()" title="Добавить поставку на склад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v12H3z"/><path d="M14 11h4l3 3v5h-7z"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="17.5" cy="19" r="1.5"/><path d="M7 11h4M9 9v4"/></svg>
+      <span>Доставка</span>
+    </button>
     <button type="button" class="btn secondary" onclick="openInvHistory()" title="История склада" style="padding:11px 13px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <span class="label-text">История</span>
@@ -190,6 +200,11 @@
         Интерактивное обучение (в слайдах)
       </button>
     </div>
+  </div>
+
+  <div id="emptyOtherHint" class="empty-hint other-empty-hint" style="display:none">
+    <b>В разделе «Прочее» пока нет позиций</b>
+    <p>Добавьте их через кнопку «Доставка»: выберите «Прочее» и создайте новую позицию.</p>
   </div>
 
   <main id="cards" class="grid"></main>
@@ -371,8 +386,13 @@
 <!-- ВКЛАДКА 3: АНАЛИТИКА (ТОЛЬКО ДЛЯ ТАГАНРОГСКАЯ 134Б) -->
 <section id="viewAnalytics" class="view">
   <!-- Кнопка очистки аналитики -->
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+  <div class="analytics-titlebar">
     <h2 style="margin:0; font-size:19px; color:var(--text); font-weight:800;">Аналитика сети</h2>
+    <label class="analytics-filter-toggle" for="excludeOneRubleWashes">
+      <input id="excludeOneRubleWashes" type="checkbox" onchange="setExcludeOneRubleWashes(this.checked)">
+      <span class="analytics-filter-switch" aria-hidden="true"></span>
+      <span>Исключить мойки за 1р.</span>
+    </label>
     <button type="button" class="btn danger" style="padding:8px 12px; font-size:12px;" onclick="clearAnalytics()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
       Очистить
@@ -609,10 +629,24 @@
   </div>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО: ДОСТАВКА НА СКЛАД -->
+<div id="deliveryModal" class="modal-backdrop" onclick="if(event.target===this)closeDelivery()">
+  <div class="modal delivery-modal">
+    <h2>Доставка на склад</h2>
+    <p class="delivery-hint">Выберите раздел и позицию. Новые пункты можно создать прямо здесь; позиции «Прочее» не попадут в «Остатки химии».</p>
+    <div id="deliveryRows" class="delivery-rows"></div>
+    <button type="button" class="btn secondary delivery-add-row" onclick="addDeliveryRow()">+ Добавить позицию</button>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="closeDelivery()">Отмена</button>
+      <button type="button" class="btn" onclick="saveDelivery()">Сохранить доставку</button>
+    </div>
+  </div>
+</div>
+
 <!-- МОДАЛЬНОЕ ОКНО: ИСТОРИЯ СКЛАДА -->
 <div id="invHistoryModal" class="modal-backdrop" onclick="if(event.target===this)closeInvHistory()">
   <div class="modal">
-    <h2>История склада</h2>
+    <h2 id="invHistoryTitle">История склада</h2>
     <div id="invHistoryList" class="history-modal-list"></div>
     <div class="modal-actions" style="margin-top:14px">
       <button type="button" class="btn secondary" onclick="closeInvHistory()">Закрыть</button>
