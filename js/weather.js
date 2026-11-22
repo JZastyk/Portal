@@ -1,4 +1,4 @@
-﻿/* ===== Погода и праздничные дни (Open-Meteo, без ключа) ===== */
+/* ===== Погода и праздничные дни (Open-Meteo, без ключа) ===== */
 // Ростов-на-Дону, Таганрогская 134Б (район). Сетка погодных моделей ~10 км — точный дом не нужен.
 const WEATHER_LAT = 47.27, WEATHER_LON = 39.65;
 const WX_H1 = 6, WX_H2 = 22; // «дневные» часы, по которым считаются осадки
@@ -182,9 +182,9 @@ function wxPersistLocal(){
   try{ localStorage.setItem('wx_store_' + locId, JSON.stringify(weatherStore)); }catch(e){}
 }
 function wxRerender(){
-  if(typeof renderCalendar === 'function') renderCalendar();
-  if(typeof renderDayDetailCard === 'function') renderDayDetailCard();
-  if(typeof renderHourlyStats === 'function') renderHourlyStats();
+  if(!isAnalyticsActive()) return;
+  renderCalendar();
+  renderDayDetailCard();
 }
 
 /* Догружает недостающие дни истории (архив) и прогноз на 10 дней; всё, что до сегодня, пишется в базу */
