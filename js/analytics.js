@@ -76,8 +76,12 @@ function ijVisibleOrders(orders){
 const RU_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const RU_WEEKDAYS = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
 
+function isAnalyticsActive(){
+  return document.getElementById('viewAnalytics')?.classList.contains('active');
+}
+
 function renderAnalytics(){
-  if(!isCurrentSuperAdmin()) return;
+  if(!isAnalyticsActive() || !isCurrentSuperAdmin()) return;
   syncAnalyticsFilterPreference();
   const uniqueReports = getUniqueDailyReports();
   let totalCars = 0;
@@ -175,19 +179,14 @@ function renderAnalytics(){
   if(dateInput) dateInput.value = calSelectedDate;
 
   // Отрисовка календаря и карточки выбранного дня
-  renderCalendar();
+  renderCalendar(dailyMap);
   renderDayDetailCard();
 
-  // Отрисовка нижних аналитических карточек (рейтинг дней недели + рекорд)
+  // Отрисовка рейтинга дней недели
   renderBusiestDaysRanking(uniqueReports);
-  renderRecordDayCard(uniqueReports);
 
   // Отрисовка общей загрузки по боксам за всё время
   renderBoxesMetricList(boxCounts, totalCars, boxCountNum);
-
-  if(typeof renderInteljetAnalytics === 'function'){
-    renderInteljetAnalytics();
-  }
 
   // Проход рукава и расход химии (таблицы + графики)
   renderMetricAnalytics();
@@ -308,15 +307,14 @@ function buildDailyStatsMap(uniqueReports){
 /**
  * Отрисовка кастомного календаря с переключением месяца и пометками
  */
-function renderCalendar(){
+function renderCalendar(dailyStatsMap){
   const titleEl = document.getElementById('calMonthTitle');
   const gridEl = document.getElementById('calDaysGrid');
   if(!titleEl || !gridEl) return;
 
   titleEl.textContent = `${RU_MONTHS[calMonth]} ${calYear}`;
 
-  const uniqueReports = getUniqueDailyReports();
-  const dailyStatsMap = buildDailyStatsMap(uniqueReports);
+  if(!dailyStatsMap) dailyStatsMap = buildDailyStatsMap(getUniqueDailyReports());
 
   const firstDay = new Date(calYear, calMonth, 1);
   const startOffset = (firstDay.getDay() + 6) % 7; // Понедельник = 0
@@ -385,7 +383,7 @@ function renderCalendar(){
   gridEl.innerHTML = html;
 
   // Показатели выбранного месяца в карточке рекордов следуют за выбранным месяцем
-  renderRecordDayCard(uniqueReports);
+  renderRecordDayCard(dailyStatsMap);
 }
 
 function prevCalMonth(){
@@ -708,7 +706,7 @@ function getMonthRevenueStats(prefix){
 /**
  * Правый блок рядом с календарём: показатели выбранного месяца (выручка, машин, рекорд смены, рекорд 3ч).
  */
-function renderRecordDayCard(uniqueReports){
+function renderRecordDayCard(dailyStatsMap){
   const el = document.getElementById('recordDayContent');
   if(!el) return;
 
@@ -720,8 +718,7 @@ function renderRecordDayCard(uniqueReports){
 
   const prefix = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-`;
   const boxCountNum = Number(settings.boxCount) || 0;
-  const reports = uniqueReports || getUniqueDailyReports();
-  const dailyStatsMap = buildDailyStatsMap(reports);
+  if(!dailyStatsMap) dailyStatsMap = buildDailyStatsMap(getUniqueDailyReports());
 
   // 1. Общая выручка за выбранный месяц (без бонусов) — скрыта по умолчанию, видна при удержании иконки глазика
   const revStats = getMonthRevenueStats(prefix);
@@ -843,10 +840,16 @@ function renderRecordDayCard(uniqueReports){
   attachMonthRevenueHoldListener(revStats.revenue, revSubReal, revSubMasked);
 }
 
+let monthRevenueBlurHandler = null;
+
 /**
  * Обработчик удержания иконки глазика: число выручки показывается ТОЛЬКО пока иконка/цифра зажата.
  */
 function attachMonthRevenueHoldListener(realRevenue, realSub, maskedSub){
+  if(monthRevenueBlurHandler){
+    window.removeEventListener('blur', monthRevenueBlurHandler);
+    monthRevenueBlurHandler = null;
+  }
   const btn = document.getElementById('btnRevealMonthRev');
   const valEl = document.getElementById('monthRevDisplay');
   const subEl = document.getElementById('monthRevSub');
@@ -925,11 +928,12 @@ function attachMonthRevenueHoldListener(realRevenue, realSub, maskedSub){
     return false;
   });
 
-  window.addEventListener('blur', hide);
+  monthRevenueBlurHandler = hide;
+  window.addEventListener('blur', monthRevenueBlurHandler);
 }
 
 function renderRecordMonth(dailyStatsMap){
-  renderRecordDayCard(getUniqueDailyReports());
+  renderRecordDayCard(dailyStatsMap);
 }
 
 /**
