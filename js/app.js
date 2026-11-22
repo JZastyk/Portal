@@ -1,4 +1,4 @@
-﻿/* ===== Переключение вкладок и запуск приложения после авторизации ===== */
+/* ===== Переключение вкладок и запуск приложения после авторизации ===== */
 /* ===== Вкладки приложения ===== */
 function switchTab(tab){
  if(tab==='analytics' && !isCurrentSuperAdmin()){
@@ -129,17 +129,11 @@ function initInteljetSync(){
    inteljetOrdersCache = val;
    try{ localStorage.setItem('inteljet_orders_' + locId, JSON.stringify(val)); }catch(e){ /* локальный кэш переполнен — данные всё равно берутся из базы */ }
    if(typeof weatherSync === 'function') weatherSync();
-   if(typeof renderInteljetAnalytics === 'function'){
-     renderInteljetAnalytics();
-   }
-   if(typeof renderDateDetailCard === 'function'){
-     renderDateDetailCard();
-   }
    if(typeof applyInteljetAutofill === 'function'){
      applyInteljetAutofill();
      if(typeof renderReportPreview === 'function') renderReportPreview();
    }
-   if(typeof renderAnalytics === 'function'){
+   if(isAnalyticsActive()){
      renderAnalytics();
    }
  });
